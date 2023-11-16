@@ -10,6 +10,9 @@ Welcome to frame2's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   directives
+   requirements
+
 
 
 Indices and tables
