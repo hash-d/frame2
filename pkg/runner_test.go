@@ -363,9 +363,9 @@ func TestInner(t *testing.T) {
 			}, {
 				Doc: "The containing step for the named inner phase 1",
 				Modify: frame2.Phase{
-					//			Runner: &runner,
-					Name: "Phase-Inner-1",
-					Doc:  "The inner phase 1",
+					Runner: &runner,
+					Name:   "Phase-Inner-1",
+					Doc:    "The inner phase 1",
 					MainSteps: []frame2.Step{
 						{
 							Doc:    "The inner phase's step",
@@ -387,9 +387,9 @@ func TestInner(t *testing.T) {
 			}, {
 				Doc: "The containing step for the named inner phase 2",
 				Modify: frame2.Phase{
-					//			Runner: &runner,
-					Name: "Phase-Inner-2",
-					Doc:  "The inner phase 2",
+					Runner: &runner,
+					Name:   "Phase-Inner-2",
+					Doc:    "The inner phase 2",
 					MainSteps: []frame2.Step{
 						{
 							Doc:    "The inner phase's step",
