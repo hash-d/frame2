@@ -3,10 +3,10 @@ package topology_test
 import (
 	"testing"
 
-	"github.com/skupperproject/skupper/test/frame2"
-	"github.com/skupperproject/skupper/test/frame2/execute"
-	"github.com/skupperproject/skupper/test/frame2/topology"
-	"github.com/skupperproject/skupper/test/frame2/topology/topologies"
+	frame2 "github.com/hash-d/frame2/pkg"
+	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/topology"
+	"github.com/hash-d/frame2/pkg/topology/topologies"
 	"github.com/skupperproject/skupper/test/utils/base"
 )
 

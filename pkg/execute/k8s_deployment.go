@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/skupperproject/skupper/test/frame2"
+	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/skupperproject/skupper/test/utils/base"
 	"github.com/skupperproject/skupper/test/utils/k8s"
 	appsv1 "k8s.io/api/apps/v1"

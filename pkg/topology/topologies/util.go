@@ -3,7 +3,7 @@ package topologies
 import (
 	"fmt"
 
-	"github.com/skupperproject/skupper/test/frame2/topology"
+	"github.com/hash-d/frame2/pkg/topology"
 	"github.com/skupperproject/skupper/test/utils/base"
 )
 

@@ -6,8 +6,8 @@ import (
 	"math/rand"
 	"strconv"
 
+	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/skupperproject/skupper/api/types"
-	"github.com/skupperproject/skupper/test/frame2"
 	"github.com/skupperproject/skupper/test/utils/base"
 )
 

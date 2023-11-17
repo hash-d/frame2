@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/skupperproject/skupper/test/frame2"
+	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/skupperproject/skupper/test/utils/base"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

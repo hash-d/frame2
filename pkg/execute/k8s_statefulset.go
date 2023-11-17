@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/skupperproject/skupper/test/frame2"
+	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/skupperproject/skupper/test/utils/base"
 	apps "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

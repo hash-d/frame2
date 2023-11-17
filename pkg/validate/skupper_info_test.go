@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/skupperproject/skupper/test/frame2"
-	"github.com/skupperproject/skupper/test/frame2/environment"
-	"github.com/skupperproject/skupper/test/frame2/execute"
-	"github.com/skupperproject/skupper/test/frame2/topology"
-	"github.com/skupperproject/skupper/test/frame2/validate"
+	frame2 "github.com/hash-d/frame2/pkg"
+	"github.com/hash-d/frame2/pkg/environment"
+	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/topology"
+	"github.com/hash-d/frame2/pkg/validate"
 	"gotest.tools/assert"
 )
 

@@ -1,10 +1,10 @@
 package environment
 
 import (
-	"github.com/skupperproject/skupper/test/frame2"
-	"github.com/skupperproject/skupper/test/frame2/deploy"
-	"github.com/skupperproject/skupper/test/frame2/topology"
-	"github.com/skupperproject/skupper/test/frame2/topology/topologies"
+	frame2 "github.com/hash-d/frame2/pkg"
+	"github.com/hash-d/frame2/pkg/deploy"
+	"github.com/hash-d/frame2/pkg/topology"
+	"github.com/hash-d/frame2/pkg/topology/topologies"
 	"github.com/skupperproject/skupper/test/utils/base"
 )
 

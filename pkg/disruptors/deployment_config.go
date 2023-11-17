@@ -3,9 +3,9 @@ package disruptors
 import (
 	"log"
 
+	frame2 "github.com/hash-d/frame2/pkg"
+	"github.com/hash-d/frame2/pkg/execute"
 	osappsv1 "github.com/openshift/api/apps/v1"
-	"github.com/skupperproject/skupper/test/frame2"
-	"github.com/skupperproject/skupper/test/frame2/execute"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

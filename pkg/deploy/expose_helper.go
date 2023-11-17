@@ -3,8 +3,8 @@ package deploy
 import (
 	"fmt"
 
-	"github.com/skupperproject/skupper/test/frame2"
-	"github.com/skupperproject/skupper/test/frame2/execute"
+	frame2 "github.com/hash-d/frame2/pkg"
+	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/skupperproject/skupper/test/utils/base"
 	apiv1 "k8s.io/api/core/v1"
 )

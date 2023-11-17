@@ -1,8 +1,8 @@
 package disruptors
 
 import (
-	"github.com/skupperproject/skupper/test/frame2"
-	"github.com/skupperproject/skupper/test/frame2/validate"
+	frame2 "github.com/hash-d/frame2/pkg"
+	"github.com/hash-d/frame2/pkg/validate"
 )
 
 type SkipManifestCheck struct {

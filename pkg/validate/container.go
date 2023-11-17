@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 
+	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/skupperproject/skupper/api/types"
 	"github.com/skupperproject/skupper/pkg/kube"
-	"github.com/skupperproject/skupper/test/frame2"
 	"github.com/skupperproject/skupper/test/utils/base"
 	v1 "k8s.io/api/core/v1"
 )

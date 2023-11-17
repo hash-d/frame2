@@ -5,7 +5,7 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/skupperproject/skupper/test/frame2"
+	frame2 "github.com/hash-d/frame2/pkg"
 )
 
 type MinAllows struct {

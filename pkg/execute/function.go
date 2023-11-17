@@ -1,6 +1,6 @@
 package execute
 
-import "github.com/skupperproject/skupper/test/frame2"
+import frame2 "github.com/hash-d/frame2/pkg"
 
 // Give it a function, and it will execute.  No options,
 // as we can predict what would be needed.  If you need

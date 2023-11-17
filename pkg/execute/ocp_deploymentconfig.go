@@ -10,7 +10,7 @@ import (
 	osappsv1 "github.com/openshift/api/apps/v1"
 	clientset "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 
-	"github.com/skupperproject/skupper/test/frame2"
+	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/skupperproject/skupper/test/utils/base"
 	"github.com/skupperproject/skupper/test/utils/k8s"
 	v1 "k8s.io/api/core/v1"

@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
+	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/imdario/mergo"
-	"github.com/skupperproject/skupper/test/frame2"
 	"github.com/skupperproject/skupper/test/utils/base"
 	"github.com/skupperproject/skupper/test/utils/skupper/cli"
 )

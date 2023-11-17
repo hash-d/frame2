@@ -1,6 +1,6 @@
 package execute
 
-import "github.com/skupperproject/skupper/test/frame2"
+import frame2 "github.com/hash-d/frame2/pkg"
 
 type SkupperInit struct {
 	frame2.Execute

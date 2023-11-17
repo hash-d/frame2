@@ -3,8 +3,8 @@ package validate
 import (
 	"context"
 
+	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/skupperproject/skupper/api/types"
-	"github.com/skupperproject/skupper/test/frame2"
 	"github.com/skupperproject/skupper/test/utils/base"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

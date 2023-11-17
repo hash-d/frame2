@@ -3,7 +3,7 @@ package topologies
 import (
 	"fmt"
 
-	"github.com/skupperproject/skupper/test/frame2/topology"
+	"github.com/hash-d/frame2/pkg/topology"
 )
 
 // Replace the complexity of TopologyMap being on the same interface
