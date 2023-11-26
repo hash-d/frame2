@@ -7,11 +7,16 @@ import (
 )
 
 func TestNginxDeploy(t *testing.T) {
+	//baseRunner := base.ClusterTestRunnerBase{}
+
 	r := &frame2.Run{
 		T: t,
 	}
 	p := frame2.Phase{
 		Runner: r,
+		Setup:  []frame2.Step{
+			//			execute.K
+		},
 	}
 	p.Run()
 }
