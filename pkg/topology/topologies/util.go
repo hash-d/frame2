@@ -88,6 +88,9 @@ func (c *contextHolder) GetAllStrict(kind topology.ClusterType) []base.ClusterCo
 }
 
 // Get a list with all clusterContexts, regardless of type or role
-func (c *contextHolder) ListAll() []base.ClusterContext {
-	panic("not implemented") // TODO: Implement
+func (c *contextHolder) ListAll() []*base.ClusterContext {
+	ret := []*base.ClusterContext{}
+	ret = append(ret, c.TopologyMap.Public...)
+	ret = append(ret, c.TopologyMap.Private...)
+	return ret
 }

@@ -49,7 +49,7 @@ type Basic interface {
 	GetAllStrict(kind ClusterType) []base.ClusterContext
 
 	// Get a list with all clusterContexts, regardless of type or role
-	ListAll() []base.ClusterContext
+	ListAll() []*base.ClusterContext
 }
 
 // This represents a Topology which starts with a main branch and a secondary
