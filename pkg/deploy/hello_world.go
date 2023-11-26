@@ -10,6 +10,7 @@ import (
 	"github.com/hash-d/frame2/pkg/validate"
 	"github.com/skupperproject/skupper/test/utils/base"
 	"github.com/skupperproject/skupper/test/utils/k8s"
+	"github.com/skupperproject/skupper/test/utils/tools"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -274,9 +275,11 @@ func (h HelloWorldValidate) Validate() error {
 }
 
 type HelloWorldValidateFront struct {
-	Namespace   *base.ClusterContext
-	ServiceName string // default is hello-world-frontend
-	ServicePort int    // default is 8080
+	Namespace       *base.ClusterContext
+	ServiceName     string // default is hello-world-frontend
+	ServicePort     int    // default is 8080
+	ServiceInsecure bool   // Ignores certificate problems
+	ServiceProto    string // default is http
 
 	frame2.Log
 	frame2.DefaultRunDealer
@@ -294,15 +297,22 @@ func (h HelloWorldValidateFront) Validate() error {
 	if port == 0 {
 		port = 8080
 	}
+	proto := h.ServiceProto
+	if proto == "" {
+		proto = "http"
+	}
 	phase := frame2.Phase{
 		Runner: h.Runner,
 		MainSteps: []frame2.Step{
 			{
 				Validator: &validate.Curl{
 					Namespace:   h.Namespace,
-					Url:         fmt.Sprintf("http://%s:%d", svc, port),
+					Url:         fmt.Sprintf("%s://%s:%d", proto, svc, port),
 					Fail400Plus: true,
 					Log:         h.Log,
+					CurlOptions: tools.CurlOpts{
+						Insecure: h.ServiceInsecure,
+					},
 				},
 			},
 		},
@@ -312,10 +322,12 @@ func (h HelloWorldValidateFront) Validate() error {
 }
 
 type HelloWorldValidateBack struct {
-	Namespace   *base.ClusterContext
-	ServiceName string // default is hello-world-backend
-	ServicePort int    // default is 8080
-	ServicePath string // default is api/hello
+	Namespace       *base.ClusterContext
+	ServiceName     string // default is hello-world-backend
+	ServicePort     int    // default is 8080
+	ServicePath     string // default is api/hello
+	ServiceProto    string // default http
+	ServiceInsecure bool   // ignores cert problems
 
 	frame2.Log
 	frame2.DefaultRunDealer
@@ -337,15 +349,22 @@ func (h HelloWorldValidateBack) Validate() error {
 	if path == "" {
 		path = "api/hello"
 	}
+	proto := h.ServiceProto
+	if proto == "" {
+		proto = "http"
+	}
 	phase := frame2.Phase{
 		Runner: h.Runner,
 		MainSteps: []frame2.Step{
 			{
 				Validator: &validate.Curl{
 					Namespace:   h.Namespace,
-					Url:         fmt.Sprintf("http://%s:%d/%s", svc, port, path),
+					Url:         fmt.Sprintf("%s://%s:%d/%s", proto, svc, port, path),
 					Fail400Plus: true,
 					Log:         h.Log,
+					CurlOptions: tools.CurlOpts{
+						Insecure: h.ServiceInsecure,
+					},
 				},
 			},
 		},
