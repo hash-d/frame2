@@ -16,7 +16,8 @@ type Kubectl struct {
 	// cleared before execution.
 	Cmd Cmd
 
-	Runner frame2.Run
+	frame2.Log
+	frame2.DefaultRunDealer
 }
 
 func (k Kubectl) Execute() error {

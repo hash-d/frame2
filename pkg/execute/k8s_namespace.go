@@ -11,6 +11,9 @@ import (
 type TestRunnerCreateNamespace struct {
 	Namespace    *base.ClusterContext
 	AutoTearDown bool
+
+	frame2.DefaultRunDealer
+	frame2.Log
 }
 
 func (trcn TestRunnerCreateNamespace) Execute() error {
