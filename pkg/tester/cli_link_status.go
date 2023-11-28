@@ -7,11 +7,12 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/skupperexecute"
 	"github.com/skupperproject/skupper/test/utils/skupper/cli"
 )
 
 type CliLinkStatus struct {
-	execute.CliLinkStatus
+	skupperexecute.CliLinkStatus
 
 	// List of links that should show on the status
 	Outgoing       []CliLinkStatusOutgoing

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/skupperexecute"
 	"github.com/skupperproject/skupper/test/utils/base"
 )
 
@@ -54,7 +54,7 @@ func (m *Migrate) Execute() error {
 		MainSteps: []frame2.Step{
 			{
 				Doc: fmt.Sprintf("Install Skupper on new namespace %q", m.To.Namespace),
-				Modify: &execute.SkupperInstallSimple{
+				Modify: &skupperexecute.SkupperInstallSimple{
 					Namespace: m.To,
 				},
 			},
@@ -81,7 +81,7 @@ func (m *Migrate) Execute() error {
 	for _, l := range links {
 		linkSteps = append(linkSteps, frame2.Step{
 			Doc: fmt.Sprintf("connecting %v to %v", l.from.Namespace, l.to.Namespace),
-			Modify: execute.SkupperConnect{
+			Modify: skupperexecute.SkupperConnect{
 				Name: fmt.Sprintf("%v-to-%v", l.from.Namespace, l.to.Namespace),
 				From: l.from,
 				To:   l.to,
@@ -102,7 +102,7 @@ func (m *Migrate) Execute() error {
 	for _, l := range m.UnlinkFrom {
 		unlinkSteps = append(unlinkSteps, frame2.Step{
 			Doc: fmt.Sprintf("removing link from %v to %v", l.Namespace, m.From.Namespace),
-			Modify: execute.SkupperUnLink{
+			Modify: skupperexecute.SkupperUnLink{
 				Name:   fmt.Sprintf("%v-to-%v", l.Namespace, m.From.Namespace),
 				From:   l,
 				To:     m.From,
@@ -122,7 +122,7 @@ func (m *Migrate) Execute() error {
 		MainSteps: []frame2.Step{
 			{
 				Doc: "remove skupper from the old namespace",
-				Modify: &execute.SkupperDelete{
+				Modify: &skupperexecute.SkupperDelete{
 					Namespace: m.From,
 				},
 			},

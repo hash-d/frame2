@@ -1,10 +1,11 @@
-package execute
+package skupperexecute
 
 import (
 	"context"
 	"time"
 
 	frame2 "github.com/hash-d/frame2/pkg"
+	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/hash-d/frame2/pkg/validate"
 	"github.com/skupperproject/skupper/test/utils/base"
 )
@@ -70,7 +71,7 @@ func (s SkupperUpgrade) Execute() error {
 				Modify: &CliSkupper{
 					ClusterContext: s.Namespace,
 					Args:           args,
-					Cmd: Cmd{
+					Cmd: execute.Cmd{
 						Ctx: ctx,
 					},
 				},

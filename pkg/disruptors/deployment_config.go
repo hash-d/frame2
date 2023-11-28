@@ -5,6 +5,7 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/skupperexecute"
 	osappsv1 "github.com/openshift/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -84,7 +85,7 @@ func (d DeploymentConfigBlindly) Inspect(step *frame2.Step, phase *frame2.Phase)
 			DefaultRunDealer: mod.DefaultRunDealer,
 		}
 		step.Modify = &newMod
-	case *execute.SkupperExpose:
+	case *skupperexecute.SkupperExpose:
 		if mod.Type == "deployment" {
 			log.Printf("[D] DEPLOYMENTCONFIG_BLINDLY overriding SkupperExpose for %q as 'deploymentconfig'", mod.Name)
 			mod.Type = "deploymentconfig"

@@ -1,4 +1,4 @@
-package execute
+package skupperexecute
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"time"
 
 	frame2 "github.com/hash-d/frame2/pkg"
+	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/skupperproject/skupper/test/utils/base"
 )
 
@@ -116,7 +117,7 @@ func (ssd SkupperServiceDelete) Execute() error {
 	if ssd.Wait != 0 {
 		ctx, fn = context.WithTimeout(ctx, ssd.Wait)
 		defer fn()
-		validator = &K8SServiceGet{
+		validator = &execute.K8SServiceGet{
 			Namespace: ssd.Namespace,
 			Name:      ssd.ArgName,
 		}

@@ -1,4 +1,4 @@
-package execute
+package skupperexecute
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	frame2 "github.com/hash-d/frame2/pkg"
+	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/skupperproject/skupper/test/utils/base"
 	"github.com/skupperproject/skupper/test/utils/skupper/cli"
 )
@@ -34,7 +35,7 @@ type SkupperExpose struct {
 	AutoTeardown bool
 
 	frame2.DefaultRunDealer
-	SkupperVersionerDefault
+	execute.SkupperVersionerDefault
 }
 
 // Interface execute.SkupperUpgradable; allow this to be used with Upgrade disruptors
@@ -164,7 +165,7 @@ func (se SkupperExpose1_3) Execute() error {
 		args = append(args, "--generate-tls-secrets")
 	}
 
-	cmd := Cmd{}
+	cmd := execute.Cmd{}
 
 	if se.FailureReason != "" {
 		cmd.FailReturn = []int{0}
@@ -279,7 +280,7 @@ func (se SkupperExpose1_2) Execute() error {
 		args = append(args, "--enable-tls")
 	}
 
-	cmd := Cmd{}
+	cmd := execute.Cmd{}
 
 	if se.FailureReason != "" {
 		cmd.FailReturn = []int{0}

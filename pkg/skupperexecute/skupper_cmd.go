@@ -1,10 +1,11 @@
-package execute
+package skupperexecute
 
 import (
 	"fmt"
 	"log"
 
 	frame2 "github.com/hash-d/frame2/pkg"
+	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/skupperproject/skupper/test/utils/base"
 )
 
@@ -22,7 +23,7 @@ type CliSkupper struct {
 	// You can configure any aspects of the command configuration.  However,
 	// the fields Command, Args and Shell from the exec.Cmd element will be
 	// cleared before execution.
-	Cmd Cmd
+	Cmd execute.Cmd
 
 	path string
 

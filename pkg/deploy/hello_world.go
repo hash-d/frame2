@@ -6,6 +6,7 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/skupperexecute"
 	"github.com/hash-d/frame2/pkg/topology"
 	"github.com/hash-d/frame2/pkg/validate"
 	"github.com/skupperproject/skupper/test/utils/base"
@@ -119,7 +120,7 @@ func (h *HelloWorldBackend) Execute() error {
 				SkipWhen: !h.CreateServices,
 			}, {
 				Doc: "Exposing the local service via Skupper",
-				Modify: &execute.SkupperExpose{
+				Modify: &skupperexecute.SkupperExpose{
 					Namespace: h.Target,
 					Type:      "service",
 					Name:      "hello-world-backend",
@@ -128,7 +129,7 @@ func (h *HelloWorldBackend) Execute() error {
 				SkipWhen: !h.CreateServices || !h.SkupperExpose,
 			}, {
 				Doc: "Exposing the deployment via Skupper",
-				Modify: &execute.SkupperExpose{
+				Modify: &skupperexecute.SkupperExpose{
 					Namespace: h.Target,
 					Ports:     []int{8080},
 					Type:      "deployment",
@@ -198,7 +199,7 @@ func (h *HelloWorldFrontend) Execute() error {
 				SkipWhen: !h.CreateServices,
 			}, {
 				Doc: "Exposing the local service via Skupper",
-				Modify: &execute.SkupperExpose{
+				Modify: &skupperexecute.SkupperExpose{
 					Namespace: h.Target,
 					Type:      "service",
 					Name:      "hello-world-frontend",
@@ -207,7 +208,7 @@ func (h *HelloWorldFrontend) Execute() error {
 				SkipWhen: !h.CreateServices || !h.SkupperExpose,
 			}, {
 				Doc: "Exposing the deployment via Skupper",
-				Modify: &execute.SkupperExpose{
+				Modify: &skupperexecute.SkupperExpose{
 					Namespace: h.Target,
 					Ports:     []int{8080},
 					Type:      "deployment",

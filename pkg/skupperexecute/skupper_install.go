@@ -1,4 +1,4 @@
-package execute
+package skupperexecute
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"time"
 
 	frame2 "github.com/hash-d/frame2/pkg"
+	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/hash-d/frame2/pkg/validate"
 	"github.com/skupperproject/skupper/api/types"
 	"github.com/skupperproject/skupper/test/utils/base"
@@ -124,7 +125,7 @@ type CliSkupperInstall struct {
 	EnableFlowCollector bool
 
 	frame2.DefaultRunDealer
-	SkupperVersionerDefault
+	execute.SkupperVersionerDefault
 }
 
 // Interface execute.SkupperUpgradable; allow this to be used with Upgrade disruptors
@@ -308,7 +309,7 @@ func (v ValidateSkupperAvailable) Validate() error {
 				Modify: &CliSkupper{
 					Args:           []string{"version"},
 					ClusterContext: v.Namespace,
-					Cmd: Cmd{
+					Cmd: execute.Cmd{
 						ForceOutput: true,
 					},
 				},
@@ -317,7 +318,7 @@ func (v ValidateSkupperAvailable) Validate() error {
 				Modify: &CliSkupper{
 					Args:           []string{"status"},
 					ClusterContext: v.Namespace,
-					Cmd: Cmd{
+					Cmd: execute.Cmd{
 						ForceOutput: true,
 					},
 				},

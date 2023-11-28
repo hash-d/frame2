@@ -9,6 +9,7 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/skupperexecute"
 	"github.com/skupperproject/skupper/test/utils/base"
 )
 
@@ -108,7 +109,7 @@ func upgradeSites(targets []*base.ClusterContext, runner *frame2.Run) error {
 	for _, t := range targets {
 		steps = append(steps, frame2.Step{
 			Doc: "Upgrade Skupper",
-			Modify: execute.SkupperUpgrade{
+			Modify: skupperexecute.SkupperUpgrade{
 				Runner:    runner,
 				Namespace: t,
 				Wait:      time.Minute * 10,
@@ -148,7 +149,7 @@ func (u *UpgradeAndFinalize) PreFinalizerHook(runner *frame2.Run) error {
 	for _, t := range targets {
 		steps = append(steps, frame2.Step{
 			Doc: "Disruptor UpgradeAndFinalize",
-			Modify: execute.SkupperUpgrade{
+			Modify: skupperexecute.SkupperUpgrade{
 				Runner:    runner,
 				Namespace: t,
 				Wait:      time.Minute * 10,

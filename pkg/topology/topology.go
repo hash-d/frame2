@@ -7,6 +7,7 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/skupperexecute"
 	"github.com/skupperproject/skupper/test/utils/base"
 )
 
@@ -297,7 +298,7 @@ func (t *TopologyBuild) Execute() error {
 					},
 					SkipWhen: topoItem.SkipNamespaceCreation,
 				}, {
-					Modify: &execute.SkupperInstallSimple{
+					Modify: &skupperexecute.SkupperInstallSimple{
 						Namespace:     context,
 						EnableConsole: topoItem.EnableConsole,
 					},
@@ -363,7 +364,7 @@ func (tc TopologyConnect) Execute() error {
 			}
 			connName := fmt.Sprintf("%v-to-%v", ctx.Namespace, pivot.Namespace)
 			log.Printf("TopologyConnect creating connection %v", connName)
-			err := execute.SkupperConnect{
+			err := skupperexecute.SkupperConnect{
 				Name: connName,
 				From: ctx,
 				To:   pivot,

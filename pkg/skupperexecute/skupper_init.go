@@ -1,4 +1,4 @@
-package execute
+package skupperexecute
 
 import frame2 "github.com/hash-d/frame2/pkg"
 

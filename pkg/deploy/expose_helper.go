@@ -5,6 +5,7 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/skupperexecute"
 	"github.com/skupperproject/skupper/test/utils/base"
 	apiv1 "k8s.io/api/core/v1"
 )
@@ -64,7 +65,7 @@ func (e ExposeHelper) Execute() error {
 				SkipWhen: !e.CreateServices,
 			}, {
 				Doc: "Exposing the local service via Skupper",
-				Modify: &execute.SkupperExpose{
+				Modify: &skupperexecute.SkupperExpose{
 					Namespace: e.Target,
 					Type:      "service",
 					Name:      e.ServiceName,
@@ -73,7 +74,7 @@ func (e ExposeHelper) Execute() error {
 				SkipWhen: !e.CreateServices || !e.SkupperExpose,
 			}, {
 				Doc: "Exposing the deployment via Skupper",
-				Modify: &execute.SkupperExpose{
+				Modify: &skupperexecute.SkupperExpose{
 					Namespace: e.Target,
 					Ports:     e.ServicePorts,
 					Type:      "deployment",

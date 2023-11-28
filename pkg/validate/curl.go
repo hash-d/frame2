@@ -2,8 +2,10 @@ package validate
 
 import (
 	"fmt"
+	"time"
 
 	frame2 "github.com/hash-d/frame2/pkg"
+	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/skupperproject/skupper/test/utils/base"
 	"github.com/skupperproject/skupper/test/utils/tools"
 )
@@ -21,7 +23,7 @@ type Curl struct {
 	Url         string
 	Fail400Plus bool
 	Podname     string // Passed to tools.Curl.  Generally safe to leave empty.  Check tools.Curl docs
-	DeployCurl  bool   // Not Implemented
+	DeployCurl  bool
 
 	// TODO: Add cli.Expect to inspect results?
 	frame2.Log
@@ -29,7 +31,26 @@ type Curl struct {
 
 func (c Curl) Validate() error {
 	if c.DeployCurl {
-		return fmt.Errorf("validate.Curl.DeployCurl not implemented yet")
+		tools.DeployCurl(c.Namespace.VanClient.KubeClient, c.Namespace.Namespace, "curl")
+		waitPhase := frame2.Phase{
+			MainSteps: []frame2.Step{
+				{
+					Validator: &Executor{
+						Executor: &execute.K8SPodGet{
+							Namespace: c.Namespace,
+							Name:      "curl",
+						},
+					},
+					ValidatorRetry: frame2.RetryOptions{
+						Timeout: 2 * time.Minute,
+					},
+				},
+			},
+		}
+		err := waitPhase.Run()
+		if err != nil {
+			return fmt.Errorf("failed waiting for Curl pod: %w", err)
+		}
 	}
 	if c.CurlOptions.Timeout == 0 {
 		// There is no reason to give Curl no time to respond
