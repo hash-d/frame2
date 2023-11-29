@@ -70,9 +70,8 @@ type JustSkupperN struct {
 //     whatever topology the current test is asking for, if
 //     possible
 type JustSkupper struct {
-	Topology      *topology.Basic
-	AutoTearDown  bool
-	SkupperExpose bool
+	Topology     *topology.Basic
+	AutoTearDown bool
 
 	frame2.DefaultRunDealer
 	frame2.Log

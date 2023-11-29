@@ -15,6 +15,7 @@ type NginxDeploy struct {
 	SecretMount   []k8s.SecretMount
 	ExposeService bool
 	SkupperExpose bool // TODO
+	Wait          time.Duration
 }
 
 func (n NginxDeploy) Execute() error {
@@ -31,7 +32,7 @@ func (n NginxDeploy) Execute() error {
 				Modify: &K8SDeploymentOpts{
 					Name:      name,
 					Namespace: n.Namespace,
-					Wait:      2 * time.Minute,
+					Wait:      n.Wait,
 					DeploymentOpts: k8s.DeploymentOpts{
 						Image:        "ghcr.io/nginxinc/nginx-unprivileged:latest",
 						Labels:       n.Labels,
