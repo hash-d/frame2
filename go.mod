@@ -3,7 +3,7 @@ module github.com/hash-d/frame2
 go 1.19
 
 // replace github.com/skupperproject/skupper => /home/dhashimo/D/git/RedHat/skupper-dh
-// replace github.com/skupperproject/skupper => /tmp/asdf/skupper
+replace github.com/skupperproject/skupper => ../skupper-dh/
 
 require (
 	github.com/imdario/mergo v0.3.8
