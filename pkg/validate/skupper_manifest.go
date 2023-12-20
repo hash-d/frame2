@@ -45,6 +45,12 @@ type SkupperManifest struct {
 }
 
 func (m SkupperManifest) Validate() error {
+
+	if m.SkipComparison {
+		m.Log.Printf("SkupperManifest: Skipping comparison per configuration")
+		return nil
+	}
+
 	manifestPath := m.Path
 	alternates := []string{
 		"./manifest.json",
@@ -72,11 +78,6 @@ func (m SkupperManifest) Validate() error {
 	err = json.Unmarshal(manifestBytes, m.Result)
 	if err != nil {
 		return fmt.Errorf("SkupperManifest: could not unmarshal %q: %w", manifestPath, err)
-	}
-
-	if m.SkipComparison {
-		m.Log.Printf("SkupperManifest>: Skipping comparison per configuration")
-		return nil
 	}
 
 	for _, expected := range m.Expected.Images {
