@@ -18,6 +18,11 @@ func (k KeepWalking) DisruptorEnvValue() string {
 	return "KEEP_WALKING"
 }
 
-func (k KeepWalking) ValidationResultHook(runner *frame2.Run, err error) error {
+func (k KeepWalking) ValidationResultHook(runner *frame2.Run, step frame2.Step, err error) error {
+
+	if err != nil {
+		step.Logf("KEEP_WALKING: ignore failure on step %v", step.Doc)
+	}
+
 	return nil
 }

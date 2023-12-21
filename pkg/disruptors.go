@@ -42,5 +42,5 @@ type PreFinalizerHook interface {
 }
 
 type ValidationResultHook interface {
-	ValidationResultHook(runner *Run, err error) error
+	ValidationResultHook(runner *Run, step Step, err error) error
 }

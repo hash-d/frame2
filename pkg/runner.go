@@ -541,17 +541,17 @@ func processStep_(t *testing.T, step Step, kind RunnerType, Log FrameLogger, p *
 		} else {
 			Log.Printf("[R] %v validation-not-ok: %v (%v)", id, err, elapsed)
 		}
-		return validationResultHook(p.GetRunner(), err)
+		return validationResultHook(p.GetRunner(), step, err)
 	}
 	return nil
 }
 
 // Hook for validation result; the handler may change the err (wrap,
 // turn into nil or even change it to some other error altogether).
-func validationResultHook(runner *Run, err error) error {
+func validationResultHook(runner *Run, step Step, err error) error {
 	for _, d := range runner.getRoot().disruptor {
 		if d, ok := d.(ValidationResultHook); ok {
-			err = d.ValidationResultHook(runner, err)
+			err = d.ValidationResultHook(runner, step, err)
 		}
 	}
 	return err
