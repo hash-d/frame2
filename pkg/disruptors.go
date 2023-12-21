@@ -40,3 +40,7 @@ type PostMainSetupHook interface {
 type PreFinalizerHook interface {
 	PreFinalizerHook(runner *Run) error
 }
+
+type ValidationResultHook interface {
+	ValidationResultHook(runner *Run, err error) error
+}

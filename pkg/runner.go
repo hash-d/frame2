@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/skupperproject/skupper/test/frame2"
 	"github.com/skupperproject/skupper/test/utils/base"
 )
 
@@ -34,22 +35,23 @@ const (
 // The Run (TODO rename?) keeps context accross the execution of the test.  Each
 // phase and each step has its runner, in a tree structure
 type Run struct {
-	T                 *testing.T
-	Doc               string     // TODO this is currently unused (ie, it's not printed)
-	savedT            *testing.T // TODO: review.  Only private + getter/setter?
-	monitors          []*Monitor
-	finalValidators   []Validator
-	ctx               context.Context
-	cancelCtx         context.CancelFunc
-	root              *Run // TODO Perhaps replace this by a recursive call, now we have parent
-	disruptor         []Disruptor
-	parent            *Run
-	children          []*Run
-	kind              RunnerType
-	sequence          int // RunId is derived from kind+sequence
-	nextChildSequence int
-	postSetup         bool
-	postMainSetupDone bool
+	T                  *testing.T
+	Doc                string             // TODO this is currently unused (ie, it's not printed)
+	RequiredDisruptors []frame2.Disruptor // TODO
+	savedT             *testing.T         // TODO: review.  Only private + getter/setter?
+	monitors           []*Monitor
+	finalValidators    []Validator
+	ctx                context.Context
+	cancelCtx          context.CancelFunc
+	root               *Run // TODO Perhaps replace this by a recursive call, now we have parent
+	disruptor          []Disruptor
+	parent             *Run
+	children           []*Run
+	kind               RunnerType
+	sequence           int // RunId is derived from kind+sequence
+	nextChildSequence  int
+	postSetup          bool
+	postMainSetupDone  bool
 }
 
 // Return the full ID of the Runner, which includes the ID of its parent
@@ -462,24 +464,24 @@ func processStep_(t *testing.T, step Step, kind RunnerType, Log FrameLogger, p *
 	if len(validatorList) > 0 {
 		start := time.Now()
 		/*
-			 * TODO TODO TODO
-			 *
-			 * This change is required, but currently it breaks the tests.  To implement
-			 * it, val.SetRunner must nil-ify the new runner's T.  This way, failures running
-			 * something within the validator will not necessarily cause T.Fail when that
-			 * runner is run.  Instead, that thing needs to cause the actual validator to
-			 * fail, which causes the higher-level Runner to T.Fail().  This way, only subtest
-			 * Runners should have T.  Other code needs changed on that, though, to use a
-			 * Runner.getT() instead of simply Runner.T, which will bubble up on the tree
-			 * until it finds the T on an ancestor.
-			 *
-			for _, v := range validatorList {
-				if val, ok := v.(RunDealer); ok {
-					val.SetRunner(stepRunner, ValidatorRunner)
-				}
+		 * TODO TODO TODO
+		 *
+		 * This change is required, but currently it breaks the tests.  To implement
+		 * it, val.SetRunner must nil-ify the new runner's T.  This way, failures running
+		 * something within the validator will not necessarily cause T.Fail when that
+		 * runner is run.  Instead, that thing needs to cause the actual validator to
+		 * fail, which causes the higher-level Runner to T.Fail().  This way, only subtest
+		 * Runners should have T.  Other code needs changed on that, though, to use a
+		 * Runner.getT() instead of simply Runner.T, which will bubble up on the tree
+		 * until it finds the T on an ancestor.
+		 */
+		for _, v := range validatorList {
+			if val, ok := v.(RunDealer); ok {
+				val.SetRunner(stepRunner, ValidatorRunner)
 			}
-			* TODO TODO TODO
-		*/
+		}
+		/* TODO TODO TODO
+		 */
 
 		// This is a generic Runner, if the validtor is not a RunDealer
 		// TODO remove this once all actions are RunDealers
@@ -539,9 +541,20 @@ func processStep_(t *testing.T, step Step, kind RunnerType, Log FrameLogger, p *
 		} else {
 			Log.Printf("[R] %v validation-not-ok: %v (%v)", id, err, elapsed)
 		}
-		return err
+		return validationResultHook(p.GetRunner(), err)
 	}
 	return nil
+}
+
+// Hook for validation result; the handler may change the err (wrap,
+// turn into nil or even change it to some other error altogether).
+func validationResultHook(runner *Run, err error) error {
+	for _, d := range runner.getRoot().disruptor {
+		if d, ok := d.(ValidationResultHook); ok {
+			err = d.ValidationResultHook(runner, err)
+		}
+	}
+	return err
 }
 
 // For a Phase that did not define a Run, this will create a Run
@@ -571,6 +584,7 @@ func (p Phase) Execute() error {
 func (p *Phase) Run() error {
 	runner := p.GetRunner()
 	if runner == nil {
+		fmt.Printf("##################################\n")
 		runner = p.Runner
 	}
 	return p.runP(runner)

@@ -124,6 +124,10 @@ type CliSkupperInstall struct {
 	EnableConsole       bool
 	EnableFlowCollector bool
 
+	ConsoleAuth     string
+	ConsoleUser     string
+	ConsolePassword string
+
 	frame2.DefaultRunDealer
 	execute.SkupperVersionerDefault
 }
@@ -146,14 +150,20 @@ func (s CliSkupperInstall) Execute() error {
 			SkipWait:            s.SkipWait,
 			EnableConsole:       s.EnableConsole,
 			EnableFlowCollector: s.EnableFlowCollector,
+			ConsoleAuth:         s.ConsoleAuth,
+			ConsoleUser:         s.ConsoleUser,
+			ConsolePassword:     s.ConsolePassword,
 		}
 	case "1.2":
 		action = &CliSkupperInstall_1_2{
-			Namespace:     s.Namespace,
-			Ctx:           s.Ctx,
-			MaxWait:       s.MaxWait,
-			SkipWait:      s.SkipWait,
-			EnableConsole: s.EnableConsole,
+			Namespace:       s.Namespace,
+			Ctx:             s.Ctx,
+			MaxWait:         s.MaxWait,
+			SkipWait:        s.SkipWait,
+			EnableConsole:   s.EnableConsole,
+			ConsoleAuth:     s.ConsoleAuth,
+			ConsoleUser:     s.ConsoleUser,
+			ConsolePassword: s.ConsolePassword,
 		}
 	default:
 		panic("unnassigned version for CliSkupperInstall")
@@ -179,6 +189,10 @@ type CliSkupperInstall_1_3 struct {
 	EnableConsole       bool
 	EnableFlowCollector bool
 
+	ConsoleAuth     string
+	ConsoleUser     string
+	ConsolePassword string
+
 	frame2.DefaultRunDealer
 }
 
@@ -192,6 +206,16 @@ func (s CliSkupperInstall_1_3) Execute() error {
 
 	if s.EnableFlowCollector {
 		args = append(args, "--enable-flow-collector")
+	}
+
+	if s.ConsoleAuth != "" {
+		args = append(args, fmt.Sprintf("--console-auth=%s", s.ConsoleAuth))
+	}
+	if s.ConsoleUser != "" {
+		args = append(args, fmt.Sprintf("--console-user=%s", s.ConsoleUser))
+	}
+	if s.ConsolePassword != "" {
+		args = append(args, fmt.Sprintf("--console-password=%s", s.ConsolePassword))
 	}
 
 	phase := frame2.Phase{
@@ -224,6 +248,10 @@ type CliSkupperInstall_1_2 struct {
 	SkipStatus    bool
 	EnableConsole bool
 
+	ConsoleAuth     string
+	ConsoleUser     string
+	ConsolePassword string
+
 	frame2.DefaultRunDealer
 }
 
@@ -234,6 +262,16 @@ func (s CliSkupperInstall_1_2) Execute() error {
 	// On 1.3 the default changed from --enable-console=true to --enable-console=false.
 	// For this reason, on 1.2 we need to always specify the console flag.
 	args = append(args, fmt.Sprintf("--enable-console=%t", s.EnableConsole))
+
+	if s.ConsoleAuth != "" {
+		args = append(args, fmt.Sprintf("--console-auth=%s", s.ConsoleAuth))
+	}
+	if s.ConsoleUser != "" {
+		args = append(args, fmt.Sprintf("--console-user=%s", s.ConsoleUser))
+	}
+	if s.ConsolePassword != "" {
+		args = append(args, fmt.Sprintf("--console-password=%s", s.ConsolePassword))
+	}
 
 	phase := frame2.Phase{
 		Runner: s.Runner,
@@ -306,12 +344,9 @@ func (v ValidateSkupperAvailable) Validate() error {
 				},
 				SkipWhen: v.SkipWait,
 			}, {
-				Modify: &CliSkupper{
-					Args:           []string{"version"},
-					ClusterContext: v.Namespace,
-					Cmd: execute.Cmd{
-						ForceOutput: true,
-					},
+				Modify: &CliSkupperVersion{
+					Namespace: v.Namespace,
+					Ctx:       waitCtx,
 				},
 				SkipWhen: v.SkipStatus,
 			}, {
