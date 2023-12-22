@@ -11,8 +11,13 @@ import (
 )
 
 func TestFunction(t *testing.T) {
+	runner := &frame2.Run{
+		T: t,
+	}
+
 	tests := frame2.Phase{
-		Name: "TestFunction",
+		Runner: runner,
+		Name:   "TestFunction",
 		MainSteps: []frame2.Step{
 			{
 				Name: "func-ok",
@@ -29,6 +34,7 @@ func TestFunction(t *testing.T) {
 					// validation step: Modify is supposed to always generate an actual
 					// error, and ExpectError is only for validations.
 					Phase: frame2.Phase{
+						Doc: "Dummy phase",
 						MainSteps: []frame2.Step{
 							{
 								Modify: execute.Function{
@@ -44,5 +50,5 @@ func TestFunction(t *testing.T) {
 			},
 		},
 	}
-	tests.RunT(t)
+	tests.Run()
 }

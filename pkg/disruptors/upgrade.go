@@ -131,6 +131,10 @@ func upgradeSites(targets []*base.ClusterContext, runner *frame2.Run) error {
 //
 // The upgrade strategy can be defined on the environment
 // variable SKUPPER_TEST_UPGRADE_STRATEGY.
+//
+// TODO: if at the finalize step, there are no final validators,
+// the test should be marked as a failure (as it did not deliver
+// what the disruptor promised)
 type UpgradeAndFinalize struct {
 	targets []*base.ClusterContext
 	useNew  bool
