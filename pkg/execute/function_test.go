@@ -1,4 +1,4 @@
-package execute
+package execute_test
 
 import (
 	"errors"
@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	frame2 "github.com/hash-d/frame2/pkg"
+	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/validate"
 )
 
 func TestFunction(t *testing.T) {
@@ -14,7 +16,7 @@ func TestFunction(t *testing.T) {
 		MainSteps: []frame2.Step{
 			{
 				Name: "func-ok",
-				Modify: Function{
+				Modify: execute.Function{
 					Fn: func() error {
 						log.Printf("Hello")
 						return nil
@@ -22,14 +24,22 @@ func TestFunction(t *testing.T) {
 				},
 			}, {
 				Name: "func-fail",
-				Modify: Function{
-					Fn: func() error {
-						return errors.New("failed!")
+				Validator: validate.Phase{
+					// We need to use validate.Phase to capture the Modify error as a
+					// validation step: Modify is supposed to always generate an actual
+					// error, and ExpectError is only for validations.
+					Phase: frame2.Phase{
+						MainSteps: []frame2.Step{
+							{
+								Modify: execute.Function{
+									Fn: func() error {
+										return errors.New("failed!")
+									},
+								},
+							},
+						},
 					},
 				},
-				// This does not help, as it allows only for
-				// validation errors; modify steps are not expected
-				// to fail
 				ExpectError: true,
 			},
 		},
