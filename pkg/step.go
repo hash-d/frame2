@@ -34,6 +34,7 @@ type Step struct {
 	// until an error is returned (but there is no control on which kind
 	// of error that will be)
 	// TODO: change this by OnError: Fail, Skip, Ignore, Expect?
+	// TODO: add option to inspect error message for specific error
 	ExpectError bool
 	// TODO: ExpectIs, ExpectAs; use errors.Is, errors.As against a list of expected errors?
 	SkipWhen bool

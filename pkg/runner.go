@@ -2,7 +2,6 @@ package frame2
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -10,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/skupperproject/skupper/test/frame2"
 	"github.com/skupperproject/skupper/test/utils/base"
 )
 
@@ -36,9 +34,9 @@ const (
 // phase and each step has its runner, in a tree structure
 type Run struct {
 	T                  *testing.T
-	Doc                string             // TODO this is currently unused (ie, it's not printed)
-	RequiredDisruptors []frame2.Disruptor // TODO
-	savedT             *testing.T         // TODO: review.  Only private + getter/setter?
+	Doc                string      // TODO this is currently unused (ie, it's not printed)
+	RequiredDisruptors []Disruptor // TODO
+	savedT             *testing.T  // TODO: review.  Only private + getter/setter?
 	monitors           []*Monitor
 	finalValidators    []Validator
 	ctx                context.Context
@@ -187,10 +185,14 @@ func (r *Run) getRoot() *Run {
 	}
 }
 
+func (r *Run) getDisruptors() []Disruptor {
+	return append(r.getRoot().disruptor, r.getRoot().RequiredDisruptors...)
+}
+
 // Run steps that are still part of the test, but must be run at its very end,
 // right before the tear down.  Failures here will count as test failure
 func (r *Run) Finalize() {
-	for _, d := range r.getRoot().disruptor {
+	for _, d := range r.getDisruptors() {
 		if d, ok := d.(PreFinalizerHook); ok {
 			log.Printf("[R] Running pre-finalizer hook")
 			var err error
@@ -232,7 +234,16 @@ func (r *Run) Finalize() {
 				},
 			}.Run()
 			if err != nil {
-				t.Errorf("final validation failed: %v", err)
+				log.Printf("final validation failed: %v", err)
+				// This dummy step is required while logic above not changed
+				// to use a phase?
+				dummyStep := Step{
+					Name: "Final validator run",
+				}
+				if err = validationResultHook(r, dummyStep, err); err != nil {
+					t.Errorf("final validation failed: %v", err)
+				}
+
 			}
 		})
 	}
@@ -389,9 +400,15 @@ func processStep(t *testing.T, step Step, Log FrameLogger, p *Phase, kind Runner
 			Log.Printf("[R] %v Subtest %q completed", id, t.Name())
 		})
 	} else {
-		// TODO.  Add the step number (like 2.1.3)
-		//Log.Printf("[R] %v current test: %q", id, t.Name())
+		/*
+			name := "-"
+			if t != nil {
+				name = t.Name()
+			}
+			Log.Printf("[R] %v current test: %q", id, name)
+		*/
 		err = processStep_(t, step, kind, Log, p)
+		//Log.Printf("[R] Step %q result %+v", id, err)
 	}
 	return err
 
@@ -404,7 +421,7 @@ func processStep_(t *testing.T, step Step, kind RunnerType, Log FrameLogger, p *
 	id := stepRunner.GetId()
 	Log.Printf("[R] %v doc %q", id, step.Doc)
 
-	for _, disruptor := range p.GetRunner().getRoot().disruptor {
+	for _, disruptor := range p.GetRunner().getDisruptors() {
 		if disruptor != nil {
 			if disruptor, ok := disruptor.(Inspector); ok {
 				disruptor.Inspect(&step, p)
@@ -463,25 +480,11 @@ func processStep_(t *testing.T, step Step, kind RunnerType, Log FrameLogger, p *
 
 	if len(validatorList) > 0 {
 		start := time.Now()
-		/*
-		 * TODO TODO TODO
-		 *
-		 * This change is required, but currently it breaks the tests.  To implement
-		 * it, val.SetRunner must nil-ify the new runner's T.  This way, failures running
-		 * something within the validator will not necessarily cause T.Fail when that
-		 * runner is run.  Instead, that thing needs to cause the actual validator to
-		 * fail, which causes the higher-level Runner to T.Fail().  This way, only subtest
-		 * Runners should have T.  Other code needs changed on that, though, to use a
-		 * Runner.getT() instead of simply Runner.T, which will bubble up on the tree
-		 * until it finds the T on an ancestor.
-		 */
 		for _, v := range validatorList {
 			if val, ok := v.(RunDealer); ok {
 				val.SetRunner(stepRunner, ValidatorRunner)
 			}
 		}
-		/* TODO TODO TODO
-		 */
 
 		// This is a generic Runner, if the validtor is not a RunDealer
 		// TODO remove this once all actions are RunDealers
@@ -504,7 +507,7 @@ func processStep_(t *testing.T, step Step, kind RunnerType, Log FrameLogger, p *
 
 				// TODO remove this once the SetRunner thing is fixed above
 				//      (see the TODO TODO TODO line)
-				id = validatorRunner.GetId()
+				//id = validatorRunner.GetId()
 
 				Log.Printf("[R] %v.v%d Validator %T", id, i, v)
 				// TODO: create and set individual runners for each validator?
@@ -518,6 +521,7 @@ func processStep_(t *testing.T, step Step, kind RunnerType, Log FrameLogger, p *
 					Log.Printf("[R] %v.v%d Validator %T failed: %v", id, i, v, err)
 					if step.ExpectError {
 						Log.Printf("[R] (error expected)")
+						lastErr = nil
 					}
 					// Error or not, we do not break or return; we check all
 				}
@@ -528,7 +532,7 @@ func processStep_(t *testing.T, step Step, kind RunnerType, Log FrameLogger, p *
 			if !step.ExpectError && someFailure {
 				return fmt.Errorf("at least one validator failed.  last error (on %T): %w", lastErrValidator, lastErr)
 			}
-			return nil
+			return lastErr
 		}
 
 		_, err := Retry{
@@ -549,7 +553,7 @@ func processStep_(t *testing.T, step Step, kind RunnerType, Log FrameLogger, p *
 // Hook for validation result; the handler may change the err (wrap,
 // turn into nil or even change it to some other error altogether).
 func validationResultHook(runner *Run, step Step, err error) error {
-	for _, d := range runner.getRoot().disruptor {
+	for _, d := range runner.getDisruptors() {
 		if d, ok := d.(ValidationResultHook); ok {
 			err = d.ValidationResultHook(runner, step, err)
 		}
@@ -609,7 +613,7 @@ func (p *Phase) runP(runner *Run) error {
 
 		//p.Runner = savedRunner
 		if !ok && err == nil {
-			err = errors.New("test returned not-ok, but no errors")
+			err = fmt.Errorf("phase %q returned not-ok, but no errors", p.Name)
 		}
 	} else {
 		// otherwise, just run it
@@ -711,7 +715,7 @@ func (p *Phase) run() error {
 	if len(p.MainSteps) > 0 {
 		// Is this the first phase with MainSteps for this runner?
 		if !p.GetRunner().postSetup {
-			for _, disruptor := range runner.getRoot().disruptor {
+			for _, disruptor := range runner.getDisruptors() {
 				if d, ok := disruptor.(PostMainSetupHook); ok &&
 					runner.getRoot() == runner.parent && // We're just above the root
 					!runner.getRoot().postMainSetupDone { // And we're first here
@@ -731,7 +735,7 @@ func (p *Phase) run() error {
 		for _, step := range p.MainSteps {
 			if err := processStep(t, step, &p.Log, p, StepRunner); err != nil {
 				savedErr = err
-				if t != nil {
+				if t != nil && step.Name != "" {
 					// TODO: Interact:
 					// - continue (ignore error)
 					// - hold (show time left for the test)

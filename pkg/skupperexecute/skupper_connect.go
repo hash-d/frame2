@@ -21,6 +21,9 @@ type SkupperConnect struct {
 	From *base.ClusterContext
 	To   *base.ClusterContext
 	Ctx  context.Context
+
+	frame2.DefaultRunDealer
+	frame2.Log
 }
 
 func (sc SkupperConnect) Execute() error {

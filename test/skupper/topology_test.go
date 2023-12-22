@@ -1,4 +1,4 @@
-package topology_test
+package skupper
 
 import (
 	"testing"

@@ -1,6 +1,8 @@
 package disruptors
 
 import (
+	"log"
+
 	frame2 "github.com/hash-d/frame2/pkg"
 )
 
@@ -21,7 +23,7 @@ func (k KeepWalking) DisruptorEnvValue() string {
 func (k KeepWalking) ValidationResultHook(runner *frame2.Run, step frame2.Step, err error) error {
 
 	if err != nil {
-		step.Logf("KEEP_WALKING: ignore failure on step %v", step.Doc)
+		log.Printf("KEEP_WALKING: ignore failure on step %q", step.Doc)
 	}
 
 	return nil

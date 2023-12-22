@@ -67,6 +67,7 @@ type Cmd struct {
 	AdditionalEnv []string
 
 	frame2.Log
+	frame2.DefaultRunDealer
 
 	*CmdResult
 

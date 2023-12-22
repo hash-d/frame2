@@ -1,6 +1,3 @@
-//go:build meta_test
-// +build meta_test
-
 package frame2_test
 
 import (
@@ -416,5 +413,56 @@ func TestInner(t *testing.T) {
 		},
 	}
 	testComposed.Run()
+
+}
+
+func TestValidations(t *testing.T) {
+
+	runner := &frame2.Run{
+		T: t,
+	}
+
+	p := frame2.Phase{
+		Runner: runner,
+		MainSteps: []frame2.Step{
+			{
+				Name: "Mixed results",
+				Validator: validate.Phase{
+					Phase: frame2.Phase{
+						MainSteps: []frame2.Step{
+							{
+								Validators: []frame2.Validator{
+									&validate.Fail{},
+									&validate.Success{},
+								},
+							},
+						},
+					},
+				},
+				// If any validations fail, the whole validation should
+				// be considered a failure
+				ExpectError: true,
+			}, {
+				Name: "Mixed results when expecting a failure",
+				Validator: validate.Phase{
+					Phase: frame2.Phase{
+						MainSteps: []frame2.Step{
+							{
+								Validators: []frame2.Validator{
+									&validate.Fail{},
+									&validate.Success{},
+								},
+								ExpectError: true,
+							},
+						},
+					},
+				},
+				// ExpectError expects that all validations in the list failed
+				ExpectError: true,
+			},
+		},
+	}
+
+	assert.Assert(t, p.Run())
 
 }

@@ -1,6 +1,3 @@
-//go:build meta_test
-// +build meta_test
-
 package execute
 
 import (
@@ -15,6 +12,7 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/skupperproject/skupper/test/utils/skupper/cli"
+	"gotest.tools/assert"
 )
 
 var unknownCommand = "you-dont-have-a-command-with-this-name-do-you"
@@ -23,7 +21,11 @@ var doneCtx, _ = context.WithTimeout(context.Background(), time.Microsecond)
 var resultCommunication = CmdResult{}
 
 func TestCmd(t *testing.T) {
-	tests.RunT(t)
+	runner := &frame2.Run{
+		T: t,
+	}
+	tests.Runner = runner
+	assert.Assert(t, tests.Run())
 }
 
 type cmdValidator struct {
@@ -34,6 +36,7 @@ type cmdValidator struct {
 	resultCommunication *CmdResult
 
 	frame2.Log
+	frame2.DefaultRunDealer
 }
 
 func (ct cmdValidator) Validate() error {
@@ -115,6 +118,7 @@ var tests = frame2.Phase{
 			Validator: &cmdValidator{
 				cmd: Cmd{
 					Command: "false",
+					// No FailReturn, so unexpected
 				},
 			},
 			ExpectError: true,

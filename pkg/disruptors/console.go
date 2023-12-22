@@ -63,3 +63,23 @@ func (f FlowCollectorOnAll) Inspect(step *frame2.Step, phase *frame2.Phase) {
 		log.Printf("FLOW_COLLECTOR_ON_ALL: %v", mod.Namespace.Namespace)
 	}
 }
+
+// Overwrite the console authentication used
+type ConsoleAuth struct {
+	Mode     string
+	User     string
+	Password string
+}
+
+func (c ConsoleAuth) DisruptorEnvValue() string {
+	return "CONSOLE_AUTH"
+}
+
+func (c *ConsoleAuth) Inspect(step *frame2.Step, phase *frame2.Phase) {
+	if mod, ok := step.Modify.(*skupperexecute.CliSkupperInstall); ok {
+		mod.ConsoleAuth = c.Mode
+		mod.ConsoleUser = c.User
+		mod.ConsolePassword = c.Password
+		log.Printf("CONSOLE_AUTH: %v", mod.Namespace.Namespace)
+	}
+}

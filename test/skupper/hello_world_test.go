@@ -1,10 +1,11 @@
-package environment
+package skupper
 
 import (
 	"fmt"
 	"testing"
 
 	frame2 "github.com/hash-d/frame2/pkg"
+	"github.com/hash-d/frame2/pkg/environment"
 	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/hash-d/frame2/pkg/topology"
 	"github.com/hash-d/frame2/pkg/topology/topologies"
@@ -42,8 +43,7 @@ func TestHelloWorld(t *testing.T) {
 		Name:   "Set up HelloWorld",
 		Setup: []frame2.Step{
 			{
-				Modify: HelloWorld{
-					//Runner:       &runner,
+				Modify: &environment.HelloWorld{
 					Topology:     &topologyN,
 					AutoTearDown: true,
 				},
