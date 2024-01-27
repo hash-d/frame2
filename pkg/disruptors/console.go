@@ -1,7 +1,9 @@
 package disruptors
 
 import (
+	"fmt"
 	"log"
+	"strings"
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/skupperexecute"
@@ -65,6 +67,10 @@ func (f FlowCollectorOnAll) Inspect(step *frame2.Step, phase *frame2.Phase) {
 }
 
 // Overwrite the console authentication used
+//
+// Configure with the keywords mode, user and password, separated by commas.
+//
+// eg: CONSOLE_AUTH:mode=internal,user=asdf,password=foo
 type ConsoleAuth struct {
 	Mode     string
 	User     string
@@ -82,4 +88,26 @@ func (c *ConsoleAuth) Inspect(step *frame2.Step, phase *frame2.Phase) {
 		mod.ConsolePassword = c.Password
 		log.Printf("CONSOLE_AUTH: %v", mod.Namespace.Namespace)
 	}
+}
+
+func (c *ConsoleAuth) Configure(config string) error {
+	items := strings.Split(config, ",")
+	for _, i := range items {
+		definition := strings.Split(i, "=")
+		if len(definition) != 2 {
+			return fmt.Errorf("%q is not a valid ConsoleAuth configuration", i)
+		}
+		k, v := definition[0], definition[1]
+		switch k {
+		case "mode":
+			c.Mode = v
+		case "user":
+			c.User = v
+		case "password":
+			c.Password = v
+		default:
+			return fmt.Errorf("The key %q is not valid for ConsoleAuth configuration", k)
+		}
+	}
+	return nil
 }
