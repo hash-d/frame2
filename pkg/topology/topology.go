@@ -292,7 +292,7 @@ func (t *TopologyBuild) Execute() error {
 			Doc:    "Create namespaces and install Skupper",
 			Setup: []frame2.Step{
 				{
-					Modify: execute.TestRunnerCreateNamespace{
+					Modify: &execute.TestRunnerCreateNamespace{
 						Namespace:    context,
 						AutoTearDown: t.AutoTearDown,
 					},

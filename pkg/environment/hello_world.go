@@ -11,11 +11,16 @@ import (
 // A Hello World deployment on pub1 (frontend) and prv1 (backend),
 // on the default topology
 type HelloWorldDefault struct {
-	Name   string
-	Runner *frame2.Run
+	Name string
+
+	AutoTearDown bool
+
+	frame2.DefaultRunDealer
+
+	topology topology.Basic
 }
 
-func (hwd HelloWorldDefault) Execute() error {
+func (hwd *HelloWorldDefault) Execute() error {
 
 	name := hwd.Name
 	if name == "" {
@@ -24,8 +29,7 @@ func (hwd HelloWorldDefault) Execute() error {
 
 	baseRunner := base.ClusterTestRunnerBase{}
 
-	var topoSimplest topology.Basic
-	topoSimplest = &topologies.Simplest{
+	hwd.topology = &topologies.Simplest{
 		Name:           name,
 		TestRunnerBase: &baseRunner,
 	}
@@ -34,14 +38,19 @@ func (hwd HelloWorldDefault) Execute() error {
 		Runner: hwd.Runner,
 		MainSteps: []frame2.Step{
 			{
-				Modify: HelloWorld{
-					Topology: &topoSimplest,
+				Modify: &HelloWorld{
+					Topology:     &hwd.topology,
+					AutoTearDown: hwd.AutoTearDown,
 				},
 			},
 		},
 	}
 
 	return execute.Run()
+}
+
+func (hwd HelloWorldDefault) GetTopology() topology.Basic {
+	return hwd.topology
 }
 
 // A Hello World deployment on pub1 (frontend) and prv1 (backend),
