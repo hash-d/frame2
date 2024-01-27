@@ -293,7 +293,7 @@ func (r *Run) AllowDisruptors(list []Disruptor) {
 		r.T.Fatalf("attempt to re-define the disruptor. Was %s", r.getRoot().disruptor)
 	}
 
-	disruptor_list := strings.Split(kind, ",")
+	disruptor_list := strings.Split(kind, ";")
 
 outer:
 	for _, d := range disruptor_list {
@@ -789,7 +789,7 @@ func (p *Phase) teardown() {
 	if len(p.teardowns) > 0 {
 		// TODO move this to t.Cleanup and make it depend on t != nil?
 		// This one runs in reverse order, since they were added by the setup steps
-		p.Log.Printf("Starting auto-teardown")
+		p.Log.Printf("Starting auto-teardown for %s", t.Name())
 		for i := len(p.teardowns) - 1; i >= 0; i-- {
 			td := p.teardowns[i]
 			p.Log.Printf("[R] Teardown: %T", td)
