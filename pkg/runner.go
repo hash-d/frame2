@@ -378,7 +378,7 @@ func processStep(t *testing.T, step Step, Log FrameLogger, p *Phase, kind Runner
 	id := p.DefaultRunDealer.GetRunner().GetId()
 
 	if step.SkipWhen {
-		Log.Printf("[R] %v step skipped (%s)", id, step.Doc)
+		Log.Printf("[R] %v step with modifier %T skipped (%s)", id, step.Modify, step.Doc)
 		return nil
 	}
 
