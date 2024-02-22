@@ -8,6 +8,10 @@ import (
 
 const EnvFrame2Verbose = "SKUPPER_TEST_FRAME2_VERBOSE"
 
+type Stepper interface {
+	GetStep() *Step
+}
+
 type Step struct {
 	Doc   string
 	Name  string
@@ -24,7 +28,7 @@ type Step struct {
 	Validators     []Validator
 	ValidatorRetry RetryOptions
 	ValidatorFinal bool // final validators are re-run at the test's end
-	Substep        *Step
+	Substep        Stepper
 	Substeps       []*Step
 	SubstepRetry   RetryOptions
 	// A simple way to invert the meaning of the Validator.  Validators
@@ -38,6 +42,10 @@ type Step struct {
 	ExpectError bool
 	// TODO: ExpectIs, ExpectAs; use errors.Is, errors.As against a list of expected errors?
 	SkipWhen bool
+}
+
+func (s *Step) GetStep() *Step {
+	return s
 }
 
 func (s Step) Logf(format string, v ...interface{}) {

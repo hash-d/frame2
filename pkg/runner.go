@@ -417,6 +417,7 @@ func processStep(t *testing.T, step Step, Log FrameLogger, p *Phase, kind Runner
 // Does the heavy lifting of executing a single step from a phase; execute each of its
 // parts: setup, modify, substeps, validations, etc
 func processStep_(t *testing.T, step Step, kind RunnerType, Log FrameLogger, p *Phase) error {
+
 	stepRunner := p.DefaultRunDealer.GetRunner().ChildWithT(t, kind)
 	id := stepRunner.GetId()
 	Log.Printf("[R] %v doc %q", id, step.Doc)
@@ -458,7 +459,7 @@ func processStep_(t *testing.T, step Step, kind RunnerType, Log FrameLogger, p *
 
 	subStepList := step.Substeps
 	if step.Substep != nil {
-		subStepList = append([]*Step{step.Substep}, step.Substeps...)
+		subStepList = append([]*Step{step.Substep.GetStep()}, step.Substeps...)
 	}
 	for _, subStep := range subStepList {
 		_, err := Retry{

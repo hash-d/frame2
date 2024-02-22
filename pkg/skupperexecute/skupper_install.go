@@ -3,6 +3,7 @@ package skupperexecute
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	frame2 "github.com/hash-d/frame2/pkg"
@@ -32,6 +33,8 @@ func (s SkupperInstall) SkupperUpgradable() *base.ClusterContext {
 // TODO: move this to a new SkupperInstallVAN or something; leave SkupperInstall as a
 // SkupperOp that calls either that or CliSkupperInit
 func (si SkupperInstall) Execute() error {
+
+	return fmt.Errorf("VanClient site creation should not be used")
 
 	ctx := si.Ctx
 	if ctx == nil {
@@ -86,28 +89,10 @@ func (sis SkupperInstallSimple) Execute() error {
 		Runner: sis.Runner,
 		MainSteps: []frame2.Step{
 			{
-				//Modify: SkupperInstall{
-				//	Runner:    sis.Runner,
-				//	Namespace: sis.Namespace,
-				//	RouterSpec: types.SiteConfigSpec{
-				//		SkupperName:       "",
-				//		RouterMode:        string(types.TransportModeInterior),
-				//		EnableController:  true,
-				//		EnableServiceSync: true,
-				//		EnableConsole:     true,
-				//		AuthMode:          types.ConsoleAuthModeInternal,
-				//		User:              "admin",
-				//		Password:          "admin",
-				//		Ingress:           sis.Namespace.VanClient.GetIngressDefault(),
-				//		Replicas:          1,
-				//		Router:            constants.DefaultRouterOptions(nil),
-				//	},
-				//},
 				Modify: &CliSkupperInstall{
 					Namespace:           sis.Namespace,
 					EnableConsole:       sis.EnableConsole,
 					EnableFlowCollector: sis.EnableConsole,
-					//
 				},
 			},
 		},
@@ -123,6 +108,7 @@ type CliSkupperInstall struct {
 	SkipStatus          bool
 	EnableConsole       bool
 	EnableFlowCollector bool
+	Annotations         []string
 
 	ConsoleAuth     string
 	ConsoleUser     string
@@ -138,74 +124,34 @@ func (s CliSkupperInstall) SkupperUpgradable() *base.ClusterContext {
 }
 
 func (s CliSkupperInstall) Execute() error {
+
 	versions := []string{"1.2", "1.3"}
 	target := s.WhichSkupperVersion(versions)
-	var action frame2.Executor
+
+	args := []string{"init"}
+
+	// EnableConsole
 	switch target {
 	case "1.3", "":
-		action = &CliSkupperInstall_1_3{
-			Namespace:           s.Namespace,
-			Ctx:                 s.Ctx,
-			MaxWait:             s.MaxWait,
-			SkipWait:            s.SkipWait,
-			EnableConsole:       s.EnableConsole,
-			EnableFlowCollector: s.EnableFlowCollector,
-			ConsoleAuth:         s.ConsoleAuth,
-			ConsoleUser:         s.ConsoleUser,
-			ConsolePassword:     s.ConsolePassword,
+		if s.EnableConsole {
+			args = append(args, "--enable-console")
 		}
 	case "1.2":
-		action = &CliSkupperInstall_1_2{
-			Namespace:       s.Namespace,
-			Ctx:             s.Ctx,
-			MaxWait:         s.MaxWait,
-			SkipWait:        s.SkipWait,
-			EnableConsole:   s.EnableConsole,
-			ConsoleAuth:     s.ConsoleAuth,
-			ConsoleUser:     s.ConsoleUser,
-			ConsolePassword: s.ConsolePassword,
+		// On 1.3 the default changed from --enable-console=true to --enable-console=false.
+		// For this reason, on 1.2 we need to always specify the console flag.
+		args = append(args, fmt.Sprintf("--enable-console=%t", s.EnableConsole))
+	}
+
+	// EnableFlowColector
+	switch target {
+	case "1.3", "":
+		if s.EnableFlowCollector {
+			args = append(args, "--enable-flow-collector")
 		}
-	default:
-		panic("unnassigned version for CliSkupperInstall")
-	}
-	phase := frame2.Phase{
-		Runner: s.Runner,
-		MainSteps: []frame2.Step{
-			{
-				Modify: action,
-			},
-		},
-	}
-
-	return phase.Run()
-}
-
-type CliSkupperInstall_1_3 struct {
-	Namespace           *base.ClusterContext
-	Ctx                 context.Context
-	MaxWait             time.Duration // If not set, defaults to types.DefaultTimeoutDuration*2
-	SkipWait            bool
-	SkipStatus          bool
-	EnableConsole       bool
-	EnableFlowCollector bool
-
-	ConsoleAuth     string
-	ConsoleUser     string
-	ConsolePassword string
-
-	frame2.DefaultRunDealer
-}
-
-func (s CliSkupperInstall_1_3) Execute() error {
-
-	args := []string{"init"}
-
-	if s.EnableConsole {
-		args = append(args, "--enable-console")
-	}
-
-	if s.EnableFlowCollector {
-		args = append(args, "--enable-flow-collector")
+	case "1.2":
+		// TODO: make this configurable, so it can be just ignored instead of
+		//       failing every time.
+		return fmt.Errorf("flow collector not available for version <1.3")
 	}
 
 	if s.ConsoleAuth != "" {
@@ -217,60 +163,8 @@ func (s CliSkupperInstall_1_3) Execute() error {
 	if s.ConsolePassword != "" {
 		args = append(args, fmt.Sprintf("--console-password=%s", s.ConsolePassword))
 	}
-
-	phase := frame2.Phase{
-		Runner: s.Runner,
-		MainSteps: []frame2.Step{
-			{
-				Modify: &CliSkupper{
-					Args:           args,
-					ClusterContext: s.Namespace,
-				},
-				Validator: &ValidateSkupperAvailable{
-					Namespace:  s.Namespace,
-					MaxWait:    s.MaxWait,
-					SkipWait:   s.SkipStatus,
-					SkipStatus: s.SkipStatus,
-					Ctx:        s.Ctx,
-				},
-			},
-		},
-	}
-
-	return phase.Run()
-}
-
-type CliSkupperInstall_1_2 struct {
-	Namespace     *base.ClusterContext
-	Ctx           context.Context
-	MaxWait       time.Duration // If not set, defaults to types.DefaultTimeoutDuration*2
-	SkipWait      bool
-	SkipStatus    bool
-	EnableConsole bool
-
-	ConsoleAuth     string
-	ConsoleUser     string
-	ConsolePassword string
-
-	frame2.DefaultRunDealer
-}
-
-func (s CliSkupperInstall_1_2) Execute() error {
-
-	args := []string{"init"}
-
-	// On 1.3 the default changed from --enable-console=true to --enable-console=false.
-	// For this reason, on 1.2 we need to always specify the console flag.
-	args = append(args, fmt.Sprintf("--enable-console=%t", s.EnableConsole))
-
-	if s.ConsoleAuth != "" {
-		args = append(args, fmt.Sprintf("--console-auth=%s", s.ConsoleAuth))
-	}
-	if s.ConsoleUser != "" {
-		args = append(args, fmt.Sprintf("--console-user=%s", s.ConsoleUser))
-	}
-	if s.ConsolePassword != "" {
-		args = append(args, fmt.Sprintf("--console-password=%s", s.ConsolePassword))
+	if len(s.Annotations) != 0 {
+		args = append(args, fmt.Sprintf("--annotations=%s", strings.Join(s.Annotations, ",")))
 	}
 
 	phase := frame2.Phase{
