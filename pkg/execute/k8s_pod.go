@@ -13,6 +13,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// TODO move to frames.k8svalidate and refactor to share code with
+// k8svalidate.Pods
+//
 // This will return a single pod.  If name is provided, that will be used.
 // Otherwise, the pods with the given label will be listed, and the first
 // in the list will be returned
