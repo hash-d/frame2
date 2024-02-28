@@ -7,6 +7,7 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/skupperproject/skupper/test/utils/base"
+	"golang.org/x/exp/slices"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -23,6 +24,7 @@ type Pods struct {
 	ExpectMax int
 
 	// Ignored if zero
+	// TODO: use min == max, instead?
 	ExpectExactly int
 
 	// Expect no results
@@ -30,17 +32,6 @@ type Pods struct {
 
 	//ExpectCondition corev1.PodConditionType
 	ExpectPhase corev1.PodPhase
-
-	// Function to run against each pod, to validate.  Provides a way
-	// to execute more complex validations not available above
-	PodValidator func(corev1.Pod) error
-
-	// A complex validation on the list as a whole.  Allows, for example
-	// to aggregate values from the different pods for verification
-	ListValidator func([]corev1.Pod) error
-
-	// List of labels expected to be set on the Pod, regardless of value
-	LabelList []string
 
 	// List of labels expected to _not_ be set on the Pod, regardless of value
 	NegativeLabelList []string
@@ -72,6 +63,27 @@ type Pods struct {
 	NegativeAnnotations map[string]string
 
 	NegativeAnnotationsExist bool
+
+	// A list of strings, all of which must map to a container name on the pod
+	ContainerList []string
+
+	// If true, the ContainerList is the complete list of expected containers;
+	// any additional containers will cause the validation to fail
+	ContainerListComplete bool
+
+	// These containers must not be present on the pod
+	NegativeContainerList []string
+
+	// Function to run against each pod, to validate.  Provides a way
+	// to execute more complex validations not available above
+	PodValidator func(corev1.Pod) error
+
+	// A complex validation on the list as a whole.  Allows, for example
+	// to aggregate values from the different pods for verification
+	ListValidator func([]corev1.Pod) error
+
+	// List of labels expected to be set on the Pod, regardless of value
+	LabelList []string
 
 	Result *[]corev1.Pod
 
@@ -119,6 +131,7 @@ func (p *Pods) Validate() error {
 		return asserter.Error()
 	}
 
+	// Per pod verification
 	for _, pod := range *p.Result {
 		if p.PodValidator != nil {
 			asserter.CheckError(p.PodValidator(pod))
@@ -182,6 +195,21 @@ func (p *Pods) Validate() error {
 					"pod %q has unexpected value %q for annotation %q",
 					pod.Name, podValue, k,
 				)
+			}
+		}
+		// Containers
+		containerNames := make([]string, 0, len(pod.Spec.Containers))
+		for _, c := range pod.Spec.Containers {
+			asserter.Check(!slices.Contains(p.NegativeContainerList, c.Name), "container %q should not be present on pod %q", c.Name, pod.Name)
+			containerNames = append(containerNames, c.Name)
+		}
+		for _, c := range p.ContainerList {
+			asserter.Check(slices.Contains(containerNames, c), "container %q missing on pod %q", c, pod.Name)
+		}
+		asserter.Check(len(containerNames) >= len(p.ContainerList), "not all containers found on pod %q", pod.Name)
+		if p.ContainerListComplete {
+			for _, c := range containerNames {
+				asserter.Check(slices.Contains(p.ContainerList, c), "container %q should not be present on pod %q", c, pod.Name)
 			}
 		}
 	}
