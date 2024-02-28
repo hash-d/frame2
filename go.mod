@@ -1,6 +1,6 @@
 module github.com/hash-d/frame2
 
-go 1.19
+go 1.20
 
 // replace github.com/skupperproject/skupper => /home/dhashimo/D/git/RedHat/skupper-dh
 replace github.com/skupperproject/skupper => ../skupper-dh/
@@ -10,6 +10,7 @@ require (
 	github.com/openshift/api v0.0.0-20210428205234-a8389931bee7
 	github.com/openshift/client-go v0.0.0-20210112165513-ebc401615f47
 	github.com/skupperproject/skupper v0.0.0-00010101000000-000000000000
+	golang.org/x/exp v0.0.0-20240222234643-814bf88cf225
 	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.20.0
 	k8s.io/apimachinery v0.20.0
