@@ -15,6 +15,13 @@ type Retry struct {
 	Options RetryOptions
 }
 
+type rootContexts []context.CancelFunc
+type rootContextType int
+
+const (
+	rootContextKey rootContextType = iota
+)
+
 // Allow accounts for instabilities (for example, a service load balanced on
 // two providers might return a mix of successes and failures while the two
 // providers stabilize).  The last success streak in this phase will count to
@@ -56,6 +63,126 @@ type RetryOptions struct {
 	KeepTrying bool
 	Ctx        context.Context
 	Timeout    time.Duration
+}
+
+// Returns a new RetryOptions, whose values are the maximum between r and other.
+//
+// The contexts are 'merged'; if any of them is cancelled, the merged context
+// gets cancelled.  Cancelling the merged context has no effect on the other
+// contexts
+func (r RetryOptions) Max(other RetryOptions) (RetryOptions, context.CancelFunc) {
+	if r.IsEmpty() {
+		return other, func() {}
+	}
+	if other.IsEmpty() {
+		return r, func() {}
+	}
+	if other.Allow > r.Allow {
+		r.Allow = other.Allow
+	}
+	if other.Ignore > r.Ignore {
+		r.Ignore = other.Ignore
+	}
+	if other.Ensure > r.Ensure {
+		r.Ensure = other.Ensure
+	}
+	if other.Retries > r.Retries {
+		r.Retries = other.Retries
+	}
+	if other.Interval.Seconds() > r.Interval.Seconds() {
+		r.Interval = other.Interval
+	}
+	if other.Min > r.Min {
+		r.Min = other.Min
+	}
+	if other.Rate > r.Rate {
+		r.Rate = other.Rate
+	}
+	if other.KeepTrying {
+		r.KeepTrying = true
+	}
+	if other.Quiet {
+		r.Quiet = true
+	}
+	if other.Timeout.Seconds() > r.Timeout.Seconds() {
+		r.Timeout = other.Timeout
+	}
+	// context merge
+	// TODO: change to context.AfterFunc, when moving to 1.21+
+	// Also, move this elsewhere, for reuse, or find some library that
+	// does this
+	ctx, cancelMerged := context.WithCancel(context.Background())
+	var contexts int
+	roots := rootContexts{}
+	var contextsWithRootContexts int
+	for _, c := range []context.Context{r.Ctx, other.Ctx} {
+		if c != nil {
+			contexts += 1
+			if r, ok := c.Value(rootContextKey).(rootContexts); ok {
+				if len(r) > 0 {
+					contextsWithRootContexts += 1
+				}
+				roots = append(roots, r...)
+			}
+			go func(c context.Context, roots rootContexts) {
+				select {
+				case <-c.Done():
+					// cancel the merged context
+					cancelMerged()
+					for _, r := range roots {
+						r()
+					}
+				case <-ctx.Done():
+					// Just exit of this gofunc; someone
+					// else cancelled the merged context
+					// and we can let the go func close.
+					// The empty statement below is only
+					// for coverage check
+					{
+					}
+				}
+
+			}(c, roots)
+		}
+	}
+	switch contextsWithRootContexts {
+	case 0:
+		// None of the arguments has a root context, so this one will
+		// be a root context; we wrap the cancelable context with a
+		// context.WithValue which holds the cancel function of the
+		// wrapped context
+		roots = append(roots, cancelMerged)
+		ctx = context.WithValue(ctx, rootContextKey, roots)
+	case 1:
+		// Do nothing only one source of root contexts, and it
+		// can be 'passed above'.  The empty statement below is
+		// only for coverage check
+		{
+		}
+	case 2:
+		// Both argument contexts have root context values, so we
+		// have to create a new context.WithValue, which has all
+		// root contexts appended
+		ctx = context.WithValue(ctx, rootContextKey, roots)
+		savedCancelMerged := cancelMerged
+		cancelMerged = func() {
+			savedCancelMerged()
+			for _, c := range roots {
+				c()
+			}
+		}
+	default:
+		panic("This should not happen")
+	}
+	if contexts == 0 {
+		// Do not create a context if none on the inputs
+		cancelMerged()
+		//cancelMerged = nil
+	} else {
+		r.Ctx = ctx
+	}
+
+	return r, cancelMerged
 }
 
 // Checks whether any fields on the struct have been set
