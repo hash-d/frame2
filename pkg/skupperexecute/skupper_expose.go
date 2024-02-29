@@ -81,7 +81,7 @@ func (s SkupperExpose) Execute() error {
 		panic("unnassigned version for CliSkupperInstall")
 	}
 	phase := frame2.Phase{
-		Runner: s.Runner,
+		Runner: s.GetRunner(),
 		MainSteps: []frame2.Step{
 			{
 				Modify: action,
