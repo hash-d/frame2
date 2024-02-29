@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime/debug"
 	"strings"
 	"testing"
 	"time"
@@ -39,6 +40,7 @@ type Run struct {
 	savedT             *testing.T  // TODO: review.  Only private + getter/setter?
 	monitors           []*Monitor
 	finalValidators    []Validator
+	subFinalValidators []Validator
 	ctx                context.Context
 	cancelCtx          context.CancelFunc
 	root               *Run // TODO Perhaps replace this by a recursive call, now we have parent
@@ -50,6 +52,7 @@ type Run struct {
 	nextChildSequence  int
 	postSetup          bool
 	postMainSetupDone  bool
+	named              bool
 }
 
 // Return the full ID of the Runner, which includes the ID of its parent
@@ -174,6 +177,24 @@ func (r *Run) addFinalValidators(v []Validator) {
 	root.finalValidators = append(root.finalValidators, v...)
 }
 
+func (r *Run) addSubFinalValidators(v []Validator) {
+	namedTest := r.getNamed()
+	namedTest.subFinalValidators = append(namedTest.subFinalValidators, v...)
+}
+
+func (r *Run) getNamed() *Run {
+	switch {
+	case r.named:
+		return r
+	case r.parent == nil:
+		return r
+	case r == r.getRoot():
+		return r
+	default:
+		return r.parent.getNamed()
+	}
+}
+
 func (r *Run) getRoot() *Run {
 	//	if r == nil {
 	//		return nil
@@ -187,6 +208,49 @@ func (r *Run) getRoot() *Run {
 
 func (r *Run) getDisruptors() []Disruptor {
 	return append(r.getRoot().disruptor, r.getRoot().RequiredDisruptors...)
+}
+
+// Run steps that are still part of the subtest, but must be run at its very end,
+// right before the tear down.  Failures here will count as test failure
+func (r *Run) subFinalize() {
+	// TODO Today, it runs the pre-subfinalizer-hook only when there are listed
+	// subfinalizers.  Perhaps that's ok, but check if there are situations where
+	// the hook needs to be run without subfinalizers.  It's like that today to
+	// avoid clashes between main test disruptors and subtest disruptors
+	if len(r.subFinalValidators) > 0 {
+		for _, d := range r.getDisruptors() {
+			if d, ok := d.(PreFinalizerHook); ok {
+				log.Printf("[R] Running pre-subfinalizer hook")
+				var err error
+				r.T.Run("pre-subfinalizer-hook", func(t *testing.T) {
+					err = d.PreFinalizerHook(r.ChildWithT(t, HookRunner))
+				})
+				if err != nil {
+					r.T.Errorf("pre-subfinalizer hook failed: %v", err)
+				}
+			}
+		}
+		log.Printf("[R] Running sub test finalizers")
+
+		// TODO Simplify: instead of t.Run() + phase, use just one named phase.
+		r.T.Run("subfinal-validator-re-run", func(t *testing.T) {
+			log.Printf("[R] Running sub test final validators")
+			subPhase := Phase{
+				Runner: r.ChildWithT(t, ValidatorRunner),
+				MainSteps: []Step{
+					{
+						Validators: r.subFinalValidators,
+						ValidatorRetry: RetryOptions{
+							Allow: base.GetEnvInt(ENV_FINAL_RETRY, 1),
+						},
+					},
+				},
+			}
+
+			subPhase.Run()
+
+		})
+	}
 }
 
 // Run steps that are still part of the test, but must be run at its very end,
@@ -389,7 +453,7 @@ func processStep(t *testing.T, step Step, Log FrameLogger, p *Phase, kind Runner
 		_ = t.Run(step.Name, func(t *testing.T) {
 			//log.Printf("[R] %v current test: %q", id, t.Name())
 			Log.Printf("[R] %v Doc: %v", id, step.Doc)
-			processErr := processStep_(t, step, SubTestRunner, Log, p)
+			processErr := processStep_(t, step, SubTestRunner, Log, p, true)
 			if processErr != nil {
 				// This makes it easier to find the failures in log files
 				Log.Printf("[R] test %v - %q failed", id, t.Name())
@@ -397,7 +461,7 @@ func processStep(t *testing.T, step Step, Log FrameLogger, p *Phase, kind Runner
 				// just mark it as a failed test
 				t.Errorf("test failed: %v", processErr)
 			}
-			Log.Printf("[R] %v Subtest %q completed", id, t.Name())
+			Log.Printf("[R] %v step Subtest %q completed", id, t.Name())
 		})
 	} else {
 		/*
@@ -407,7 +471,7 @@ func processStep(t *testing.T, step Step, Log FrameLogger, p *Phase, kind Runner
 			}
 			Log.Printf("[R] %v current test: %q", id, name)
 		*/
-		err = processStep_(t, step, kind, Log, p)
+		err = processStep_(t, step, kind, Log, p, false)
 		//Log.Printf("[R] Step %q result %+v", id, err)
 	}
 	return err
@@ -416,9 +480,13 @@ func processStep(t *testing.T, step Step, Log FrameLogger, p *Phase, kind Runner
 
 // Does the heavy lifting of executing a single step from a phase; execute each of its
 // parts: setup, modify, substeps, validations, etc
-func processStep_(t *testing.T, step Step, kind RunnerType, Log FrameLogger, p *Phase) error {
+func processStep_(t *testing.T, step Step, kind RunnerType, Log FrameLogger, p *Phase, named bool) error {
 
 	stepRunner := p.DefaultRunDealer.GetRunner().ChildWithT(t, kind)
+	stepRunner.named = named
+	if named {
+		defer stepRunner.subFinalize()
+	}
 	id := stepRunner.GetId()
 	Log.Printf("[R] %v doc %q", id, step.Doc)
 
@@ -492,6 +560,9 @@ func processStep_(t *testing.T, step Step, kind RunnerType, Log FrameLogger, p *
 		validatorRunner := stepRunner.ChildWithT(t, ValidatorRunner)
 		if step.ValidatorFinal {
 			p.savedRunner.addFinalValidators(validatorList)
+		}
+		if step.ValidatorSubFinal {
+			p.savedRunner.addSubFinalValidators(validatorList)
 		}
 		fn := func() error {
 			someFailure := false
@@ -590,6 +661,10 @@ func (p *Phase) Run() error {
 	runner := p.GetRunner()
 	if runner == nil {
 		fmt.Printf("##################################\n")
+		fmt.Printf("Nil runner on phase %q/%q\n", p.Name, p.Doc)
+		fmt.Printf("%#v\n", p)
+		debug.PrintStack()
+		fmt.Printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n")
 		runner = p.Runner
 	}
 	return p.runP(runner)
@@ -605,11 +680,13 @@ func (p *Phase) runP(runner *Run) error {
 	if p.Name != "" && p.GetRunner().T != nil {
 		ok := p.GetRunner().T.Run(p.Name, func(t *testing.T) {
 			p.DefaultRunDealer.Runner = runner.ChildWithT(t, PhaseRunner)
+			p.Runner.named = true
 			id = p.GetRunner().GetId()
 			log.Printf("[R] %v current test: %q", id, t.Name())
 			p.Log.Printf("[R] %v Phase doc: %v", id, p.Doc)
 			err = p.run()
-			p.Log.Printf("[R] %v Subtest %q completed", id, t.Name())
+			p.GetRunner().subFinalize()
+			p.Log.Printf("[R] %v phase Subtest %q completed", id, t.Name())
 		})
 
 		//p.Runner = savedRunner

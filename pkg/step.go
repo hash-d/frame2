@@ -23,14 +23,15 @@ type Step struct {
 
 	// TODO make this require a pointer, like validator does, to avoid
 	// Runner disconnects
-	Modify         Executor
-	Validator      Validator
-	Validators     []Validator
-	ValidatorRetry RetryOptions
-	ValidatorFinal bool // final validators are re-run at the test's end
-	Substep        Stepper
-	Substeps       []*Step
-	SubstepRetry   RetryOptions
+	Modify            Executor
+	Validator         Validator
+	Validators        []Validator
+	ValidatorRetry    RetryOptions
+	ValidatorFinal    bool // final validators are re-run at the test's end
+	ValidatorSubFinal bool // and subfinal, at the end of subtests
+	Substep           Stepper
+	Substeps          []*Step
+	SubstepRetry      RetryOptions
 	// A simple way to invert the meaning of the Validator.  Validators
 	// are encouraged to provide more specific negative testing behaviors,
 	// but this serves for simpler testing.  If set, it inverts the
