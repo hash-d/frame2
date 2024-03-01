@@ -32,8 +32,8 @@ const CmdDefaultTimeout = 2 * time.Minute
 // status is not present on either, an error will be returned
 //
 // This is basically a wrapper around Go's exec.Cmd, and its configuration
-// even uses that structured, embedded.  There are some differences,
-// howeever:
+// even uses that structure, embedded.  There are some differences,
+// however:
 //
 //   - There is a Shell option
 //   - A timeout can be defined directly, in addition to a Context
@@ -161,6 +161,10 @@ func (c *Cmd) Execute() error {
 	mergo.Merge(&cmd, tmpcmd, mergo.WithOverride)
 	// mergo will not merge Args, so we have to force it
 	cmd.Args = tmpcmd.Args
+
+	// TODO FIXME.  This is a hotfix.  execute.Cmd is not using all fields
+	// from its Cmd, as promised.
+	cmd.Dir = c.Cmd.Dir
 
 	// Append AdditionalEnv, if set.  If unset, leave cmd.Env alone
 	if c.AdditionalEnv != nil {

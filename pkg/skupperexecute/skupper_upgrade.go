@@ -100,7 +100,7 @@ func (s SkupperUpgrade) Execute() error {
 		return nil
 	}
 
-	skupperInfo := validate.SkupperInfo{
+	skupperInfo := SkupperInfo{
 		Namespace: s.Namespace,
 		Ctx:       s.Ctx,
 	}
@@ -123,7 +123,7 @@ func (s SkupperUpgrade) Execute() error {
 		Doc:    "Compare Skupper images to the manifest.json",
 		MainSteps: []frame2.Step{
 			{
-				Validator: &validate.SkupperManifest{
+				Validator: &SkupperManifest{
 					Expected: skupperInfo.Result.Images,
 				},
 			},
