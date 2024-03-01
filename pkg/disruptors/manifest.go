@@ -2,7 +2,7 @@ package disruptors
 
 import (
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/hash-d/frame2/pkg/validate"
+	"github.com/hash-d/frame2/pkg/skupperexecute"
 )
 
 type SkipManifestCheck struct {
@@ -14,7 +14,7 @@ func (s SkipManifestCheck) DisruptorEnvValue() string {
 
 func (s *SkipManifestCheck) Inspect(step *frame2.Step, phase *frame2.Phase) {
 	for _, v := range step.GetValidators() {
-		if v, ok := v.(*validate.SkupperManifest); ok {
+		if v, ok := v.(*skupperexecute.SkupperManifest); ok {
 			v.SkipComparison = true
 		}
 	}
