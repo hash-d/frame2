@@ -39,13 +39,16 @@ func (c *ConfigMap) Validate() error {
 		return fmt.Errorf("failed retrieving cm %q: %v", c.Name, err)
 	}
 	for k, v := range c.Values {
-		if actual, ok := cm.Data[k]; asserter.Check(ok, "key %q not found on CM %q", k, c.Name) != nil {
+		if actual, ok := cm.Data[k]; asserter.Check(ok, "key %q not found on CM %q", k, c.Name) == nil {
 			asserter.Check(
 				v == actual,
 				"values differ for key %q.  expected %q, got %q",
 				k, v, actual,
 			)
 		}
+	}
+	if c.CMValidator != nil {
+		asserter.CheckError(c.CMValidator(*cm))
 	}
 
 	return asserter.Error()

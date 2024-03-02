@@ -101,14 +101,18 @@ func (sis SkupperInstallSimple) Execute() error {
 }
 
 type CliSkupperInstall struct {
-	Namespace           *base.ClusterContext
-	Ctx                 context.Context
-	MaxWait             time.Duration // If not set, defaults to types.DefaultTimeoutDuration*2
-	SkipWait            bool
-	SkipStatus          bool
-	EnableConsole       bool
-	EnableFlowCollector bool
-	Annotations         []string
+	Namespace                *base.ClusterContext
+	Ctx                      context.Context
+	MaxWait                  time.Duration // If not set, defaults to types.DefaultTimeoutDuration*2
+	SkipWait                 bool
+	SkipStatus               bool
+	EnableConsole            bool
+	EnableFlowCollector      bool
+	Annotations              []string
+	CreateNetworkPolicy      bool
+	EnableClusterPermissions bool
+	SiteName                 string
+	RouterLogging            string
 
 	ConsoleAuth     string
 	ConsoleUser     string
@@ -162,6 +166,18 @@ func (s CliSkupperInstall) Execute() error {
 	}
 	if s.ConsolePassword != "" {
 		args = append(args, fmt.Sprintf("--console-password=%s", s.ConsolePassword))
+	}
+	if s.SiteName != "" {
+		args = append(args, fmt.Sprintf("--site-name=%s", s.SiteName))
+	}
+	if s.RouterLogging != "" {
+		args = append(args, fmt.Sprintf("--router-logging=%s", s.RouterLogging))
+	}
+	if s.CreateNetworkPolicy {
+		args = append(args, "--create-network-policy")
+	}
+	if s.EnableClusterPermissions {
+		args = append(args, "--enable-cluster-permissions")
 	}
 	if len(s.Annotations) != 0 {
 		args = append(args, fmt.Sprintf("--annotations=%s", strings.Join(s.Annotations, ",")))

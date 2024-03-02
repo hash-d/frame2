@@ -23,6 +23,18 @@ type SecretGet struct {
 	// for example, the secret must be empty.
 	ExpectAll bool
 
+	// Checks that all listed keys are present on the
+	// secret, regardless of their values
+	Keys []string
+
+	// Checks that listed keys are _not_ present on the
+	// Secret
+	AbsentKeys []string
+
+	// If set, the Secret is expected to not be present;
+	// fail if it exists
+	ExpectAbsent bool
+
 	Secret *core.Secret
 
 	*frame2.Log
@@ -39,7 +51,13 @@ func (s SecretGet) Validate() error {
 		meta.GetOptions{},
 	)
 	if err != nil {
+		if s.ExpectAbsent {
+			return nil
+		}
 		return err
+	}
+	if s.ExpectAbsent {
+		return fmt.Errorf("secret %q was expected be absent, but was found in namespace %q", s.Name, s.Namespace.Namespace)
 	}
 	if s.ExpectAll {
 		if len(s.Expect) != len(s.Secret.Data) {
@@ -64,6 +82,22 @@ func (s SecretGet) Validate() error {
 			return fmt.Errorf(
 				"key %q's value %q is different from expected %q on secret %q",
 				k, actual, v, s.Name,
+			)
+		}
+	}
+	for _, k := range s.Keys {
+		if _, ok := s.Secret.Data[k]; !ok {
+			return fmt.Errorf(
+				"key %q not present on secret %q",
+				k, s.Name,
+			)
+		}
+	}
+	for _, k := range s.AbsentKeys {
+		if _, ok := s.Secret.Data[k]; ok {
+			return fmt.Errorf(
+				"key %q should not be present on secret %q",
+				k, s.Name,
 			)
 		}
 	}
