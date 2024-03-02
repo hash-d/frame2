@@ -90,11 +90,18 @@ func (e Effects[T, PT]) getComboStep() (*frame2.Step, context.CancelFunc) {
 			opt, cancel = opt.Max(e.Effects[effect].ValidatorsRetry)
 		}
 		sub := frame2.Step{
-			Name:              name,
-			Modify:            PT(&frame),
-			Validators:        validators,
-			ValidatorSubFinal: true,
-			ValidatorRetry:    opt,
+			Name: name,
+			Modify: frame2.Phase{
+				MainSteps: []frame2.Step{
+					{
+						Modify:            PT(&frame),
+						Validators:        validators,
+						ValidatorSubFinal: true,
+						ValidatorRetry:    opt,
+					},
+				},
+				Teardown: e.TearDown,
+			},
 		}
 		s.Substeps = append(s.Substeps, &sub)
 	}

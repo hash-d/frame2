@@ -1,6 +1,9 @@
 package skupperexecute_test
 
 import (
+	"encoding/json"
+	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -11,9 +14,11 @@ import (
 	"github.com/hash-d/frame2/pkg/subrunner"
 	"github.com/hash-d/frame2/pkg/topology"
 	"github.com/hash-d/frame2/pkg/topology/topologies"
+	"github.com/hash-d/frame2/pkg/validate"
 	"github.com/skupperproject/skupper/test/utils/base"
 	"gotest.tools/assert"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 )
 
 func TestSkupperInstallEffects(t *testing.T) {
@@ -61,7 +66,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 	}
 
 	phase := subrunner.Effects[skupperexecute.CliSkupperInstall, *skupperexecute.CliSkupperInstall]{
-		ExecutionProfile: subrunner.INDIVIDUAL,
+		ExecutionProfile: subrunner.BOTH,
 		BaseFrame: &skupperexecute.CliSkupperInstall{
 			Namespace: ns,
 		},
@@ -85,7 +90,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 		},
 		Combos: map[string][]string{
 			// Ensures all deployable resources are present, and check annotations
-			"annotations-full": []string{"console", "annotations"},
+			"annotations-full": []string{"console", "annotations", "console-auth-openshift"},
 		},
 		// TODO: move all validators below to individual frames.
 		// - Something like validateskupper.Console{}
@@ -172,9 +177,8 @@ func TestSkupperInstallEffects(t *testing.T) {
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values: map[string]string{
-							"console":                "false",
-							"console-authentication": "internal",
-							"flow-collector":         "true",
+							"console":        "false",
+							"flow-collector": "true",
 						},
 					},
 				},
@@ -205,9 +209,227 @@ func TestSkupperInstallEffects(t *testing.T) {
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values: map[string]string{
-							"console":                "true",
-							"console-authentication": "internal",
-							"flow-collector":         "true",
+							"console":        "true",
+							"flow-collector": "true",
+						},
+					},
+				},
+			},
+			"console-user": {
+				Doc: "Confirms that the console user can be configured",
+				Patch: skupperexecute.CliSkupperInstall{
+					EnableConsole:       true,
+					EnableFlowCollector: true,
+					ConsoleUser:         "testuser",
+				},
+				ValidatorsRetry: basicWait,
+				Validators: []frame2.Validator{
+					&k8svalidate.SecretGet{
+						Namespace: ns,
+						Name:      "skupper-console-users",
+						Keys:      []string{"testuser"},
+					},
+				},
+			},
+			"console-password": {
+				Doc: "Confirms that the console password can be configured",
+				Patch: skupperexecute.CliSkupperInstall{
+					EnableConsole:       true,
+					EnableFlowCollector: true,
+					ConsolePassword:     "testpassword",
+				},
+				ValidatorsRetry: basicWait,
+				Validators: []frame2.Validator{
+					&k8svalidate.SecretGet{
+						Namespace: ns,
+						Name:      "skupper-console-users",
+						Expect:    map[string][]byte{"admin": []byte("testpassword")},
+					},
+				},
+			},
+			"console-user-password": {
+				Doc: "Confirms that the console user and password can be configured",
+				Patch: skupperexecute.CliSkupperInstall{
+					EnableConsole:       true,
+					EnableFlowCollector: true,
+					ConsoleUser:         "testuser",
+					ConsolePassword:     "testpassword",
+				},
+				ValidatorsRetry: basicWait,
+				Validators: []frame2.Validator{
+					&k8svalidate.SecretGet{
+						Namespace: ns,
+						Name:      "skupper-console-users",
+						Expect:    map[string][]byte{"testuser": []byte("testpassword")},
+					},
+				},
+			},
+			"console-auth-internal": {
+				Doc: "Confirms that the console authentication can be set to internal",
+				Patch: skupperexecute.CliSkupperInstall{
+					EnableConsole:       true,
+					EnableFlowCollector: true,
+					ConsoleAuth:         "internal",
+				},
+				ValidatorsRetry: basicWait,
+				Validators: []frame2.Validator{
+					&k8svalidate.SecretGet{
+						Namespace: ns,
+						Name:      "skupper-console-users",
+						Keys:      []string{"admin"},
+					},
+				},
+			},
+			"console-auth-unsecured": {
+				Doc: "Confirms that the console authentication can be set to unsecured",
+				Patch: skupperexecute.CliSkupperInstall{
+					EnableConsole:       true,
+					EnableFlowCollector: true,
+					ConsoleAuth:         "unsecured",
+				},
+				ValidatorsRetry: basicWait,
+				Validators: []frame2.Validator{
+					&k8svalidate.SecretGet{
+						Namespace:    ns,
+						Name:         "skupper-console-users",
+						ExpectAbsent: true,
+					},
+				},
+			},
+			"console-auth-openshift": {
+				Doc: "Confirms that the console authentication can be set to openshift",
+				Patch: skupperexecute.CliSkupperInstall{
+					EnableConsole:       true,
+					EnableFlowCollector: true,
+					ConsoleAuth:         "openshift",
+				},
+				ValidatorsRetry: basicWait,
+				Validators: []frame2.Validator{
+					&k8svalidate.SecretGet{
+						Namespace:    ns,
+						Name:         "skupper-console-users",
+						ExpectAbsent: true,
+					},
+					&validate.Container{
+						Namespace:     ns,
+						PodSelector:   validate.ServiceControllerSelector,
+						ContainerName: "oauth-proxy",
+					},
+				},
+			},
+			"network-policy": {
+				Doc: "Skupper init is able to create its NetworkPolicy",
+				Patch: skupperexecute.CliSkupperInstall{
+					CreateNetworkPolicy: true,
+				},
+				ValidatorsRetry: basicWait,
+				Validators: []frame2.Validator{
+					&k8svalidate.NetworkPolicy{
+						Namespace: ns,
+						Name:      "skupper",
+					},
+				},
+			},
+			"cluster-permissions": {
+				// TODO: this may give a false negative, if the cluster
+				// already had the ClusterRoleBinding before.  Currently,
+				// they do not get removed on skupper delete.
+				//
+				// See
+				// - https://github.com/skupperproject/skupper/issues/813
+				// - https://github.com/skupperproject/skupper/issues/857
+				Doc: "Skupper init can enable cluster-wide permissions.  Attention to false negatives",
+				Patch: skupperexecute.CliSkupperInstall{
+					EnableClusterPermissions: true,
+				},
+				ValidatorsRetry: basicWait,
+				Validators: []frame2.Validator{
+					&k8svalidate.ClusterRoleBindingGet{
+						Namespace: ns,
+						Name: fmt.Sprintf(
+							"skupper-service-controller-extended-%s",
+							ns.Namespace,
+						),
+					},
+					&k8svalidate.ConfigMap{
+						Namespace: ns,
+						Name:      "skupper-site",
+						Values:    map[string]string{"cluster-permissions": "true"},
+					},
+				},
+			},
+			"site-name": {
+				Doc: "Skupper init set a site name",
+				Patch: skupperexecute.CliSkupperInstall{
+					SiteName: "custom-site-name",
+				},
+				ValidatorsRetry: basicWait,
+				Validators: []frame2.Validator{
+					&k8svalidate.ConfigMap{
+						Namespace: ns,
+						Name:      "skupper-site",
+						Values:    map[string]string{"name": "custom-site-name"},
+					},
+				},
+			},
+			"router-logging": {
+				Doc: "Skupper init set a site name",
+				Patch: skupperexecute.CliSkupperInstall{
+					RouterLogging: "trace",
+				},
+				ValidatorsRetry: basicWait,
+				Validators: []frame2.Validator{
+					&k8svalidate.ConfigMap{
+						Namespace: ns,
+						Name:      "skupper-site",
+						Values:    map[string]string{"router-logging": "trace"},
+					},
+					&k8svalidate.ConfigMap{
+						Namespace: ns,
+						Name:      "skupper-internal",
+						CMValidator: func(cm v1.ConfigMap) error {
+							// TODO: move this to a dedicated frame?
+							if config, ok := cm.Data["skrouterd.json"]; ok {
+								var root []any
+								err := json.Unmarshal([]byte(config), &root)
+								if err != nil {
+									return fmt.Errorf("failed to get root list: %w", err)
+								}
+								for _, item := range root {
+									if item, ok := item.([]any); ok {
+										if len(item) != 2 {
+											return fmt.Errorf("unexpected number of items on the structure: %d", len(item))
+										}
+										if name, ok := item[0].(string); ok {
+											if name != "log" {
+												continue
+											}
+											if details, ok := item[1].(map[string]interface{}); ok {
+												if level, ok := details["enable"]; ok {
+													if level, ok := level.(string); ok {
+														if level == "trace+" {
+															return nil
+														} else {
+															return fmt.Errorf("router logging is configured for unexpected value %q", level)
+														}
+													} else {
+														return fmt.Errorf("value is not a string")
+													}
+												} else {
+													return errors.New("unable to find 'enable' key on map")
+												}
+											} else {
+												return errors.New("second item on the structure is not a map")
+											}
+										} else {
+											return errors.New("first item on the structure is not a string")
+										}
+									} else {
+										return errors.New("List is not composed of sublists")
+									}
+								}
+							}
+							return errors.New("'log' configuration not found")
 						},
 					},
 				},
