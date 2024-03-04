@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log"
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/skupperproject/skupper/test/utils/base"
@@ -71,6 +72,7 @@ func (s SecretGet) Validate() error {
 
 	}
 	for k, v := range s.Expect {
+		log.Printf("- checking key %q for its value", k)
 		actual, ok := s.Secret.Data[k]
 		if !ok {
 			return fmt.Errorf(
@@ -86,6 +88,7 @@ func (s SecretGet) Validate() error {
 		}
 	}
 	for _, k := range s.Keys {
+		log.Printf("- checking key %q for its presence", k)
 		if _, ok := s.Secret.Data[k]; !ok {
 			return fmt.Errorf(
 				"key %q not present on secret %q",
@@ -94,6 +97,7 @@ func (s SecretGet) Validate() error {
 		}
 	}
 	for _, k := range s.AbsentKeys {
+		log.Printf("- checking key %q for its absence", k)
 		if _, ok := s.Secret.Data[k]; ok {
 			return fmt.Errorf(
 				"key %q should not be present on secret %q",
