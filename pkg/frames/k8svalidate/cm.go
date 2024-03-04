@@ -3,6 +3,7 @@ package k8svalidate
 import (
 	"context"
 	"fmt"
+	"log"
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/skupperproject/skupper/test/utils/base"
@@ -39,6 +40,7 @@ func (c *ConfigMap) Validate() error {
 		return fmt.Errorf("failed retrieving cm %q: %v", c.Name, err)
 	}
 	for k, v := range c.Values {
+		log.Printf("- Checking key %q", k)
 		if actual, ok := cm.Data[k]; asserter.Check(ok, "key %q not found on CM %q", k, c.Name) == nil {
 			asserter.Check(
 				v == actual,
@@ -48,6 +50,7 @@ func (c *ConfigMap) Validate() error {
 		}
 	}
 	if c.CMValidator != nil {
+		log.Printf("- Running CMValidator")
 		asserter.CheckError(c.CMValidator(*cm))
 	}
 
