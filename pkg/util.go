@@ -20,11 +20,11 @@ func ContextOrDefault(ctx context.Context) context.Context {
 
 // Returns the root of the source directory
 //
-// This assumes that the current file is located at the test/frame2 directory,
+// This assumes that this very file is located at the pkg directory,
 // from the source root.  Refactoring may require changes to the code
 func SourceRoot() string {
 	_, filename, _, _ := runtime.Caller(0)
-	ret := path.Join(path.Dir(filename), "../..")
+	ret := path.Join(path.Dir(filename), "..")
 
 	return ret
 }
