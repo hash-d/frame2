@@ -1,6 +1,8 @@
 package execute
 
 import (
+	"log"
+	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -80,9 +82,23 @@ func (s SkupperVersionerDefault) GetSkupperVersion() string {
 // 1.2 and 1.4, and its current SkupperVersion is 1.3, it will return 1.2
 // (that is, the version that 1.3 is compatible with, as it does not have the
 // changes from 1.4).
+//
+// If the version is empty on the struct, WhichSkupperVersion will check the
+// environment variable SKUPPER_TEST_VERSION, and use its value.  Otherwise,
+// it will return empty, which means 'latest' version.
 func (s SkupperVersionerDefault) WhichSkupperVersion(candidates []string) string {
+
+	version := s.SkupperVersion
+	envVersion := os.Getenv("SKUPPER_TEST_VERSION")
+	if version == "" && envVersion != "" {
+		// version was not explicitly set elsewhere, and there is a SKUPPER_TEST_VERSION
+		// configuration on the environment, so we use it.
+		version = envVersion
+		log.Printf("Setting version to %q, per environment variable", version)
+	}
+
 	// The action is configured to use the latest, so always return empty
-	if s.SkupperVersion == "" || len(candidates) == 0 {
+	if version == "" || len(candidates) == 0 {
 		return ""
 	}
 
@@ -92,10 +108,10 @@ func (s SkupperVersionerDefault) WhichSkupperVersion(candidates []string) string
 
 	bestMatch := candidates[0]
 	for _, item := range candidates {
-		if item == s.SkupperVersion {
+		if item == version {
 			return item
 		}
-		if !VersionLessThan(item, s.SkupperVersion) {
+		if !VersionLessThan(item, version) {
 			return bestMatch
 		} else {
 			bestMatch = item
