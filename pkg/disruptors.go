@@ -34,11 +34,20 @@ type PostMainSetupHook interface {
 	PostMainSetupHook(runner *Run) error
 }
 
-// PreFinalizerHook will be executed at the end of the
-// test, before all other finalizer tasks, such as the
-// re-run of validators marked as final
-type PreFinalizerHook interface {
+type FinalizerHook interface {
+
+	// FinalizerHook will be executed at the end of the
+	// test, before all other finalizer tasks, such as the
+	// re-run of validators marked as final
 	PreFinalizerHook(runner *Run) error
+
+	// PostSubFinalizerHook will be executed after the
+	// final validators are run.  It can be used, for example,
+	// to reset the disruptor, so it starts a new on the
+	// next sub test.  On an upgrade disruptor, for example,
+	// the next cycle that has a subfinalizer needs to start
+	// with the old version again.
+	PostSubFinalizerHook(runner *Run) error
 }
 
 type ValidationResultHook interface {

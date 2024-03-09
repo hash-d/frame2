@@ -168,6 +168,12 @@ func (u *UpgradeAndFinalize) PreFinalizerHook(runner *frame2.Run) error {
 	return phase.Run()
 }
 
+func (u *UpgradeAndFinalize) PostSubFinalizerHook(runner *frame2.Run) error {
+	u.useNew = false
+	u.targets = []*base.ClusterContext{}
+	return nil
+}
+
 func (u *UpgradeAndFinalize) Inspect(step *frame2.Step, phase *frame2.Phase) {
 	if step, ok := step.Modify.(execute.SkupperUpgradable); ok {
 		u.targets = append(u.targets, step.SkupperUpgradable())
@@ -268,6 +274,12 @@ func (m *MixedVersionVan) PreFinalizerHook(runner *frame2.Run) error {
 	m.remaining = []*base.ClusterContext{}
 
 	return upgradeSites(targets, runner)
+}
+
+func (u *MixedVersionVan) PostSubFinalizerHook(runner *frame2.Run) error {
+	u.useNew = false
+	u.targets = []*base.ClusterContext{}
+	return nil
 }
 
 // Change this to a mix-in, share with UpgradeAndFinalize?
