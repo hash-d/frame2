@@ -91,6 +91,12 @@ type Validator interface {
 	FrameLogger
 }
 
+// TODO: add some embedded items:
+//  Namer adds record Name; allows individual validators to be named
+//  Docer adds Doc; same as above
+//  Skipper adds SkipWhen and IgnoreWhen, allowing individual validators to be
+//  skipped programmatically
+
 // TODO create ValidatorList, with Validator + RetryOptions
 
 type Execute struct {
