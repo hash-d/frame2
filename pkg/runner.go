@@ -224,10 +224,10 @@ func (r *Run) subFinalize() {
 				var err error
 				r.T.Run("pre-subfinalizer-hook", func(t *testing.T) {
 					err = d.PreFinalizerHook(r.ChildWithT(t, HookRunner))
+					if err != nil {
+						t.Errorf("pre-subfinalizer hook failed: %v", err)
+					}
 				})
-				if err != nil {
-					r.T.Errorf("pre-subfinalizer hook failed: %v", err)
-				}
 			}
 		}
 		log.Printf("[R] Running sub test finalizers")
@@ -262,10 +262,10 @@ func (r *Run) Finalize() {
 			var err error
 			r.T.Run("pre-finalizer-hook", func(t *testing.T) {
 				err = d.PreFinalizerHook(r.ChildWithT(t, HookRunner))
+				if err != nil {
+					t.Errorf("pre-finalizer hook failed: %v", err)
+				}
 			})
-			if err != nil {
-				r.T.Errorf("pre-finalizer hook failed: %v", err)
-			}
 		}
 	}
 	log.Printf("[R] Running finalizers")
