@@ -32,12 +32,14 @@ func (a *Asserter) Check(condition bool, message string, params ...any) error {
 }
 
 // Updates the counters and error list, and return its input
-func (a *Asserter) CheckError(err error) error {
+func (a *Asserter) CheckError(err error, template string, msgParams ...any) error {
 	a.checks += 1
 	if err == nil {
 		a.successes += 1
 	} else {
 		a.failures += 1
+		msg := fmt.Sprintf(template, msgParams...)
+		err = fmt.Errorf("%s: %w", msg, err)
 		a.errors = append(a.errors, err)
 	}
 	return err
