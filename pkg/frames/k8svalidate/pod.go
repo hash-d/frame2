@@ -134,7 +134,7 @@ func (p *Pods) Validate() error {
 	// Per pod verification
 	for _, pod := range *p.Result {
 		if p.PodValidator != nil {
-			asserter.CheckError(p.PodValidator(pod))
+			asserter.CheckError(p.PodValidator(pod), "PodValidator failed")
 		}
 		if p.ExpectPhase != "" {
 			asserter.Check(p.ExpectPhase == pod.Status.Phase, "expected pod %q to be in phase %q, found %q", pod.Name, p.ExpectPhase, pod.Status.Phase)
@@ -215,7 +215,7 @@ func (p *Pods) Validate() error {
 	}
 
 	if p.ListValidator != nil {
-		asserter.CheckError(p.ListValidator(*p.Result))
+		asserter.CheckError(p.ListValidator(*p.Result), "ListValidator failed")
 	}
 
 	return asserter.Error()

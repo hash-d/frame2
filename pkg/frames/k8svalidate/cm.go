@@ -51,7 +51,7 @@ func (c *ConfigMap) Validate() error {
 	}
 	if c.CMValidator != nil {
 		log.Printf("- Running CMValidator")
-		asserter.CheckError(c.CMValidator(*cm))
+		asserter.CheckError(c.CMValidator(*cm), "CM Validator failed")
 	}
 
 	return asserter.Error()
