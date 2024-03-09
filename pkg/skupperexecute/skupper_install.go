@@ -113,6 +113,7 @@ type CliSkupperInstall struct {
 	EnableClusterPermissions bool
 	SiteName                 string
 	RouterLogging            string
+	RouterMode               string
 
 	ConsoleAuth     string
 	ConsoleUser     string
@@ -172,6 +173,9 @@ func (s CliSkupperInstall) Execute() error {
 	}
 	if s.RouterLogging != "" {
 		args = append(args, fmt.Sprintf("--router-logging=%s", s.RouterLogging))
+	}
+	if s.RouterMode != "" {
+		args = append(args, fmt.Sprintf("--router-mode=%s", s.RouterMode))
 	}
 	if s.CreateNetworkPolicy {
 		args = append(args, "--create-network-policy")

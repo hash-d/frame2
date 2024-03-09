@@ -435,6 +435,19 @@ func TestSkupperInstallEffects(t *testing.T) {
 					},
 				},
 			},
+			"router-mode-edge": {
+				Doc: "Define router mode to edge",
+				Patch: skupperexecute.CliSkupperInstall{
+					RouterMode: "edge",
+				},
+				ValidatorsRetry: basicWait,
+				Validators: []frame2.Validator{
+					&skupperexecute.RouterCheck{
+						Namespace: ns,
+						Mode:      "edge",
+					},
+				},
+			},
 			//
 		},
 	}.GetPhase(runner)
