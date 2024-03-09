@@ -7,6 +7,7 @@ replace github.com/skupperproject/skupper => ../skupper-dh/
 
 require (
 	github.com/imdario/mergo v0.3.8
+	github.com/jmespath/go-jmespath v0.4.0
 	github.com/openshift/api v0.0.0-20210428205234-a8389931bee7
 	github.com/openshift/client-go v0.0.0-20210112165513-ebc401615f47
 	github.com/skupperproject/skupper v0.0.0-00010101000000-000000000000
