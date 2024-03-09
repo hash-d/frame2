@@ -25,33 +25,66 @@ type RouterCheck struct {
 }
 
 func (r *RouterCheck) Validate() error {
+
+	// This will be resulting value of ConfigMap.JSON
+	jsonchecks := map[string]f2general.JSON{}
+
+	testTable := []struct {
+		fieldValue string
+		key        string
+		matchers   []f2general.JSONMatcher
+	}{
+		{
+			fieldValue: r.Mode,
+			key:        "skrouterd.json",
+			matchers: []f2general.JSONMatcher{
+				{
+					Expression: fmt.Sprintf("[?[0] == 'router'] |[].mode | map((&@ == '%v'), @)", r.Mode),
+					Exact:      1,
+				},
+			},
+		}, {
+			fieldValue: r.LogLevel,
+			key:        "skrouterd.json",
+			matchers: []f2general.JSONMatcher{
+				{
+					Expression: fmt.Sprintf("[?[0] == 'log'] |[].enable | map((&@ == '%v'), @)", r.LogLevel),
+					Exact:      1,
+				},
+			},
+		},
+	}
+
+	for _, i := range testTable {
+		if i.fieldValue != "" {
+			m := i.matchers
+			entry, ok := jsonchecks[i.key]
+			if !ok {
+				jsonchecks[i.key] = f2general.JSON{
+					Matchers: m,
+				}
+			} else {
+				entry.Matchers = append(entry.Matchers, m...)
+				jsonchecks[i.key] = entry
+			}
+		}
+	}
+
 	phase := frame2.Phase{
 		Runner: r.GetRunner(),
 		MainSteps: []frame2.Step{
 			{
-				Doc: fmt.Sprintf("Checking that the router mode is set to %q on skrouterd.conf", r.Mode),
+				Doc: "Checking contents of CM skupper-internal",
 				Validator: &k8svalidate.ConfigMap{
-					Namespace:   r.Namespace,
-					Name:        "skupper-internal",
-					Ctx:         r.Ctx,
-					LogContents: true,
+					Namespace: r.Namespace,
+					Name:      "skupper-internal",
+					Ctx:       r.Ctx,
 
-					JSON: map[string]f2general.JSON{
-						"skrouterd.json": {
-							Matchers: []f2general.JSONMatcher{
-								{
-									Expression: fmt.Sprintf("[?[0] == 'router'] |[].mode | map((&@ == '%v'), @)", r.Mode),
-									Exact:      1,
-								},
-							},
-						},
-					},
+					JSON: jsonchecks,
 				},
-				SkipWhen: r.Mode == "",
 			},
 		},
 	}
-	phase.Run()
-	return nil
+	return phase.Run()
 
 }

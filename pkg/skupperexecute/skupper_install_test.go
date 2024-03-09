@@ -1,8 +1,6 @@
 package skupperexecute_test
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -18,7 +16,6 @@ import (
 	"github.com/skupperproject/skupper/test/utils/base"
 	"gotest.tools/assert"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 )
 
 func TestSkupperInstallEffects(t *testing.T) {
@@ -128,6 +125,11 @@ func TestSkupperInstallEffects(t *testing.T) {
 							"console-authentication": "internal",
 							"flow-collector":         "false",
 						},
+					},
+					&skupperexecute.RouterCheck{
+						Namespace: ns,
+						Mode:      "interior",
+						LogLevel:  "error+",
 					},
 				},
 			},
@@ -385,53 +387,9 @@ func TestSkupperInstallEffects(t *testing.T) {
 						Name:      "skupper-site",
 						Values:    map[string]string{"router-logging": "trace"},
 					},
-					&k8svalidate.ConfigMap{
+					&skupperexecute.RouterCheck{
 						Namespace: ns,
-						Name:      "skupper-internal",
-						CMValidator: func(cm v1.ConfigMap) error {
-							// TODO: move this to a dedicated frame?
-							if config, ok := cm.Data["skrouterd.json"]; ok {
-								var root []any
-								err := json.Unmarshal([]byte(config), &root)
-								if err != nil {
-									return fmt.Errorf("failed to get root list: %w", err)
-								}
-								for _, item := range root {
-									if item, ok := item.([]any); ok {
-										if len(item) != 2 {
-											return fmt.Errorf("unexpected number of items on the structure: %d", len(item))
-										}
-										if name, ok := item[0].(string); ok {
-											if name != "log" {
-												continue
-											}
-											if details, ok := item[1].(map[string]interface{}); ok {
-												if level, ok := details["enable"]; ok {
-													if level, ok := level.(string); ok {
-														if level == "trace+" {
-															return nil
-														} else {
-															return fmt.Errorf("router logging is configured for unexpected value %q", level)
-														}
-													} else {
-														return fmt.Errorf("value is not a string")
-													}
-												} else {
-													return errors.New("unable to find 'enable' key on map")
-												}
-											} else {
-												return errors.New("second item on the structure is not a map")
-											}
-										} else {
-											return errors.New("first item on the structure is not a string")
-										}
-									} else {
-										return errors.New("List is not composed of sublists")
-									}
-								}
-							}
-							return errors.New("'log' configuration not found")
-						},
+						LogLevel:  "trace+",
 					},
 				},
 			},
