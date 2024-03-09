@@ -219,7 +219,7 @@ func (r *Run) subFinalize() {
 	// avoid clashes between main test disruptors and subtest disruptors
 	if len(r.subFinalValidators) > 0 {
 		for _, d := range r.getDisruptors() {
-			if d, ok := d.(PreFinalizerHook); ok {
+			if d, ok := d.(FinalizerHook); ok {
 				log.Printf("[R] Running pre-subfinalizer hook")
 				var err error
 				r.T.Run("pre-subfinalizer-hook", func(t *testing.T) {
@@ -250,6 +250,18 @@ func (r *Run) subFinalize() {
 			subPhase.Run()
 
 		})
+		for _, d := range r.getDisruptors() {
+			if d, ok := d.(FinalizerHook); ok {
+				log.Printf("[R] Running post-subfinalizer hook")
+				var err error
+				r.T.Run("post-subfinalizer-hook", func(t *testing.T) {
+					err = d.PostSubFinalizerHook(r.ChildWithT(t, HookRunner))
+					if err != nil {
+						t.Errorf("post-subfinalizer hook failed: %v", err)
+					}
+				})
+			}
+		}
 	}
 }
 
@@ -257,7 +269,7 @@ func (r *Run) subFinalize() {
 // right before the tear down.  Failures here will count as test failure
 func (r *Run) Finalize() {
 	for _, d := range r.getDisruptors() {
-		if d, ok := d.(PreFinalizerHook); ok {
+		if d, ok := d.(FinalizerHook); ok {
 			log.Printf("[R] Running pre-finalizer hook")
 			var err error
 			r.T.Run("pre-finalizer-hook", func(t *testing.T) {
