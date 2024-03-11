@@ -7,6 +7,7 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/disruptors"
+	"github.com/hash-d/frame2/pkg/frames/f2ocp"
 	"github.com/hash-d/frame2/pkg/frames/k8svalidate"
 	"github.com/hash-d/frame2/pkg/skupperexecute"
 	"github.com/hash-d/frame2/pkg/subrunner"
@@ -124,6 +125,10 @@ func TestSkupperInstallEffects(t *testing.T) {
 							"console":                "false",
 							"console-authentication": "internal",
 							"flow-collector":         "false",
+							"service-sync":           "true",
+						},
+						AbsentKeys: []string{
+							"ingress-host",
 						},
 					},
 					&skupperexecute.RouterCheck{
@@ -410,7 +415,61 @@ func TestSkupperInstallEffects(t *testing.T) {
 					},
 				},
 			},
-			//
+			"ingress-none": {
+				Doc: "Ingress: none",
+				Patch: skupperexecute.CliSkupperInstall{
+					Ingress: "none",
+				},
+				ValidatorsRetry: basicWait,
+				Validators: []frame2.Validator{
+					&k8svalidate.ConfigMap{
+						Namespace: ns,
+						Name:      "skupper-site",
+						Values:    map[string]string{"ingress": "none"},
+					},
+				},
+				FailValidators: []frame2.Validator{
+					// TODO: it is ok to make sure that the routes do not exist,
+					// regardless of environment.  However, we need to check that the
+					// skupper-router service is not LoadBalancer for non-OCP
+					&f2ocp.RouteGet{
+						Namespace: ns,
+						Name:      "skupper-inter-router",
+					},
+					&f2ocp.RouteGet{
+						Namespace: ns,
+						Name:      "skupper-edge",
+					},
+				},
+			},
+			"ingress-host": {
+				Doc: "Ingress host",
+				Patch: skupperexecute.CliSkupperInstall{
+					IngressHost: "localhost",
+				},
+				ValidatorsRetry: basicWait,
+				Validators: []frame2.Validator{
+					&k8svalidate.ConfigMap{
+						Namespace: ns,
+						Name:      "skupper-site",
+						Values:    map[string]string{"ingress-host": "localhost"},
+					},
+				},
+			},
+			"service-sync-disable": {
+				Doc: "Disable service sync",
+				Patch: skupperexecute.CliSkupperInstall{
+					DisableServiceSync: true,
+				},
+				ValidatorsRetry: basicWait,
+				Validators: []frame2.Validator{
+					&k8svalidate.ConfigMap{
+						Namespace: ns,
+						Name:      "skupper-site",
+						Values:    map[string]string{"service-sync": "false"},
+					},
+				},
+			},
 		},
 	}.GetPhase(runner)
 

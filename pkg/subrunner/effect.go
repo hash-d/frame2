@@ -24,6 +24,7 @@ type CauseEffect[T frame2.Executor] struct {
 	Doc             string
 	Patch           T
 	Validators      []frame2.Validator
+	FailValidators  []frame2.Validator
 	ValidatorsRetry frame2.RetryOptions
 }
 
@@ -80,6 +81,7 @@ func (e Effects[T, PT]) getComboStep() (*frame2.Step, context.CancelFunc) {
 	for name, effects := range e.Combos {
 		frame := *e.BaseFrame
 		validators := []frame2.Validator{}
+		failValidators := []frame2.Validator{}
 		opt := frame2.RetryOptions{}
 		for _, effect := range effects {
 			error := mergo.Merge(&frame, e.Effects[effect].Patch)
@@ -87,6 +89,7 @@ func (e Effects[T, PT]) getComboStep() (*frame2.Step, context.CancelFunc) {
 				panic("error merging structs")
 			}
 			validators = append(validators, e.Effects[effect].Validators...)
+			failValidators = append(failValidators, e.Effects[effect].FailValidators...)
 			opt, cancel = opt.Max(e.Effects[effect].ValidatorsRetry)
 		}
 		sub := frame2.Step{
@@ -98,6 +101,11 @@ func (e Effects[T, PT]) getComboStep() (*frame2.Step, context.CancelFunc) {
 						Validators:        validators,
 						ValidatorSubFinal: true,
 						ValidatorRetry:    opt,
+					}, {
+						Validators:     failValidators,
+						ValidatorFinal: true,
+						ValidatorRetry: opt,
+						ExpectError:    true,
 					},
 				},
 				Teardown: e.TearDown,
@@ -129,6 +137,11 @@ func (e Effects[T, PT]) getIndividualStep() *frame2.Step {
 						Validators:        effect.Validators,
 						ValidatorSubFinal: true,
 						ValidatorRetry:    effect.ValidatorsRetry,
+					}, {
+						Validators:        effect.FailValidators,
+						ValidatorSubFinal: true,
+						ValidatorRetry:    effect.ValidatorsRetry,
+						ExpectError:       true,
 					},
 				},
 				Teardown: e.TearDown,
