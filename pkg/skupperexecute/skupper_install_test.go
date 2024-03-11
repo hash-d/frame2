@@ -362,7 +362,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 			},
 			"site-name": {
-				Doc: "Skupper init set a site name",
+				Doc: "Site name is set on both the skupper-site configmap and on the Router configuration",
 				Patch: skupperexecute.CliSkupperInstall{
 					SiteName: "custom-site-name",
 				},
@@ -372,6 +372,10 @@ func TestSkupperInstallEffects(t *testing.T) {
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values:    map[string]string{"name": "custom-site-name"},
+					},
+					&skupperexecute.RouterCheck{
+						Namespace: ns,
+						SiteName:  "custom-site-name",
 					},
 				},
 			},
