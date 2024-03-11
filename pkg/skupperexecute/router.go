@@ -15,6 +15,7 @@ type RouterCheck struct {
 
 	Mode     string
 	LogLevel string
+	SiteName string
 
 	Ctx context.Context
 
@@ -49,6 +50,15 @@ func (r *RouterCheck) Validate() error {
 			matchers: []f2general.JSONMatcher{
 				{
 					Expression: fmt.Sprintf("[?[0] == 'log'] |[].enable | map((&@ == '%v'), @)", r.LogLevel),
+					Exact:      1,
+				},
+			},
+		}, {
+			fieldValue: r.SiteName,
+			key:        "skrouterd.json",
+			matchers: []f2general.JSONMatcher{
+				{
+					Expression: fmt.Sprintf("[?[0] == 'router'] |[].id | map(&starts_with(@, '%v-'), @)", r.SiteName),
 					Exact:      1,
 				},
 			},
