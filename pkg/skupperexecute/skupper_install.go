@@ -114,6 +114,9 @@ type CliSkupperInstall struct {
 	SiteName                 string
 	RouterLogging            string
 	RouterMode               string
+	Ingress                  string
+	IngressHost              string
+	DisableServiceSync       bool
 
 	ConsoleAuth     string
 	ConsoleUser     string
@@ -159,6 +162,10 @@ func (s CliSkupperInstall) Execute() error {
 		return fmt.Errorf("flow collector not available for version <1.3")
 	}
 
+	if s.DisableServiceSync {
+		args = append(args, "--enable-service-sync=false")
+	}
+
 	if s.ConsoleAuth != "" {
 		args = append(args, fmt.Sprintf("--console-auth=%s", s.ConsoleAuth))
 	}
@@ -176,6 +183,12 @@ func (s CliSkupperInstall) Execute() error {
 	}
 	if s.RouterMode != "" {
 		args = append(args, fmt.Sprintf("--router-mode=%s", s.RouterMode))
+	}
+	if s.Ingress != "" {
+		args = append(args, fmt.Sprintf("--ingress=%s", s.Ingress))
+	}
+	if s.IngressHost != "" {
+		args = append(args, fmt.Sprintf("--ingress-host=%s", s.IngressHost))
 	}
 	if s.CreateNetworkPolicy {
 		args = append(args, "--create-network-policy")

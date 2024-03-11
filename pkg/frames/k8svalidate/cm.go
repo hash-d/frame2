@@ -21,6 +21,8 @@ type ConfigMap struct {
 
 	Values map[string]string
 
+	AbsentKeys []string
+
 	// JSON verification for the keys on the map
 	JSON map[string]f2general.JSON
 
@@ -57,6 +59,11 @@ func (c *ConfigMap) Validate() error {
 				k, v, actual,
 			)
 		}
+	}
+	for _, k := range c.AbsentKeys {
+		log.Printf("- Checking for absense of key %q", k)
+		_, ok := cm.Data[k]
+		asserter.Check(!ok, "key %q should be absent of CM %q", k, c.Name)
 	}
 	if c.CMValidator != nil {
 		log.Printf("- Running CMValidator")
