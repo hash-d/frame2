@@ -117,6 +117,7 @@ type CliSkupperInstall struct {
 	Ingress                  string
 	IngressHost              string
 	DisableServiceSync       bool
+	RouterCPU                string
 
 	ConsoleAuth     string
 	ConsoleUser     string
@@ -195,6 +196,9 @@ func (s CliSkupperInstall) Execute() error {
 	}
 	if s.EnableClusterPermissions {
 		args = append(args, "--enable-cluster-permissions")
+	}
+	if s.RouterCPU != "" {
+		args = append(args, fmt.Sprintf("--router-cpu=%s", s.RouterCPU))
 	}
 	if len(s.Annotations) != 0 {
 		args = append(args, fmt.Sprintf("--annotations=%s", strings.Join(s.Annotations, ",")))

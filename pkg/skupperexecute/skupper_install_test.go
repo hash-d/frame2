@@ -19,6 +19,21 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
+// A shallow UI test: test each skupper init flag individually (and
+// in some combos), and then check their effects.
+//
+// TODO This is currently based on https://skupper.io/docs/cli/index.html;
+// it needs to be made more complete, covering all skupper init flags
+//
+// TODO Currently, there is a mix of white and black box tests.  It should
+// be ok to leave the white box tests, but all tests should ensure at
+// least one black box validation was run
+//
+// TODO RouterCheck is a good example of frame to be used on this test; most
+// if not all tests below should move to a frame like that, perhaps a
+// f2skupper.ConfigurationCheck.  That would make the test more readable,
+// and the frame could be have version-specific behavior, making this
+// test more useful, especially on upgrade testing
 func TestSkupperInstallEffects(t *testing.T) {
 
 	baseRunner := &base.ClusterTestRunnerBase{}
@@ -467,6 +482,28 @@ func TestSkupperInstallEffects(t *testing.T) {
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values:    map[string]string{"service-sync": "false"},
+					},
+				},
+			},
+			"router-cpu": {
+				Doc: "Set the number of CPUs on the router",
+				Patch: skupperexecute.CliSkupperInstall{
+					RouterCPU: "5",
+				},
+				ValidatorsRetry: basicWait,
+				Validators: []frame2.Validator{
+					&k8svalidate.ConfigMap{
+						Namespace: ns,
+						Name:      "skupper-site",
+						Values:    map[string]string{"router-cpu": "5"},
+					},
+					&validate.Container{
+						Namespace:     ns,
+						PodSelector:   validate.RouterSelector,
+						ContainerName: "router",
+						ExpectExactly: 1,
+						CPURequest:    "5",
+						CPULimit:      "5",
 					},
 				},
 			},
