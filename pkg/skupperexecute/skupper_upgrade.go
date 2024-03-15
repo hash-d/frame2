@@ -19,17 +19,19 @@ type SkupperUpgrade struct {
 	Wait time.Duration
 	Ctx  context.Context
 
-	// TODO
 	// If true, skips checking the images against the manifest.  If
 	// false and no manifest available, panic
 	SkipManifest bool
 
 	// Location of the manifest file to be used on the manifest/image
 	// tag check.  If empty, check: (?)
+	//
+	// Before 1.5:
 	// - Current dir (ie, etc package dir)
 	// - Source root dir
-	// TODO
-	// - Same directory as the skupper binary
+	//
+	// Since 1.5:
+	// - Execute skupper version manifest to generate a manifest.json file
 	ManifestFile string
 
 	// TODO: SkupperBinary (for multi-step upgrades)
@@ -84,9 +86,8 @@ func (s SkupperUpgrade) Execute() error {
 					Ctx:        ctx,
 				},
 			}, {
-				Modify: &CliSkupper{
-					ClusterContext: s.Namespace,
-					Args:           []string{"version"},
+				Modify: &CliSkupperVersion{
+					Namespace: s.Namespace,
 				},
 				SkipWhen: s.SkipVersion,
 			},

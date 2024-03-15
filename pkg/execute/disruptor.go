@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strconv"
 
+	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/skupperproject/skupper/test/utils/base"
 )
 
@@ -29,28 +30,16 @@ type SkupperCliPathSetter interface {
 // to act differently for different Skupper versions.  This
 // can be used, for example, when flags are added or removed
 // to the cli.
-//
-// The action should have sub-actions that are version-specific.
-// Whenever a new version changes something, a new sub action
-// should be created, copying the code from the older one and
-// adding the changes.  Avoid having a bunch of 'if version' on
-// the code; just duplicate and change on the new, to keep it
-// simple.
-//
-// The main action should then run the appropriate sub action
-// depending on its assigned version.  If a flag changed default
-// value from one version to the other, for example, it should
-// make that change.
-//
-// SkupperVersioner and all other interfaces should be implemented
-// on the main action only; let it configure the sub-actions on
-// its Execute call and call them
 type SkupperVersioner interface {
 	SetSkupperVersion(version string)
 	GetSkupperVersion() string
 }
 
 type SkupperVersionerDefault struct {
+	// You can define this value directly, if you want to set its
+	// value directly on a frame.  For acquiring its value, though,
+	// use GetSkupperVersion() instead, as it may do special
+	// manipulation.
 	SkupperVersion string
 }
 
@@ -58,8 +47,14 @@ func (s *SkupperVersionerDefault) SetSkupperVersion(version string) {
 	s.SkupperVersion = version
 }
 
+// If explicitly set, returns its s.SkupperVersion.  Otherwise,
+// returns the value of SKUPPER_TEST_VERSION, which may be the
+// empty string
 func (s SkupperVersionerDefault) GetSkupperVersion() string {
-	return s.SkupperVersion
+	if s.SkupperVersion != "" {
+		return s.SkupperVersion
+	}
+	return os.Getenv(frame2.ENV_VERSION)
 }
 
 // Given a list of versions, WhichSkupperVersion will return the one that
@@ -89,7 +84,7 @@ func (s SkupperVersionerDefault) GetSkupperVersion() string {
 func (s SkupperVersionerDefault) WhichSkupperVersion(candidates []string) string {
 
 	version := s.SkupperVersion
-	envVersion := os.Getenv("SKUPPER_TEST_VERSION")
+	envVersion := os.Getenv(frame2.ENV_VERSION)
 	if version == "" && envVersion != "" {
 		// version was not explicitly set elsewhere, and there is a SKUPPER_TEST_VERSION
 		// configuration on the environment, so we use it.
