@@ -48,6 +48,9 @@ const (
 	// The version that ENV_OLD_BIN refers to, such as 1.2 or 1.4.0-rc3
 	ENV_OLD_VERSION = "SKUPPER_TEST_OLD_VERSION"
 
+	// The expected version of the skupper binary found on the PATH
+	ENV_VERSION = "SKUPPER_TEST_VERSION"
+
 	// TODO: Change all these repeating constants by fewer constants and couple of functions:
 	//
 	// SkupperEnvVar(ConfigSyncImageEnvKey)
