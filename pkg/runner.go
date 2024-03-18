@@ -172,6 +172,13 @@ func (r *Run) addMonitor(step *Monitor) {
 	r.monitors = append(r.monitors, step)
 }
 
+// Adds the list of validators v to the root runner's list of
+// final validators.
+//
+// Attention! items in v that are pointers to structs will be
+// copied as copies.  As such, changes to the original items
+// (such as those done by disruptors) will reflect on the
+// finalValidators list.
 func (r *Run) addFinalValidators(v []Validator) {
 	root := r.getRoot()
 	root.finalValidators = append(root.finalValidators, v...)
@@ -283,45 +290,22 @@ func (r *Run) Finalize() {
 	log.Printf("[R] Running finalizers")
 
 	if len(r.finalValidators) > 0 {
-		r.T.Run("final-validator-re-run", func(t *testing.T) {
-			log.Printf("[R] Running final validators")
-			// TODO: change this by a phase run with Retry and a slice of
-			// validators, taking care of the runner.  Perhaps make a copy of
-			// the validators, instead of using pointers?
-			fn := func() error {
-				failed := false
-				var err, last_err error
-				for _, v := range r.finalValidators {
-					err = v.Validate()
-					if err != nil {
-						failed = true
-						last_err = err
-					}
-				}
-				if failed {
-					return fmt.Errorf("at least one final validator failed.  Last err: %v", last_err)
-				}
-				return nil
-			}
-			_, err := Retry{
-				Fn: fn,
-				Options: RetryOptions{
-					Allow: base.GetEnvInt(ENV_FINAL_RETRY, 1),
+		finalValidatorPhase := Phase{
+			Name:   "final-validator-re-run",
+			Doc:    "Re-run all validators that were marked as 'final' on the test",
+			Runner: r,
+			MainSteps: []Step{
+				{
+					Validators: r.finalValidators,
+					ValidatorRetry: RetryOptions{
+						Allow: base.GetEnvInt(ENV_FINAL_RETRY, 1),
+					},
 				},
-			}.Run()
-			if err != nil {
-				log.Printf("final validation failed: %v", err)
-				// This dummy step is required while logic above not changed
-				// to use a phase?
-				dummyStep := Step{
-					Name: "Final validator run",
-				}
-				if err = validationResultHook(r, dummyStep, err); err != nil {
-					t.Errorf("final validation failed: %v", err)
-				}
-
-			}
-		})
+			},
+		}
+		// we ignore the error; the phase will mark its subtest as failed
+		// by itself, in case of errors
+		_ = finalValidatorPhase.Run()
 	}
 	// TODO add some if debug
 	// r.ReportChildren(0)
@@ -502,6 +486,26 @@ func processStep_(t *testing.T, step Step, kind RunnerType, Log FrameLogger, p *
 	id := stepRunner.GetId()
 	Log.Printf("[R] %v doc %q", id, step.Doc)
 
+	// Before we run the disruptors, we need to save the final and subfinal validators;
+	// otherwise, we'd save the copies already with any disruptor changes
+	//
+	// TODO: this is incorrect.  Today, for pointer structs, we're copying the poitners,
+	// so the disruptors need to be able to 'undo' its changes if required.  For fixing this,
+	// either Validator will need to implement Clone(), or addFinalValidators  and
+	// addSubFinalValidator will need to copy the list through reflection.
+	//
+	//
+	validatorList := step.Validators
+	if step.Validator != nil {
+		validatorList = append([]Validator{step.Validator}, validatorList...)
+	}
+	if step.ValidatorFinal {
+		p.savedRunner.addFinalValidators(validatorList)
+	}
+	if step.ValidatorSubFinal {
+		p.savedRunner.addSubFinalValidators(validatorList)
+	}
+
 	for _, disruptor := range p.GetRunner().getDisruptors() {
 		if disruptor != nil {
 			if disruptor, ok := disruptor.(Inspector); ok {
@@ -554,11 +558,6 @@ func processStep_(t *testing.T, step Step, kind RunnerType, Log FrameLogger, p *
 
 	}
 
-	validatorList := step.Validators
-	if step.Validator != nil {
-		validatorList = append([]Validator{step.Validator}, validatorList...)
-	}
-
 	if len(validatorList) > 0 {
 		start := time.Now()
 		for _, v := range validatorList {
@@ -570,12 +569,6 @@ func processStep_(t *testing.T, step Step, kind RunnerType, Log FrameLogger, p *
 		// This is a generic Runner, if the validtor is not a RunDealer
 		// TODO remove this once all actions are RunDealers
 		validatorRunner := stepRunner.ChildWithT(t, ValidatorRunner)
-		if step.ValidatorFinal {
-			p.savedRunner.addFinalValidators(validatorList)
-		}
-		if step.ValidatorSubFinal {
-			p.savedRunner.addSubFinalValidators(validatorList)
-		}
 		fn := func() error {
 			someFailure := false
 			someSuccess := false
@@ -697,6 +690,10 @@ func (p *Phase) runP(runner *Run) error {
 			log.Printf("[R] %v current test: %q", id, t.Name())
 			p.Log.Printf("[R] %v Phase doc: %v", id, p.Doc)
 			err = p.run()
+			if err != nil {
+				t.Errorf("Phase failed: %v", err)
+				p.Log.Printf("[R] %v phase failed: %v", id, err)
+			}
 			p.GetRunner().subFinalize()
 			p.Log.Printf("[R] %v phase Subtest %q completed", id, t.Name())
 		})

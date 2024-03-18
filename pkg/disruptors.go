@@ -50,6 +50,12 @@ type FinalizerHook interface {
 	PostSubFinalizerHook(runner *Run) error
 }
 
+// This hook looks into the validations as all retries have been exhausted,
+// and it allows a disruptor to inspect the error, or transform it
+// into another error, or even clear the error, by returning null.
+//
+// The interface needs some work.  Only err is really required;
+// runner and step may be removed or replaced in the future
 type ValidationResultHook interface {
 	ValidationResultHook(runner *Run, step Step, err error) error
 }

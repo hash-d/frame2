@@ -7,7 +7,6 @@ import (
 	"github.com/hash-d/frame2/pkg/disruptors"
 	"github.com/hash-d/frame2/pkg/environment"
 	"github.com/hash-d/frame2/pkg/skupperexecute"
-	"github.com/hash-d/frame2/pkg/validate"
 	"gotest.tools/assert"
 )
 
@@ -39,6 +38,7 @@ func TestVersion(t *testing.T) {
 
 	setup := frame2.Phase{
 		Runner: r,
+		Doc:    "Create a skupper installation",
 		Setup: []frame2.Step{
 			{
 				Modify: envSetup},
@@ -52,17 +52,17 @@ func TestVersion(t *testing.T) {
 
 	test := frame2.Phase{
 		Runner: r,
+		Doc:    "Main test phase",
 		MainSteps: []frame2.Step{
 			{
+				Doc: "Execute skupper version",
 				// TODO Some changes needed here...  First, we
 				// should be using a SkupperOp named just
 				// f2skupper.Version.  Second, that should be a
 				// Validator, not an Executor, and then we could
 				// mark it as a final validator directly.
-				Validator: &validate.Executor{
-					Executor: &skupperexecute.CliSkupperVersion{
-						Namespace: ns,
-					},
+				Validator: &skupperexecute.CliSkupperVersion{
+					Namespace: ns,
 				},
 				ValidatorFinal: true,
 			},

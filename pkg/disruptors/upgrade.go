@@ -152,8 +152,8 @@ func (u *UpgradeAndFinalize) PreFinalizerHook(runner *frame2.Run) error {
 
 	for _, t := range targets {
 		steps = append(steps, frame2.Step{
-			Doc: "Disruptor UpgradeAndFinalize",
-			Modify: skupperexecute.SkupperUpgrade{
+			Doc: fmt.Sprintf("Disruptor UpgradeAndFinalize: upgrade namespace %v", t.Namespace),
+			Modify: &skupperexecute.SkupperUpgrade{
 				Runner:    runner,
 				Namespace: t,
 				Wait:      time.Minute * 10,
@@ -162,7 +162,7 @@ func (u *UpgradeAndFinalize) PreFinalizerHook(runner *frame2.Run) error {
 	}
 	phase := frame2.Phase{
 		Runner:    runner,
-		Doc:       "Disruptor UpgradeAndFinalize",
+		Doc:       "Disruptor UpgradeAndFinalize: Upgrade phase",
 		MainSteps: steps,
 	}
 	return phase.Run()
@@ -175,28 +175,58 @@ func (u *UpgradeAndFinalize) PostSubFinalizerHook(runner *frame2.Run) error {
 }
 
 func (u *UpgradeAndFinalize) Inspect(step *frame2.Step, phase *frame2.Phase) {
-	if step, ok := step.Modify.(execute.SkupperUpgradable); ok {
-		u.targets = append(u.targets, step.SkupperUpgradable())
-	}
-	if action, ok := step.Modify.(execute.SkupperCliPathSetter); ok {
-		if !u.useNew {
-			log.Printf("UpgradeAndFinalize disruptor updating path for %T", action)
-			setCliPathEnv(action)
+	err := step.IterFrames(func(frame any) (any, error) {
+		if frame, ok := frame.(execute.SkupperUpgradable); ok {
+			u.targets = append(u.targets, frame.SkupperUpgradable())
 		}
-	}
-	if action, ok := step.Modify.(execute.SkupperVersioner); ok {
-		if !u.useNew {
-			version := os.Getenv(frame2.ENV_OLD_VERSION)
-			log.Printf("UpgradeAndFinalize disruptor updating version to %q for %T", version, action)
-			action.SetSkupperVersion(version)
+		if frame, ok := frame.(execute.SkupperCliPathSetter); ok {
+			if !u.useNew {
+				log.Printf("UpgradeAndFinalize disruptor updating path for %T", frame)
+				setCliPathOldEnv(frame)
+			} else {
+				log.Printf("UpgradeAndFinalize disruptor resetting path for %T", frame)
+				setCliPathCurrentEnv(frame)
+			}
 		}
+		if frame, ok := frame.(execute.SkupperVersioner); ok {
+			log.Printf("Checking frame %p (%+v) for target %+v", frame, frame, u)
+			if !u.useNew {
+				version := os.Getenv(frame2.ENV_OLD_VERSION)
+				log.Printf("UpgradeAndFinalize disruptor updating version to %q for %T", version, frame)
+				frame.SetSkupperVersion(version)
+			} else {
+				version := os.Getenv(frame2.ENV_VERSION)
+				log.Printf("UpgradeAndFinalize disruptor resetting version to %q for %T", version, frame)
+				frame.SetSkupperVersion(version)
+			}
+		}
+
+		return frame, nil
+	})
+	if err != nil {
+		panic(fmt.Sprintf("Add error return to Inspect: %v", err))
 	}
+}
+
+// Undoes any changes done by setCliPathOldEnv, restoring the action to its original
+// setting.
+//
+// TODO: This does not cover the case where the the path was already set before
+// setCliPathOldEnv() was called (so that value is not restored).  This simply
+// sets the path to "" and the environment to []string{}, so the action uses the
+// actual environment variables and skupper binary on the path.
+func setCliPathCurrentEnv(action execute.SkupperCliPathSetter) {
+	// For those SKUPPER_TEST_OLD image variables that are set, we change them
+	// on the environment for the called command
+	var env []string
+	log.Printf("Action %T restored with empty environment and skupper from PATH", action)
+	action.SetSkupperCliPath("", env)
 }
 
 // Sets the path to the Skupper executable on this action to the one set on
 // SKUPPER_TEST_OLD_BIN, and sets the execution environment to add or overwrite
 // any Skupper IMAGE variables with their SKUPPER_TEST_OLD settings
-func setCliPathEnv(action execute.SkupperCliPathSetter) {
+func setCliPathOldEnv(action execute.SkupperCliPathSetter) {
 	path := os.Getenv(frame2.ENV_OLD_BIN)
 	if path == "" {
 		panic("Upgrade disruptor requested, but no SKUPPER_TEST_OLD_BIN config")
@@ -284,20 +314,33 @@ func (u *MixedVersionVan) PostSubFinalizerHook(runner *frame2.Run) error {
 
 // Change this to a mix-in, share with UpgradeAndFinalize?
 func (m *MixedVersionVan) Inspect(step *frame2.Step, phase *frame2.Phase) {
-	if UpgradableStep, ok := step.Modify.(execute.SkupperUpgradable); ok {
-		m.targets = append(m.targets, UpgradableStep.SkupperUpgradable())
-	}
-	if pathSetAction, ok := step.Modify.(execute.SkupperCliPathSetter); ok {
-		if !m.useNew {
-			log.Printf("MixedVersionVan disruptor updating path on %T", pathSetAction)
-			setCliPathEnv(pathSetAction)
+	err := step.IterFrames(func(frame any) (any, error) {
+		if UpgradableStep, ok := frame.(execute.SkupperUpgradable); ok {
+			m.targets = append(m.targets, UpgradableStep.SkupperUpgradable())
 		}
-	}
-	if action, ok := step.Modify.(execute.SkupperVersioner); ok {
-		if !m.useNew {
-			version := os.Getenv(frame2.ENV_OLD_VERSION)
-			log.Printf("MixedVersionVan disruptor updating version to %q for %T", version, action)
-			action.SetSkupperVersion(version)
+		if pathSetAction, ok := frame.(execute.SkupperCliPathSetter); ok {
+			if !m.useNew {
+				log.Printf("MixedVersionVan disruptor updating path on %T", pathSetAction)
+				setCliPathOldEnv(pathSetAction)
+			} else {
+				log.Printf("MixedVersionVan disruptor resetting path on %T", pathSetAction)
+				setCliPathCurrentEnv(pathSetAction)
+			}
 		}
+		if action, ok := frame.(execute.SkupperVersioner); ok {
+			if !m.useNew {
+				version := os.Getenv(frame2.ENV_OLD_VERSION)
+				log.Printf("MixedVersionVan disruptor updating version to %q for %T", version, action)
+				action.SetSkupperVersion(version)
+			} else {
+				version := os.Getenv(frame2.ENV_VERSION)
+				log.Printf("MixedVersionVan disruptor resetting version to %q for %T", version, action)
+				action.SetSkupperVersion(version)
+			}
+		}
+		return frame, nil
+	})
+	if err != nil {
+		panic(fmt.Sprintf("Add error return to Inspect: %v", err))
 	}
 }
