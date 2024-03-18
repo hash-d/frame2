@@ -20,13 +20,15 @@ import (
 type CliSkupperVersion struct {
 	Namespace *base.ClusterContext
 	Ctx       context.Context
-	frame2.DefaultRunDealer
-	execute.SkupperVersionerDefault
 
 	// By default, CliSkupperVersion checks the output of
 	// the version command against SKUPPER_TEST_VERSION,
 	// when that variable is set
 	SkipOutputCheck bool
+
+	frame2.Log
+	frame2.DefaultRunDealer
+	execute.SkupperVersionerDefault
 }
 
 func (s CliSkupperVersion) Execute() error {
@@ -63,4 +65,8 @@ func (s CliSkupperVersion) Execute() error {
 	}
 
 	return phase.Run()
+}
+
+func (s CliSkupperVersion) Validate() error {
+	return s.Execute()
 }

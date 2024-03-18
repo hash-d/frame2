@@ -1,9 +1,12 @@
 package frame2
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/skupperproject/skupper/test/frame2"
 )
 
 const EnvFrame2Verbose = "SKUPPER_TEST_FRAME2_VERBOSE"
@@ -72,6 +75,55 @@ func (s Step) GetValidators() []Validator {
 	validators = append(validators, s.Validators...)
 
 	return validators
+}
+
+type TransformFunc func(any) (any, error)
+
+// IterFrames will run transform() on each of its configured frames
+// (Modify, Validator and Validators[]) and reassign the frame to
+// the return of transform().
+//
+// It allows disruptors to inspect Executors and Validators in a
+// single go.
+func (s *Step) IterFrames(transform TransformFunc) error {
+
+	if s.Modify != nil {
+		if ret, err := transform(s.Modify); err == nil {
+			if ret, ok := ret.(frame2.Executor); ok {
+				s.Modify = ret
+			} else {
+				return fmt.Errorf("TransformFunc did not return an Executor on Modify (%T)", ret)
+			}
+		} else {
+			return fmt.Errorf("TransformFunc returned error on Modify: %w", err)
+		}
+	}
+
+	if s.Validator != nil {
+		if ret, err := transform(s.Validator); err == nil {
+			if ret, ok := ret.(frame2.Validator); ok {
+				s.Validator = ret
+			} else {
+				return fmt.Errorf("TransformFunc did not return a Validator on Validator(%T)", ret)
+			}
+		} else {
+			return fmt.Errorf("TransformFunc returned error on Validator: %w", err)
+		}
+	}
+
+	for i, v := range s.Validators {
+		if ret, err := transform(v); err == nil {
+			if ret, ok := ret.(frame2.Validator); ok {
+				s.Validators[i] = ret
+			} else {
+				return fmt.Errorf("TransformFunc did not return a Validator on Validators[%d](%T)", i, ret)
+			}
+		} else {
+			return fmt.Errorf("TransformFunc returned error on Validators[%d]: %w", i, err)
+		}
+	}
+
+	return nil
 }
 
 // type Validate struct {
