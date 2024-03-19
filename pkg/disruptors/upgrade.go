@@ -189,7 +189,6 @@ func (u *UpgradeAndFinalize) Inspect(step *frame2.Step, phase *frame2.Phase) {
 			}
 		}
 		if frame, ok := frame.(execute.SkupperVersioner); ok {
-			log.Printf("Checking frame %p (%+v) for target %+v", frame, frame, u)
 			if !u.useNew {
 				version := os.Getenv(frame2.ENV_OLD_VERSION)
 				log.Printf("UpgradeAndFinalize disruptor updating version to %q for %T", version, frame)

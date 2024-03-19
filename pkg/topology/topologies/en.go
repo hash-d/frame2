@@ -7,37 +7,19 @@ import (
 
 // Two pub, two private.  Connections always from prv to pub
 //
-// prv1 has two outgoing links; pub2 has two incoming links
-//
-//	pub1 pub2
-//	 |  / |     ^
-//	 | /  |     |   Connection direction
-//	prv1 prv2
-//
-// # Good for minimal multiple link testing
-//
-// TODO: change this topology, so that:
-//
-// - pub1 and prv1 have one link,
-// - pub2 and prv2 have one link
-//
-// It will be easier to think about then this way.  The
-// topology would then be:
+// prv2 has two outgoing links; pub2 has two incoming links
 //
 //	pub2 pub1
 //	 | \  |     ^
 //	 |  \ |     |   Connection direction
 //	prv1 prv2
 //
-// Also, pub1 and prv1 will be on the ends of the topology, which
-// is the normal thing.
-//
-// TODO above
+// # Good for minimal multiple link testing
 type N struct {
 	Name           string
 	TestRunnerBase *base.ClusterTestRunnerBase
 
-	contextHolder
+	*contextHolder
 
 	Return *topology.TopologyMap
 }
@@ -54,13 +36,13 @@ func (n *N) Execute() error {
 	prv1 := &topology.TopologyItem{
 		Type: topology.Private,
 		Connections: []*topology.TopologyItem{
-			pub1,
 			pub2,
 		},
 	}
 	prv2 := &topology.TopologyItem{
 		Type: topology.Private,
 		Connections: []*topology.TopologyItem{
+			pub1,
 			pub2,
 		},
 	}
@@ -78,7 +60,7 @@ func (n *N) Execute() error {
 		Map:            topoMap,
 	}
 
-	n.contextHolder = contextHolder{TopologyMap: n.Return}
+	n.contextHolder = &contextHolder{TopologyMap: n.Return}
 
 	return nil
 }

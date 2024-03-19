@@ -60,6 +60,36 @@ func (hwd HelloWorldDefault) GetTopology() topology.Basic {
 //
 // See topology.N for details on the topology.
 type HelloWorldN struct {
+	AutoTearDown  bool
+	Name          string
+	SkupperExpose bool
+
+	Topology topology.Basic
+
+	frame2.DefaultRunDealer
+}
+
+func (h *HelloWorldN) Execute() error {
+
+	baseRunner := base.ClusterTestRunnerBase{}
+
+	h.Topology = &topologies.N{
+		Name:           h.Name,
+		TestRunnerBase: &baseRunner,
+	}
+	phase := frame2.Phase{
+		Runner: h.GetRunner(),
+		MainSteps: []frame2.Step{
+			{
+				Modify: &HelloWorld{
+					Topology:      &h.Topology,
+					AutoTearDown:  h.AutoTearDown,
+					SkupperExpose: h.SkupperExpose,
+				},
+			},
+		},
+	}
+	return phase.Run()
 }
 
 // A Hello World deployment, with configurations.  For simpler
