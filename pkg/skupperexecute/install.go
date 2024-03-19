@@ -281,12 +281,8 @@ func (v ValidateSkupperAvailable) Validate() error {
 				},
 				SkipWhen: v.SkipStatus,
 			}, {
-				Modify: &CliSkupper{
-					Args:           []string{"status"},
-					ClusterContext: v.Namespace,
-					Cmd: execute.Cmd{
-						ForceOutput: true,
-					},
+				Validator: &Status{
+					Namespace: v.Namespace,
 				},
 				SkipWhen: v.SkipStatus,
 			},

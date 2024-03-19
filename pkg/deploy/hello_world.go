@@ -137,7 +137,7 @@ func (h *HelloWorldBackend) Execute() error {
 					Protocol:  proto,
 				},
 				SkipWhen: h.CreateServices || !h.SkupperExpose,
-				Validator: execute.K8SDeploymentWait{
+				Validator: &execute.K8SDeploymentWait{
 					Namespace: h.Target,
 					Name:      "hello-world-backend",
 				},
@@ -215,7 +215,7 @@ func (h *HelloWorldFrontend) Execute() error {
 					Name:      "hello-world-frontend",
 					Protocol:  proto,
 				},
-				Validator: execute.K8SDeploymentWait{
+				Validator: &execute.K8SDeploymentWait{
 					Namespace: h.Target,
 					Name:      "hello-world-frontend",
 				},

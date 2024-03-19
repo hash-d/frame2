@@ -245,6 +245,7 @@ func (tv TopologyValidator) Execute() error {
 // This ties together Topology, TopologyConnect
 // and other items
 type TopologyBuild struct {
+	// TODO: review this; pointer to interface.
 	Topology     *Basic
 	AutoTearDown bool
 
