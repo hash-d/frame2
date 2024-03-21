@@ -51,6 +51,56 @@ func (j *JustSkupperDefault) Execute() error {
 	return execute.Run()
 }
 
+// A Skupper deployment on a single namespace
+type JustSkupperSingle struct {
+	Name         string
+	AutoTearDown bool
+	Console      bool
+
+	// By default, create a private namespace; this changes it
+	Public bool
+
+	// Return
+	Topo topology.Basic
+
+	frame2.DefaultRunDealer
+}
+
+func (j *JustSkupperSingle) Execute() error {
+
+	name := j.Name
+	if name == "" {
+		name = "just-skupper"
+	}
+
+	baseRunner := base.ClusterTestRunnerBase{}
+
+	kind := topology.Private
+	if j.Public {
+		kind = topology.Public
+	}
+
+	j.Topo = &topologies.Single{
+		Name:           name,
+		TestRunnerBase: &baseRunner,
+		Type:           kind,
+	}
+
+	execute := frame2.Phase{
+		Runner: j.Runner,
+		MainSteps: []frame2.Step{
+			{
+				Modify: &JustSkupper{
+					Topology:     &j.Topo,
+					AutoTearDown: j.AutoTearDown,
+				},
+			},
+		},
+	}
+
+	return execute.Run()
+}
+
 // A Skupper deployment on pub1 (frontend) and prv1 (backend),
 // on an N topology.
 //

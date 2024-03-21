@@ -314,7 +314,7 @@ func (t *TopologyBuild) Execute() error {
 		Runner: t.Runner,
 		Setup: []frame2.Step{
 			{
-				Modify: TopologyConnect{
+				Modify: &TopologyConnect{
 					TopologyMap: *tm,
 				},
 			},
@@ -346,6 +346,8 @@ func (t TopologyBuild) TearDown() frame2.Executor {
 
 type TopologyConnect struct {
 	TopologyMap TopologyMap
+
+	frame2.DefaultRunDealer
 	// TODO: add some filters and run only one part of the topology
 	// 	 (allow for late runs)
 }
@@ -354,6 +356,8 @@ type TopologyConnect struct {
 // namespaces that will create or receive links
 func (tc TopologyConnect) Execute() error {
 
+	// TODO change this to something that creates a list of SkupperConnect, then
+	// executes it all in a single phase,
 	for from, ctx := range tc.TopologyMap.GeneratedMap {
 		if from.SkipNamespaceCreation || from.SkipSkupperDeploy {
 			continue
@@ -364,12 +368,20 @@ func (tc TopologyConnect) Execute() error {
 				continue
 			}
 			connName := fmt.Sprintf("%v-to-%v", ctx.Namespace, pivot.Namespace)
-			log.Printf("TopologyConnect creating connection %v", connName)
-			err := skupperexecute.SkupperConnect{
-				Name: connName,
-				From: ctx,
-				To:   pivot,
-			}.Execute()
+			phase := frame2.Phase{
+				Runner: tc.Runner,
+				Doc:    fmt.Sprintf("Creating connection %q", connName),
+				MainSteps: []frame2.Step{
+					{
+						Modify: &skupperexecute.SkupperConnect{
+							Name: connName,
+							From: ctx,
+							To:   pivot,
+						},
+					},
+				},
+			}
+			err := phase.Run()
 			if err != nil {
 				return fmt.Errorf("TopologyConnect failed: %w", err)
 			}

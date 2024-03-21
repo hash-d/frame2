@@ -2,6 +2,7 @@ package skupperexecute
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"math/rand"
 	"strconv"
@@ -36,9 +37,20 @@ func (sc SkupperConnect) Execute() error {
 
 	i := rand.Intn(1000)
 	secretFile := "/tmp/" + sc.To.Namespace + "_secret.yaml." + strconv.Itoa(i)
-	err = sc.To.VanClient.ConnectorTokenCreateFile(ctx, types.DefaultVanName, secretFile)
+	phase := frame2.Phase{
+		Runner: sc.Runner,
+		MainSteps: []frame2.Step{
+			{
+				Modify: &TokenCreate{
+					Namespace: sc.To,
+					FileName:  secretFile,
+				},
+			},
+		},
+	}
+	err = phase.Run()
 	if err != nil {
-		return err
+		return fmt.Errorf("SkupperConnect failed to create token: %w", err)
 	}
 
 	var connectorCreateOpts types.ConnectorCreateOptions = types.ConnectorCreateOptions{

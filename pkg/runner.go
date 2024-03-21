@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/skupperproject/skupper/test/utils/base"
 )
 
@@ -30,6 +31,18 @@ const (
 	TearDownRunner
 	MonitorRunner
 )
+
+var spewer = spew.ConfigState{
+	Indent:                  " ",
+	MaxDepth:                4,
+	DisableMethods:          false,
+	DisablePointerMethods:   false,
+	DisablePointerAddresses: false,
+	DisableCapacities:       false,
+	ContinueOnMethod:        false,
+	SortKeys:                false,
+	SpewKeys:                false,
+}
 
 // The Run (TODO rename?) keeps context accross the execution of the test.  Each
 // phase and each step has its runner, in a tree structure
@@ -667,7 +680,7 @@ func (p *Phase) Run() error {
 	if runner == nil {
 		fmt.Printf("##################################\n")
 		fmt.Printf("Nil runner on phase %q/%q\n", p.Name, p.Doc)
-		fmt.Printf("%#v\n", p)
+		spewer.Dump(p)
 		debug.PrintStack()
 		fmt.Printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n")
 		runner = p.Runner

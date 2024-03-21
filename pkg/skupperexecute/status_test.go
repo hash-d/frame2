@@ -38,8 +38,6 @@ func TestStatusSimple(t *testing.T) {
 	}
 	assert.Assert(t, setup.Run())
 
-	// We don't care whether the test is using pub or prv, here;
-	// we just pick the first environment it has
 	pub, err := envSetup.Topo.Get(topology.Public, 1)
 	assert.Assert(t, err)
 	prv, err := envSetup.Topo.Get(topology.Private, 1)

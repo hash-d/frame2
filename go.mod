@@ -6,6 +6,7 @@ go 1.20
 replace github.com/skupperproject/skupper => ../skupper-dh/
 
 require (
+	github.com/davecgh/go-spew v1.1.1
 	github.com/imdario/mergo v0.3.8
 	github.com/jmespath/go-jmespath v0.4.0
 	github.com/openshift/api v0.0.0-20210428205234-a8389931bee7
@@ -15,6 +16,7 @@ require (
 	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.20.0
 	k8s.io/apimachinery v0.20.0
+	sigs.k8s.io/yaml v1.4.0
 )
 
 replace github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
@@ -32,7 +34,6 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/spdystream v0.0.0-20160310174837-449fdfce4d96 // indirect
 	github.com/evanphx/json-patch v4.9.0+incompatible // indirect
 	github.com/form3tech-oss/jwt-go v3.2.2+incompatible // indirect
@@ -51,7 +52,7 @@ require (
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/go-cmp v0.5.8 // indirect
+	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/google/uuid v1.1.2 // indirect
 	github.com/googleapis/gnostic v0.4.1 // indirect
@@ -92,5 +93,4 @@ require (
 	k8s.io/kube-openapi v0.0.0-20201113171705-d219536bb9fd // indirect
 	k8s.io/utils v0.0.0-20201110183641-67b214c5f920 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.0.2 // indirect
-	sigs.k8s.io/yaml v1.2.0 // indirect
 )

@@ -12,6 +12,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// TODO: Uniformize fields and struct name, between this and SecretGet
 type ConfigMap struct {
 	Namespace *base.ClusterContext
 	Name      string
