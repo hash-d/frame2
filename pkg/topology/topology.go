@@ -373,10 +373,10 @@ func (tc TopologyConnect) Execute() error {
 				Doc:    fmt.Sprintf("Creating connection %q", connName),
 				MainSteps: []frame2.Step{
 					{
-						Modify: &skupperexecute.SkupperConnect{
-							Name: connName,
-							From: ctx,
-							To:   pivot,
+						Modify: &skupperexecute.Connect{
+							LinkName: connName,
+							From:     ctx,
+							To:       pivot,
 						},
 					},
 				},

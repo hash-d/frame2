@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/skupperproject/skupper/api/types"
 	"github.com/skupperproject/skupper/test/utils/base"
 )
 
@@ -16,22 +15,29 @@ import (
 //
 // In practice, it does two steps: create the token, then use it to create a link
 // on the other namespace
-type SkupperConnect struct {
-	Name string
-	Cost int32
+type Connect struct {
 	From *base.ClusterContext
 	To   *base.ClusterContext
-	Ctx  context.Context
+
+	SecretName string
+	Expiry     string
+	Password   string
+	TokenType  string
+	Uses       string
+
+	LinkName string
+	Cost     string
+
+	Ctx context.Context
 
 	frame2.DefaultRunDealer
 	frame2.Log
 }
 
-func (sc SkupperConnect) Execute() error {
-	ctx := frame2.ContextOrDefault(sc.Ctx)
+func (sc Connect) Execute() error {
+	// ctx := frame2.ContextOrDefault(sc.Ctx)
 
 	log.Printf("execute.SkupperConnect")
-	var err error
 
 	log.Printf("connecting %v to %v", sc.From.Namespace, sc.To.Namespace)
 
@@ -39,27 +45,28 @@ func (sc SkupperConnect) Execute() error {
 	secretFile := "/tmp/" + sc.To.Namespace + "_secret.yaml." + strconv.Itoa(i)
 	phase := frame2.Phase{
 		Runner: sc.Runner,
+		Doc:    fmt.Sprintf("Connect skupper from namespace %q to %q", sc.From.Namespace, sc.To.Namespace),
 		MainSteps: []frame2.Step{
 			{
 				Modify: &TokenCreate{
 					Namespace: sc.To,
 					FileName:  secretFile,
+					Expiry:    sc.Expiry,
+					Name:      sc.SecretName,
+					Password:  sc.Password,
+					TokenType: sc.TokenType,
+					Uses:      sc.Uses,
+				},
+			}, {
+				Modify: &LinkCreate{
+					Namespace: sc.From,
+					File:      secretFile,
+					Name:      sc.LinkName,
+					Cost:      sc.Cost,
 				},
 			},
 		},
 	}
-	err = phase.Run()
-	if err != nil {
-		return fmt.Errorf("SkupperConnect failed to create token: %w", err)
-	}
-
-	var connectorCreateOpts types.ConnectorCreateOptions = types.ConnectorCreateOptions{
-		SkupperNamespace: sc.From.Namespace,
-		Name:             sc.Name,
-		Cost:             sc.Cost,
-	}
-	_, err = sc.From.VanClient.ConnectorCreateFromFile(ctx, secretFile, connectorCreateOpts)
-	log.Printf("SkupperConnect done")
-	return err
+	return phase.Run()
 
 }
