@@ -7,15 +7,19 @@ import (
 	"log"
 
 	frame2 "github.com/hash-d/frame2/pkg"
+	"github.com/hash-d/frame2/pkg/frames/f2general"
 	"github.com/skupperproject/skupper/test/utils/base"
 	core "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// TODO: Uniformize fields and struct name, between this and ConfigMap
 type SecretGet struct {
 	Namespace *base.ClusterContext
 	Name      string
 
+	// TODO change all these for a f2general.MapCheck
 	// Look for expected contents of the secret (exact)
 	Expect map[string][]byte
 
@@ -35,6 +39,13 @@ type SecretGet struct {
 	// If set, the Secret is expected to not be present;
 	// fail if it exists
 	ExpectAbsent bool
+
+	Labels      f2general.MapCheck
+	Annotations f2general.MapCheck
+
+	// Function to run against the Secret, to validate.  Provides a way
+	// to execute more complex validations not available above, inline
+	SecretValidator func(corev1.Secret) error
 
 	Secret *core.Secret
 
@@ -105,5 +116,19 @@ func (s SecretGet) Validate() error {
 			)
 		}
 	}
-	return err
+	asserter := frame2.Asserter{}
+	if s.Labels.MapType == "" {
+		s.Labels.MapType = "label"
+	}
+	asserter.CheckError(s.Labels.Check(s.Secret.Labels), "label verification")
+	if s.Annotations.MapType == "" {
+		s.Annotations.MapType = "annotation"
+	}
+	asserter.CheckError(s.Annotations.Check(s.Secret.Annotations), "annotation verification")
+
+	if s.SecretValidator != nil {
+		log.Printf("- Running SecretValidator")
+		asserter.CheckError(s.SecretValidator(*s.Secret), "SecretValidator failed")
+	}
+	return asserter.Error()
 }
