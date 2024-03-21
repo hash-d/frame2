@@ -81,10 +81,10 @@ func (m *Migrate) Execute() error {
 	for _, l := range links {
 		linkSteps = append(linkSteps, frame2.Step{
 			Doc: fmt.Sprintf("connecting %v to %v", l.from.Namespace, l.to.Namespace),
-			Modify: skupperexecute.SkupperConnect{
-				Name: fmt.Sprintf("%v-to-%v", l.from.Namespace, l.to.Namespace),
-				From: l.from,
-				To:   l.to,
+			Modify: skupperexecute.Connect{
+				LinkName: fmt.Sprintf("%v-to-%v", l.from.Namespace, l.to.Namespace),
+				From:     l.from,
+				To:       l.to,
 			},
 		})
 	}
