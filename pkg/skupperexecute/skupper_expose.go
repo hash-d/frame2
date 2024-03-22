@@ -38,11 +38,6 @@ type SkupperExpose struct {
 	execute.SkupperVersionerDefault
 }
 
-// Interface execute.SkupperUpgradable; allow this to be used with Upgrade disruptors
-func (s SkupperExpose) SkupperUpgradable() *base.ClusterContext {
-	return s.Namespace
-}
-
 func (s SkupperExpose) Execute() error {
 	versions := []string{"1.2", "1.3"}
 	target := s.WhichSkupperVersion(versions)

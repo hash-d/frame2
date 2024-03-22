@@ -2,12 +2,14 @@ package skupperexecute
 
 import (
 	"context"
+	"regexp"
 	"time"
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/hash-d/frame2/pkg/validate"
 	"github.com/skupperproject/skupper/test/utils/base"
+	"github.com/skupperproject/skupper/test/utils/skupper/cli"
 )
 
 type SkupperUpgrade struct {
@@ -33,6 +35,13 @@ type SkupperUpgrade struct {
 	// Since 1.5:
 	// - Execute skupper version manifest to generate a manifest.json file
 	ManifestFile string
+
+	// If true, the upgrade output will be inspected, to ensure the message
+	// "No update required in 'namespace'" was not shown.
+	//
+	// In practice, it makes it an error to try to upgrade a site that is
+	// already in the right version
+	CheckUpdateRequired bool
 
 	// TODO: SkupperBinary (for multi-step upgrades)
 }
@@ -64,6 +73,11 @@ func (s SkupperUpgrade) Execute() error {
 				StatusCheck: true,
 			},
 		}
+	}
+
+	expect := cli.Expect{}
+	if s.CheckUpdateRequired {
+		expect.StdOutReNot = []regexp.Regexp{*regexp.MustCompile("No update required in")}
 	}
 
 	phase := frame2.Phase{

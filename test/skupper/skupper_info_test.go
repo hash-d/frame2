@@ -18,7 +18,7 @@ func TestSkupperInfo(t *testing.T) {
 		T: t,
 	}
 
-	installCurrent := environment.JustSkupperDefault{
+	installCurrent := environment.JustSkupperSimple{
 		Name:    "frame2-skupper-info-test",
 		Console: true,
 		//AutoTearDown: true,

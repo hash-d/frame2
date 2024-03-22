@@ -113,6 +113,11 @@ func upgradeSites(targets []*base.ClusterContext, runner *frame2.Run) error {
 				Runner:    runner,
 				Namespace: t,
 				Wait:      time.Minute * 10,
+				// Perhaps this should be configurable.  In any case,
+				// if we're trying to upgrade something that was already
+				// upgraded, we probably have something wrong on the test
+				// or on the frames.
+				CheckUpdateRequired: true,
 			},
 		})
 	}

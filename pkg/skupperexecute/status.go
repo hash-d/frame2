@@ -52,11 +52,6 @@ type Status struct {
 	execute.SkupperVersionerDefault
 }
 
-// Interface execute.SkupperUpgradable; allow this to be used with Upgrade disruptors
-func (s Status) SkupperUpgradable() *base.ClusterContext {
-	return s.Namespace
-}
-
 // TODO: move this to a new SkupperInstallVAN or something; leave SkupperInstall as a
 // SkupperOp that calls either that or CliSkupperInit
 func (s Status) Execute() error {

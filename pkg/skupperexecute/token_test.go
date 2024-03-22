@@ -1,5 +1,7 @@
 package skupperexecute_test
 
+// For tests that actuall use the token, see connect_test.go
+
 import (
 	"fmt"
 	"log"
@@ -33,31 +35,31 @@ func TestTokenCreate(t *testing.T) {
 		MainSteps: []frame2.Step{
 			{
 				Name: "basic",
-				Modify: &TokenCheck{
+				Modify: &TokenCreateTester{
 					FileName: tokenFile,
 				},
 			}, {
 				Name: "defaults",
-				Modify: &TokenCheck{
+				Modify: &TokenCreateTester{
 					FileName:      tokenFile,
 					CheckDefaults: true,
 				},
 			}, {
 				Name: "expiry",
-				Modify: &TokenCheck{
+				Modify: &TokenCreateTester{
 					FileName: tokenFile,
 					Expiry:   "60m",
 				},
 			}, {
 				Name: "expiry-with-max",
-				Modify: &TokenCheck{
+				Modify: &TokenCreateTester{
 					FileName:       tokenFile,
 					Expiry:         "60m",
 					MaxExpiryDelta: time.Minute * 10,
 				},
 			}, {
 				Name: "expiry-with-impossible-max",
-				Modify: &TokenCheck{
+				Modify: &TokenCreateTester{
 					FileName:       tokenFile,
 					Expiry:         "60m",
 					MaxExpiryDelta: time.Nanosecond * 1,
@@ -65,26 +67,26 @@ func TestTokenCreate(t *testing.T) {
 				},
 			}, {
 				Name: "name",
-				Modify: &TokenCheck{
+				Modify: &TokenCreateTester{
 					FileName: tokenFile,
 					Name:     "asdf",
 				},
 			}, {
 				Name: "password",
-				Modify: &TokenCheck{
+				Modify: &TokenCreateTester{
 					FileName: tokenFile,
 					Password: "asdf",
 				},
 			}, {
 				Name: "tokenType",
-				Modify: &TokenCheck{
+				Modify: &TokenCreateTester{
 					FileName:      tokenFile,
 					TokenType:     "claim",
 					CheckDefaults: true,
 				},
 			}, {
 				Name: "uses",
-				Modify: &TokenCheck{
+				Modify: &TokenCreateTester{
 					FileName: tokenFile,
 					Uses:     "2",
 				},
@@ -94,7 +96,7 @@ func TestTokenCreate(t *testing.T) {
 	assert.Assert(t, phase.Run())
 }
 
-type TokenCheck struct {
+type TokenCreateTester struct {
 	FileName string
 
 	// TODO consider replacing the repetition of fields
@@ -114,7 +116,7 @@ type TokenCheck struct {
 	frame2.Log
 }
 
-func (t *TokenCheck) Teardown() frame2.Executor {
+func (t *TokenCreateTester) Teardown() frame2.Executor {
 	return execute.Function{
 		Fn: func() error {
 			log.Printf("TearDown: Removing token file %q", t.FileName)
@@ -123,7 +125,7 @@ func (t *TokenCheck) Teardown() frame2.Executor {
 	}
 }
 
-func (tc TokenCheck) Execute() error {
+func (tc TokenCreateTester) Execute() error {
 	if tc.FileName == "" {
 		panic("I need a file to write and read")
 	}

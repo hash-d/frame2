@@ -249,6 +249,8 @@ type TopologyBuild struct {
 	Topology     *Basic
 	AutoTearDown bool
 
+	SkipConnect bool
+
 	// TODO Remove this?
 	teardowns []frame2.Executor
 
@@ -317,6 +319,7 @@ func (t *TopologyBuild) Execute() error {
 				Modify: &TopologyConnect{
 					TopologyMap: *tm,
 				},
+				SkipWhen: t.SkipConnect,
 			},
 		},
 	}
