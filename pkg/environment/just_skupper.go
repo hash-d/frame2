@@ -8,11 +8,11 @@ import (
 )
 
 // A Skupper deployment on pub1 (frontend) and prv1 (backend),
-// on the default topology
-type JustSkupperDefault struct {
+type JustSkupperSimple struct {
 	Name         string
 	AutoTearDown bool
 	Console      bool
+	SkipConnect  bool
 
 	// Return
 	Topo topology.Basic
@@ -20,7 +20,7 @@ type JustSkupperDefault struct {
 	frame2.DefaultRunDealer
 }
 
-func (j *JustSkupperDefault) Execute() error {
+func (j *JustSkupperSimple) Execute() error {
 
 	name := j.Name
 	if name == "" {
@@ -43,6 +43,7 @@ func (j *JustSkupperDefault) Execute() error {
 				Modify: &JustSkupper{
 					Topology:     &j.Topo,
 					AutoTearDown: j.AutoTearDown,
+					SkipConnect:  j.SkipConnect,
 				},
 			},
 		},
@@ -122,6 +123,7 @@ type JustSkupperN struct {
 type JustSkupper struct {
 	Topology     *topology.Basic
 	AutoTearDown bool
+	SkipConnect  bool
 
 	frame2.DefaultRunDealer
 	frame2.Log
@@ -131,6 +133,7 @@ func (j JustSkupper) Execute() error {
 	topo := topology.TopologyBuild{
 		Topology:     j.Topology,
 		AutoTearDown: j.AutoTearDown,
+		SkipConnect:  j.SkipConnect,
 	}
 
 	execute := frame2.Phase{

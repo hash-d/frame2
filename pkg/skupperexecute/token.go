@@ -51,11 +51,6 @@ func (t *TokenCreate) Teardown() frame2.Executor {
 	}
 }
 
-// Interface execute.SkupperUpgradable; allow this to be used with Upgrade disruptors
-func (tc TokenCreate) SkupperUpgradable() *base.ClusterContext {
-	return tc.Namespace
-}
-
 func (tc *TokenCreate) Execute() error {
 
 	args := []string{"token", "create"}

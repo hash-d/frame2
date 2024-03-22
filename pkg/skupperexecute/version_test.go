@@ -31,7 +31,7 @@ func TestVersion(t *testing.T) {
 		&disruptors.UpgradeAndFinalize{},
 	})
 
-	envSetup := &environment.JustSkupperDefault{
+	envSetup := &environment.JustSkupperSimple{
 		Name:         "version-test",
 		AutoTearDown: true,
 	}

@@ -13,8 +13,13 @@ import (
 
 // Connects two Skupper instances installed in different namespaces or clusters
 //
-// In practice, it does two steps: create the token, then use it to create a link
-// on the other namespace
+// In practice, it does two steps: create the token, then use it to create a
+// link on the other namespace
+//
+// This _does not_ implement SkupperVersioner: as it calls TokenCreate and
+// LinkCreate, the logic for version-specific behavior should be on them.  For
+// all Connect knows, the two sites could even be on different versions.  Keep
+// Connect simple.
 type Connect struct {
 	From *base.ClusterContext
 	To   *base.ClusterContext

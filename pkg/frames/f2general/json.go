@@ -9,6 +9,16 @@ import (
 	"github.com/jmespath/go-jmespath"
 )
 
+// TODO: perhaps ofer a number of Expressions that matches the JSON
+// types?  Something like
+//
+// StringValue map[string]string
+// IntValue map[string]int
+// BoolValue map[string]bool
+//
+// Where the key is the search, and the value is the expected value.
+//
+// Need to work on that interface, but that would be a better match
 type JSONMatcher struct {
 
 	// The JMESPath expression to be executed.  There are

@@ -23,7 +23,7 @@ func TestStatusSimple(t *testing.T) {
 		&disruptors.UpgradeAndFinalize{},
 	})
 
-	envSetup := &environment.JustSkupperDefault{
+	envSetup := &environment.JustSkupperSimple{
 		Name:         "status-test",
 		AutoTearDown: true,
 	}
