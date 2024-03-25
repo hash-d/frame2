@@ -49,7 +49,7 @@ type DefaultMonitor struct {
 	// are added, with the default configuration
 	validatorConfigs []ValidatorConfig
 
-	// Path where the report should be put.  If not set, TODO
+	// TODO Path where the report should be put.  If not set, TODO
 	Path string
 
 	Results map[string][]MonitorResult
