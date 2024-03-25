@@ -1,5 +1,14 @@
 package frame2
 
+// TODO Add a new method, Exercised() bool, that reports
+// whether the disruptor was exercised at all, and causes
+// the test to report Skipped if not.
+//
+// EdgeOnPrivate, for example, should report as not exercised
+// if all namespaces were Public on the test;
+//
+// Those should probably also be checked for subfinal tests
+// and reset after them; so subtests are checked as well
 type Disruptor interface {
 	DisruptorEnvValue() string
 }
