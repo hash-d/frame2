@@ -52,7 +52,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 	topo = &topologies.Single{
 		Name:              "skupper-install-effects",
 		TestRunnerBase:    baseRunner,
-		Type:              topology.Public,
+		Type:              topology.Private,
 		SkipSkupperDeploy: true,
 	}
 	build := topology.TopologyBuild{

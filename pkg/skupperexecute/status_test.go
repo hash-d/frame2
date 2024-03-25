@@ -138,7 +138,12 @@ func TestStatusHelloWorldN(t *testing.T) {
 
 	r.AllowDisruptors([]frame2.Disruptor{
 		&disruptors.UpgradeAndFinalize{},
-		&disruptors.EdgeOnPrivate{},
+
+		// EdgeOnPrivate cannot be used with N topology: edge sites
+		// have a single uplink connection; prv2 would the be connected
+		// to either pub1 or pub2, and the VAN would be severed (ie,
+		// pub1 cannot see prv1)
+		// &disruptors.EdgeOnPrivate{},
 	})
 
 	envSetup := &environment.HelloWorldN{
