@@ -7,11 +7,13 @@ import (
 	"github.com/skupperproject/skupper/api/types"
 	"github.com/skupperproject/skupper/test/utils/base"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type SkupperInfoContents struct {
-	Images SkupperManifestContent
+	Images    SkupperManifestContent
+	PodImages SkupperManifestContent
 
 	HasRouter            bool
 	HasServiceController bool
@@ -20,6 +22,8 @@ type SkupperInfoContents struct {
 	RouterDeployment            *appsv1.Deployment
 	ServiceControllerDeployment *appsv1.Deployment
 	PrometheusDeployment        *appsv1.Deployment
+
+	AllPods *corev1.PodList
 }
 
 const (
@@ -142,6 +146,28 @@ func (s *SkupperInfo) Validate() error {
 			}
 		}
 
+	}
+
+	s.Result.AllPods, err = s.Namespace.VanClient.KubeClient.CoreV1().Pods(s.Namespace.Namespace).List(
+		ctx,
+		metav1.ListOptions{
+			LabelSelector: "app.kubernetes.io/part-of=skupper",
+		},
+	)
+	if err != nil {
+		s.Log.Printf("failed to get Pod list: %v", err)
+	} else {
+		for _, p := range s.Result.AllPods.Items {
+			for _, c := range p.Spec.Containers {
+				s.Result.PodImages.Images = append(
+					s.Result.PodImages.Images,
+					SkupperManifestContentImage{
+						Name: c.Image,
+						// TODO: Add respository
+					},
+				)
+			}
+		}
 	}
 
 	return nil
