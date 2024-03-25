@@ -1,6 +1,7 @@
 package skupperexecute
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -10,6 +11,7 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/skupperproject/skupper/test/utils/base"
 )
 
 type SkupperManifestContentImage struct {
@@ -32,6 +34,10 @@ type SkupperManifestContent struct {
 // It has no intelligence to add or remove :latest from a tag, for example.
 //
 // The Repository field is not used in this verification.
+//
+// Note this frame never accesses a cluster; the verification is on the
+// manifest.json (provided or generated from skupper binary); the comparison
+// is against a SkupperManifestContent generated elsewhere and provided to it
 type SkupperManifest struct {
 
 	// Path to the manifest.json file; if not provided, it will be
@@ -136,6 +142,7 @@ func (m SkupperManifest) Validate() error {
 		return fmt.Errorf("SkupperManifest: could not unmarshal %q: %w", manifestPath, err)
 	}
 
+	// Images verification
 	for _, expected := range m.Expected.Images {
 		// TODO This is not good; if a variable is set, but it was ignored, the first for will (correctly)
 		// consider it as not found, but the second one may (incorrectly) match it with the hardcoded image
@@ -145,23 +152,82 @@ func (m SkupperManifest) Validate() error {
 		var found bool
 		for varName, mapped := range m.Result.Variables {
 			if expected.Name == mapped {
-				m.Log.Printf("Image %q matched on %q via variable %q", mapped, manifestPath, varName)
+				m.Log.Printf("Deployment image %q matched on %q via variable %q", mapped, manifestPath, varName)
 				found = true
 				break
 			}
 		}
 		for _, actual := range m.Result.Images {
 			if expected.Name == actual.Name {
-				m.Log.Printf("Image %q matched on %q (repo %q)", actual.Name, manifestPath, actual.Repository)
+				m.Log.Printf("Deployment image %q matched on %q (repo %q)", actual.Name, manifestPath, actual.Repository)
 				found = true
 				break
 			}
 		}
 		if !found {
-			return fmt.Errorf("Image %q did not match any items from %q", expected.Name, manifestPath)
+			return fmt.Errorf("Deployment image %q did not match any items from %q", expected.Name, manifestPath)
 		}
 
 	}
 
 	return nil
+}
+
+// This will get the deployment information on Skupper as currently
+// deployed on the namespace (its images), and then compare it against
+// the manifest, to ensure it matches.
+//
+// After an install or an upgrade, you may need to retry this action
+// a few times, to ensure the deployment stabilized
+type ManifestMatchesDeployment struct {
+	Path      string
+	Namespace *base.ClusterContext
+
+	Ctx context.Context
+
+	frame2.DefaultRunDealer
+	frame2.Log
+	execute.SkupperVersionerDefault
+}
+
+func (m ManifestMatchesDeployment) Validate() error {
+	var err error
+
+	skupperInfo := SkupperInfo{
+		Namespace: m.Namespace,
+		Ctx:       m.Ctx,
+	}
+	getInfoPhase := frame2.Phase{
+		Runner: m.Runner,
+		Doc:    "Get the Skupper deployment info",
+		MainSteps: []frame2.Step{
+			{
+				Validator: &skupperInfo,
+			},
+		},
+	}
+	err = getInfoPhase.Run()
+	if err != nil {
+		return fmt.Errorf("failed to acquire skupper info: %w", err)
+	}
+
+	checkManifestPhase := frame2.Phase{
+		Runner: m.Runner,
+		Doc:    "Compare deployed Skupper images to the manifest",
+		MainSteps: []frame2.Step{
+			{
+				Doc: "Compare Deployments",
+				Validator: &SkupperManifest{
+					Expected: skupperInfo.Result.Images,
+				},
+			},
+			{
+				Doc: "Compare Pods",
+				Validator: &SkupperManifest{
+					Expected: skupperInfo.Result.PodImages,
+				},
+			},
+		},
+	}
+	return checkManifestPhase.Run()
 }

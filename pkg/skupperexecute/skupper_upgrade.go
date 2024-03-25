@@ -2,6 +2,7 @@ package skupperexecute
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"time"
 
@@ -57,7 +58,11 @@ func (s SkupperUpgrade) Execute() error {
 	ctx := s.Runner.OrDefaultContext(s.Ctx)
 	var cancel context.CancelFunc
 	var validators []frame2.Validator
-	if s.Wait != 0 {
+	var waitMessage string
+	if s.Wait == 0 {
+		waitMessage = "; do not wait for pods to be up"
+	} else {
+		waitMessage = ", and wait for router and service-controller pods to be up"
 		ctx, cancel = context.WithTimeout(s.Runner.OrDefaultContext(ctx), s.Wait)
 		defer cancel()
 
@@ -82,8 +87,10 @@ func (s SkupperUpgrade) Execute() error {
 
 	phase := frame2.Phase{
 		Runner: s.Runner,
+		Doc:    "Upgrade Skupper and wait for the upgrade to be complete",
 		MainSteps: []frame2.Step{
 			{
+				Doc: fmt.Sprintf("Upgrade skupper on namespace %q%v", s.Namespace.Namespace, waitMessage),
 				Modify: &CliSkupper{
 					ClusterContext: s.Namespace,
 					Args:           args,
@@ -100,6 +107,17 @@ func (s SkupperUpgrade) Execute() error {
 					Ctx:        ctx,
 				},
 			}, {
+				Doc: "Wait for deployment to match manifest",
+				Validator: &ManifestMatchesDeployment{
+					Namespace: s.Namespace,
+				},
+				SkipWhen: s.SkipManifest,
+				ValidatorRetry: frame2.RetryOptions{
+					Timeout:    time.Minute * 2,
+					KeepTrying: true,
+				},
+			}, {
+				Doc: "Show actual version after upgrade",
 				Modify: &CliSkupperVersion{
 					Namespace: s.Namespace,
 				},
@@ -107,42 +125,5 @@ func (s SkupperUpgrade) Execute() error {
 			},
 		},
 	}
-	err := phase.Run()
-	if err != nil {
-		return err
-	}
-	if s.SkipManifest {
-		return nil
-	}
-
-	skupperInfo := SkupperInfo{
-		Namespace: s.Namespace,
-		Ctx:       s.Ctx,
-	}
-	getInfoPhase := frame2.Phase{
-		Runner: s.Runner,
-		Doc:    "Get the newly-upgrade Skupper info",
-		MainSteps: []frame2.Step{
-			{
-				Validator: &skupperInfo,
-			},
-		},
-	}
-	err = getInfoPhase.Run()
-	if err != nil {
-		return err
-	}
-
-	checkManifestPhase := frame2.Phase{
-		Runner: s.Runner,
-		Doc:    "Compare Skupper images to the manifest.json",
-		MainSteps: []frame2.Step{
-			{
-				Validator: &SkupperManifest{
-					Expected: skupperInfo.Result.Images,
-				},
-			},
-		},
-	}
-	return checkManifestPhase.Run()
+	return phase.Run()
 }
