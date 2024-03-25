@@ -14,6 +14,13 @@ import (
 	"github.com/skupperproject/skupper/test/utils/base"
 )
 
+// TODO: Uniformize use of contexts; create main context that has a deadline
+// one minute before the maximum test time, if that's equal or greater than the
+// default 10m timeout
+//
+// TODO: Uniformize Validator and Executor requirements.  Put it all in an
+// embeddable struct (Log, Context, Runner, etc)
+
 // Each step on a phase runs with its own Runner.  These constants identify
 // what type of work is being done by the Runner.  The step IDs are derived
 // from their Runner type
@@ -245,6 +252,7 @@ func (r *Run) subFinalize() {
 				r.T.Run("pre-subfinalizer-hook", func(t *testing.T) {
 					err = d.PreFinalizerHook(r.ChildWithT(t, HookRunner))
 					if err != nil {
+						log.Printf("[R] %v test marked as failed on pre-subfinalizer hook: %v", err)
 						t.Errorf("pre-subfinalizer hook failed: %v", err)
 					}
 				})
@@ -277,6 +285,7 @@ func (r *Run) subFinalize() {
 				r.T.Run("post-subfinalizer-hook", func(t *testing.T) {
 					err = d.PostSubFinalizerHook(r.ChildWithT(t, HookRunner))
 					if err != nil {
+						log.Printf("[R] %v test marked as failed on post-subfinalizer hook: %v", err)
 						t.Errorf("post-subfinalizer hook failed: %v", err)
 					}
 				})
@@ -295,6 +304,7 @@ func (r *Run) Finalize() {
 			r.T.Run("pre-finalizer-hook", func(t *testing.T) {
 				err = d.PreFinalizerHook(r.ChildWithT(t, HookRunner))
 				if err != nil {
+					log.Printf("[R] %v test marked as failed on pre-finalizer hook: %v", err)
 					t.Errorf("pre-finalizer hook failed: %v", err)
 				}
 			})
@@ -337,6 +347,7 @@ func (r *Run) Report() {
 		}
 	}
 	if failed {
+		log.Printf("[R] test marked as failed due to monitor failure")
 		r.savedT.Errorf("At least one monitor failed")
 	}
 
@@ -465,6 +476,7 @@ func processStep(t *testing.T, step Step, Log FrameLogger, p *Phase, kind Runner
 			processErr := processStep_(t, step, SubTestRunner, Log, p, true)
 			if processErr != nil {
 				// This makes it easier to find the failures in log files
+				log.Printf("[R] test %v - %q failed", id, t.Name())
 				Log.Printf("[R] test %v - %q failed", id, t.Name())
 				// For named tests, we do not return the error up; we
 				// just mark it as a failed test
@@ -490,6 +502,12 @@ func processStep(t *testing.T, step Step, Log FrameLogger, p *Phase, kind Runner
 // Does the heavy lifting of executing a single step from a phase; execute each of its
 // parts: setup, modify, substeps, validations, etc
 func processStep_(t *testing.T, step Step, kind RunnerType, Log FrameLogger, p *Phase, named bool) error {
+
+	var testFailed bool
+
+	if t != nil && t.Failed() {
+		testFailed = true
+	}
 
 	stepRunner := p.DefaultRunDealer.GetRunner().ChildWithT(t, kind)
 	stepRunner.named = named
@@ -553,6 +571,10 @@ func processStep_(t *testing.T, step Step, kind RunnerType, Log FrameLogger, p *
 			Log.Printf("[R] %v modify-ok %T (%v)", id, step.Modify, duration)
 		}
 	}
+	if t != nil && t.Failed() != testFailed {
+		testFailed = true
+		log.Printf("[R] %v Test %q marked as failed after modify step", id, t.Name())
+	}
 
 	subStepList := step.Substeps
 	if step.Substep != nil {
@@ -568,9 +590,15 @@ func processStep_(t *testing.T, step Step, kind RunnerType, Log FrameLogger, p *
 		if err != nil {
 			return fmt.Errorf("substep failed: %w", err)
 		}
-
+		if t != nil && t.Failed() != testFailed {
+			testFailed = true
+			log.Printf("[R] %v Test %q marked as failed after substep", id, t.Name())
+		}
 	}
 
+	// TODO: For every RetryOptions received, we should make a copy and use the copy.
+	// The copy should be checked for a Context.  If none, the main Runner context
+	// should be set there.
 	if len(validatorList) > 0 {
 		start := time.Now()
 		for _, v := range validatorList {
@@ -634,6 +662,10 @@ func processStep_(t *testing.T, step Step, kind RunnerType, Log FrameLogger, p *
 			Log.Printf("[R] %v validation-ok (%v)", id, elapsed)
 		} else {
 			Log.Printf("[R] %v validation-not-ok: %v (%v)", id, err, elapsed)
+		}
+		if t != nil && t.Failed() != testFailed {
+			testFailed = true
+			log.Printf("[R] %v Test %q marked as failed after validate step", id, t.Name())
 		}
 		return validationResultHook(p.GetRunner(), step, err)
 	}
@@ -704,8 +736,9 @@ func (p *Phase) runP(runner *Run) error {
 			p.Log.Printf("[R] %v Phase doc: %v", id, p.Doc)
 			err = p.run()
 			if err != nil {
-				t.Errorf("Phase failed: %v", err)
 				p.Log.Printf("[R] %v phase failed: %v", id, err)
+				log.Printf("[R] %v Test %q marked as failed after phase: %v", id, p.GetRunner().T.Name(), err)
+				t.Errorf("Phase failed: %v", err)
 			}
 			p.GetRunner().subFinalize()
 			p.Log.Printf("[R] %v phase Subtest %q completed", id, t.Name())
@@ -841,6 +874,7 @@ func (p *Phase) run() error {
 					// - hold (show time left for the test)
 					// - kill (run no teardown)
 					// - finish (run teardowns; go to next test if available)
+					log.Printf("[R] %v test failed: %v", idPrefix, err)
 					t.Errorf("[R] %v test failed: %v", idPrefix, err)
 				}
 				// TODO this should be pluggable
@@ -878,6 +912,7 @@ func (p *Phase) teardown() {
 				if t == nil {
 					p.Log.Printf("Tear down step %d failed: %v", i, err)
 				} else {
+					log.Printf("[R] %v test failed on teardown: %v", err)
 					t.Errorf("teardown failed: %v", err)
 				}
 				// We do not return here; we keep going doing whatever
@@ -897,6 +932,7 @@ func (p *Phase) teardown() {
 				if t == nil {
 					p.Log.Printf("auto-teardown failed: %v", err)
 				} else {
+					log.Printf("[R] %v test failed on auto-teardown: %v", err)
 					t.Errorf("auto-teardown failed: %v", err)
 				}
 				// We do not return here; we keep going doing whatever
