@@ -71,7 +71,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 	}
 	assert.Assert(t, setup.Run())
 
-	ns, err := topo.Get(topology.Public, 1)
+	ns, err := topo.Get(topology.Private, 1)
 	assert.Assert(t, err)
 
 	basicWait := frame2.RetryOptions{
