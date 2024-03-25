@@ -21,6 +21,7 @@ func TestStatusSimple(t *testing.T) {
 
 	r.AllowDisruptors([]frame2.Disruptor{
 		&disruptors.UpgradeAndFinalize{},
+		&disruptors.EdgeOnPrivate{},
 	})
 
 	envSetup := &environment.JustSkupperSimple{
@@ -137,6 +138,7 @@ func TestStatusHelloWorldN(t *testing.T) {
 
 	r.AllowDisruptors([]frame2.Disruptor{
 		&disruptors.UpgradeAndFinalize{},
+		&disruptors.EdgeOnPrivate{},
 	})
 
 	envSetup := &environment.HelloWorldN{

@@ -26,6 +26,9 @@ func TestTokenCreate(t *testing.T) {
 	runner.AllowDisruptors([]frame2.Disruptor{
 		&disruptors.UpgradeAndFinalize{},
 		&disruptors.KeepWalking{},
+
+		// No EdgeOnPrivate here, as edges do not
+		// emit tokens
 	})
 
 	tokenFile := fmt.Sprintf("/tmp/toktok-%d", rand.Intn(1000))
