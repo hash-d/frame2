@@ -58,6 +58,11 @@ type SkupperManifest struct {
 	execute.SkupperVersionerDefault
 }
 
+// TODO: replace this by f2k8s.Namespace
+func (m SkupperManifest) GetNamespace() string {
+	return ""
+}
+
 // Executes skupper version manifest in the given directory,
 // and returns the path to it.
 //
@@ -188,6 +193,11 @@ type ManifestMatchesDeployment struct {
 	frame2.DefaultRunDealer
 	frame2.Log
 	execute.SkupperVersionerDefault
+}
+
+// TODO: replace this by f2k8s.Namespace
+func (m ManifestMatchesDeployment) GetNamespace() string {
+	return m.Namespace.Namespace
 }
 
 func (m ManifestMatchesDeployment) Validate() error {

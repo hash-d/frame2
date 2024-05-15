@@ -39,6 +39,11 @@ type TokenCreate struct {
 	execute.SkupperVersionerDefault
 }
 
+// TODO: replace this by f2k8s.Namespace
+func (t TokenCreate) GetNamespace() string {
+	return t.Namespace.Namespace
+}
+
 func (t *TokenCreate) Teardown() frame2.Executor {
 	if t.SkipTearDown {
 		return nil

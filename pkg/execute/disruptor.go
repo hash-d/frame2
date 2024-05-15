@@ -18,12 +18,13 @@ import (
 // the upgrade disruptors that a step and/or namespace is
 // a candidate for running skupper upgrade
 type SkupperUpgradable interface {
-	//
 	SkupperUpgradable() *base.ClusterContext
+	GetNamespace() string
 }
 
 type SkupperCliPathSetter interface {
 	SetSkupperCliPath(path string, env []string)
+	GetNamespace() string
 }
 
 // An action that implements SkupperVersioner is expected
@@ -33,8 +34,13 @@ type SkupperCliPathSetter interface {
 type SkupperVersioner interface {
 	SetSkupperVersion(version string)
 	GetSkupperVersion() string
+	GetNamespace() string
 }
 
+// SkupperVersionerDefault is an incomplete implementation of
+// SkupperVersioner; you still need to define GetNamespace()
+//
+// Check for f2k8s.Namespace for that
 type SkupperVersionerDefault struct {
 	// You can define this value directly, if you want to set its
 	// value directly on a frame.  For acquiring its value, though,

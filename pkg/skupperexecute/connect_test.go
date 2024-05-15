@@ -20,6 +20,8 @@ func TestConnectSimple(t *testing.T) {
 	runner.AllowDisruptors([]frame2.Disruptor{
 		&disruptors.UpgradeAndFinalize{},
 		&disruptors.EdgeOnPrivate{},
+		&disruptors.AlternateSkupper{},
+		&disruptors.SkipManifestCheck{},
 	})
 	phase := frame2.Phase{
 		Runner: &runner,

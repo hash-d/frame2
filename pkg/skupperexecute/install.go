@@ -127,6 +127,11 @@ type CliSkupperInstall struct {
 	execute.SkupperVersionerDefault
 }
 
+// TODO: replace this by f2k8s.Namespace
+func (c CliSkupperInstall) GetNamespace() string {
+	return c.Namespace.Namespace
+}
+
 // Interface execute.SkupperUpgradable; allow this to be used with Upgrade disruptors
 func (s CliSkupperInstall) SkupperUpgradable() *base.ClusterContext {
 	return s.Namespace

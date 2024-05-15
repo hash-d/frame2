@@ -31,6 +31,11 @@ type CliSkupperVersion struct {
 	execute.SkupperVersionerDefault
 }
 
+// TODO: replace this by f2k8s.Namespace
+func (c CliSkupperVersion) GetNamespace() string {
+	return c.Namespace.Namespace
+}
+
 func (s CliSkupperVersion) Execute() error {
 
 	cmd := execute.Cmd{

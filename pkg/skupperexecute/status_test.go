@@ -22,6 +22,8 @@ func TestStatusSimple(t *testing.T) {
 	r.AllowDisruptors([]frame2.Disruptor{
 		&disruptors.UpgradeAndFinalize{},
 		&disruptors.EdgeOnPrivate{},
+		&disruptors.AlternateSkupper{},
+		&disruptors.SkipManifestCheck{},
 	})
 
 	envSetup := &environment.JustSkupperSimple{
@@ -138,6 +140,8 @@ func TestStatusHelloWorldN(t *testing.T) {
 
 	r.AllowDisruptors([]frame2.Disruptor{
 		&disruptors.UpgradeAndFinalize{},
+		&disruptors.AlternateSkupper{},
+		&disruptors.SkipManifestCheck{},
 
 		// EdgeOnPrivate cannot be used with N topology: edge sites
 		// have a single uplink connection; prv2 would the be connected
