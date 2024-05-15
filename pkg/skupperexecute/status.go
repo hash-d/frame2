@@ -52,6 +52,11 @@ type Status struct {
 	execute.SkupperVersionerDefault
 }
 
+// TODO: replace this by f2k8s.Namespace
+func (s Status) GetNamespace() string {
+	return s.Namespace.Namespace
+}
+
 // TODO: move this to a new SkupperInstallVAN or something; leave SkupperInstall as a
 // SkupperOp that calls either that or CliSkupperInit
 func (s Status) Execute() error {

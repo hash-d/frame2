@@ -29,6 +29,8 @@ func TestVersion(t *testing.T) {
 
 	r.AllowDisruptors([]frame2.Disruptor{
 		&disruptors.UpgradeAndFinalize{},
+		&disruptors.AlternateSkupper{},
+		&disruptors.SkipManifestCheck{},
 	})
 
 	envSetup := &environment.JustSkupperSimple{

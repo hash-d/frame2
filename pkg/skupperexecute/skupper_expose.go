@@ -38,6 +38,11 @@ type SkupperExpose struct {
 	execute.SkupperVersionerDefault
 }
 
+// TODO: relace this with f2k8s.Namespace
+func (s SkupperExpose) GetNamespace() string {
+	return s.Namespace.Namespace
+}
+
 func (s SkupperExpose) Execute() error {
 	versions := []string{"1.2", "1.3"}
 	target := s.WhichSkupperVersion(versions)

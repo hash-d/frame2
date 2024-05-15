@@ -42,6 +42,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 	}
 	runner.AllowDisruptors([]frame2.Disruptor{
 		&disruptors.UpgradeAndFinalize{},
+		&disruptors.AlternateSkupper{},
 		&disruptors.ConsoleAuth{},
 		&disruptors.SkipManifestCheck{},
 		&disruptors.KeepWalking{},

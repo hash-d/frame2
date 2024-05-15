@@ -31,6 +31,16 @@ type CliSkupper struct {
 	frame2.Log
 }
 
+func (c CliSkupper) GetNamespace() string {
+	if c.Namespace != "" {
+		return c.Namespace
+	}
+	if c.ClusterContext != nil {
+		return c.ClusterContext.Namespace
+	}
+	return ""
+}
+
 func (c *CliSkupper) Validate() error {
 	return c.Execute()
 }

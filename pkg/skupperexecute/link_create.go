@@ -22,6 +22,11 @@ type LinkCreate struct {
 	execute.SkupperVersionerDefault
 }
 
+// TODO: replace this by f2k8s.Namespace
+func (l LinkCreate) GetNamespace() string {
+	return l.Namespace.Namespace
+}
+
 func (lc *LinkCreate) Execute() error {
 	args := []string{"link", "create"}
 

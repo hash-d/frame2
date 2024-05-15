@@ -25,7 +25,9 @@ func TestTokenCreate(t *testing.T) {
 	}
 	runner.AllowDisruptors([]frame2.Disruptor{
 		&disruptors.UpgradeAndFinalize{},
+		&disruptors.AlternateSkupper{},
 		&disruptors.KeepWalking{},
+		&disruptors.SkipManifestCheck{},
 
 		// No EdgeOnPrivate here, as edges do not
 		// emit tokens
