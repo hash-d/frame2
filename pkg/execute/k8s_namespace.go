@@ -9,7 +9,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type TestRunnerCreateNamespace struct {
+// OBSOLETE: use f2k8s.CreateNamespaceTestBase, instead
+type testRunnerCreateNamespace struct {
 	Namespace    *base.ClusterContext
 	AutoTearDown bool
 
@@ -23,15 +24,15 @@ type TestRunnerCreateNamespace struct {
 	frame2.Log
 }
 
-func (cn TestRunnerCreateNamespace) Execute() error {
-	log.Printf("TestRunnerCreateNamespace")
+func (cn testRunnerCreateNamespace) Execute() error {
+	log.Printf("testRunnerCreateNamespace")
 
 	log.Printf("Creating namespace %v", cn.Namespace.Namespace)
 
 	err := cn.Namespace.CreateNamespace()
 	if err != nil {
 		return fmt.Errorf(
-			"TestRunnerCreateNamespace failed to create namespace %q: %w",
+			"testRunnerCreateNamespace failed to create namespace %q: %w",
 			cn.Namespace.Namespace, err,
 		)
 	}
@@ -72,25 +73,25 @@ func (cn TestRunnerCreateNamespace) Execute() error {
 	return nil
 }
 
-func (trcn TestRunnerCreateNamespace) Teardown() frame2.Executor {
+func (trcn testRunnerCreateNamespace) Teardown() frame2.Executor {
 	if trcn.AutoTearDown {
-		return TestRunnerDeleteNamespace{
+		return testRunnerDeleteNamespace{
 			Namespace: trcn.Namespace,
 		}
 	}
 	return nil
 }
 
-type TestRunnerDeleteNamespace struct {
+type testRunnerDeleteNamespace struct {
 	Namespace *base.ClusterContext
 }
 
-func (trdn TestRunnerDeleteNamespace) Execute() error {
+func (trdn testRunnerDeleteNamespace) Execute() error {
 	log.Printf("Removing namespace %q", trdn.Namespace.Namespace)
 	err := trdn.Namespace.DeleteNamespace()
 	if err != nil {
 		return fmt.Errorf(
-			"TestRunnerCreateNamespace failed to delete namespace %q: %w",
+			"testRunnerCreateNamespace failed to delete namespace %q: %w",
 			trdn.Namespace.Namespace, err,
 		)
 	}

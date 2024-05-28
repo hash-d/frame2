@@ -8,14 +8,14 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
-	"github.com/skupperproject/skupper/test/utils/base"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 )
 
 type SkupperServiceCreate struct {
 
 	// Required
 
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	Name      string
 	Port      []string
 
@@ -62,8 +62,8 @@ func (ssc SkupperServiceCreate) Execute() error {
 		MainSteps: []frame2.Step{
 			{
 				Modify: &CliSkupper{
-					ClusterContext: ssc.Namespace,
-					Args:           args,
+					F2Namespace: ssc.Namespace,
+					Args:        args,
 				},
 			},
 		},
@@ -89,7 +89,7 @@ func (ssc SkupperServiceCreate) Teardown() frame2.Executor {
 type SkupperServiceDelete struct {
 	// Required
 
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	ArgName   string
 
 	// Optional
@@ -130,8 +130,8 @@ func (ssd SkupperServiceDelete) Execute() error {
 		MainSteps: []frame2.Step{
 			{
 				Modify: &CliSkupper{
-					ClusterContext: ssd.Namespace,
-					Args:           []string{"service", "delete", ssd.ArgName},
+					F2Namespace: ssd.Namespace,
+					Args:        []string{"service", "delete", ssd.ArgName},
 				},
 				Validator:      validator,
 				ValidatorRetry: retry,
@@ -146,7 +146,7 @@ type SkupperServiceBind struct {
 
 	// Required
 
-	Namespace  *base.ClusterContext
+	Namespace  *f2k8s.Namespace
 	Name       string
 	TargetType string
 	TargetName string
@@ -187,8 +187,8 @@ func (ssb SkupperServiceBind) Execute() error {
 		MainSteps: []frame2.Step{
 			{
 				Modify: &CliSkupper{
-					ClusterContext: ssb.Namespace,
-					Args:           args,
+					F2Namespace: ssb.Namespace,
+					Args:        args,
 				},
 			},
 		},
@@ -214,7 +214,7 @@ type SkupperServiceUnbind struct {
 
 	// Required
 
-	Namespace  *base.ClusterContext
+	Namespace  *f2k8s.Namespace
 	Name       string
 	TargetType string
 	TargetName string
@@ -238,8 +238,8 @@ func (ssub SkupperServiceUnbind) Execute() error {
 		MainSteps: []frame2.Step{
 			{
 				Modify: &CliSkupper{
-					ClusterContext: ssub.Namespace,
-					Args:           args,
+					F2Namespace: ssub.Namespace,
+					Args:        args,
 				},
 			},
 		},

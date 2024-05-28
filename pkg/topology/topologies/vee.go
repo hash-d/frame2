@@ -1,8 +1,8 @@
 package topologies
 
 import (
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/topology"
-	"github.com/skupperproject/skupper/test/utils/base"
 )
 
 // A topology in V shape; odd-numbered namespaces go on the
@@ -18,11 +18,11 @@ import (
 //
 // The Vertex node will have the console enabled.
 type V struct {
-	Name           string
-	TestRunnerBase *base.ClusterTestRunnerBase
+	Name     string
+	TestBase *f2k8s.TestBase
 
 	EmptyRight bool // If set, do not deploy Skupper or applications on the right branch
-	VertexType topology.ClusterType
+	VertexType f2k8s.ClusterType
 
 	*contextHolder
 	vertex *topology.TopologyItem
@@ -37,27 +37,27 @@ type V struct {
 
 func (v *V) Execute() error {
 	pub1 := &topology.TopologyItem{
-		Type: topology.Public,
+		Type: f2k8s.Public,
 	}
 	prv1 := &topology.TopologyItem{
-		Type: topology.Private,
+		Type: f2k8s.Private,
 		Connections: []*topology.TopologyItem{
 			pub1,
 		},
 	}
 	pub2 := &topology.TopologyItem{
 		SkipSkupperDeploy: true,
-		Type:              topology.Public,
+		Type:              f2k8s.Public,
 	}
 	prv2 := &topology.TopologyItem{
 		SkipSkupperDeploy: true,
-		Type:              topology.Private,
+		Type:              f2k8s.Private,
 		Connections: []*topology.TopologyItem{
 			pub2,
 		},
 	}
 	v.vertex = &topology.TopologyItem{
-		Type: topology.Public,
+		Type: f2k8s.Public,
 		Connections: []*topology.TopologyItem{
 			pub1,
 			pub2,
@@ -74,9 +74,9 @@ func (v *V) Execute() error {
 	}
 
 	v.Return = &topology.TopologyMap{
-		Name:           v.Name,
-		TestRunnerBase: v.TestRunnerBase,
-		Map:            topoMap,
+		Name:     v.Name,
+		TestBase: v.TestBase,
+		Map:      topoMap,
 	}
 
 	v.contextHolder = &contextHolder{TopologyMap: v.Return}
@@ -85,7 +85,7 @@ func (v *V) Execute() error {
 }
 
 // Same as Basic.Get(), but specifically on the left branch
-func (v *V) GetLeft(kind topology.ClusterType, number int) (*base.ClusterContext, error) {
+func (v *V) GetLeft(kind f2k8s.ClusterType, number int) (*f2k8s.Namespace, error) {
 	all := v.contextHolder.GetAll(kind)
 	max := len(all)
 	if v.vertex.Type == kind {
@@ -98,7 +98,7 @@ func (v *V) GetLeft(kind topology.ClusterType, number int) (*base.ClusterContext
 }
 
 // Same as Basic.Get(), but specifically on the right branch
-func (v *V) GetRight(kind topology.ClusterType, number int) (*base.ClusterContext, error) {
+func (v *V) GetRight(kind f2k8s.ClusterType, number int) (*f2k8s.Namespace, error) {
 	all := v.contextHolder.GetAll(kind)
 	max := len(all)
 	if v.vertex.Type == kind {
@@ -110,6 +110,6 @@ func (v *V) GetRight(kind topology.ClusterType, number int) (*base.ClusterContex
 }
 
 // Get the ClusterContext that connects the two branches
-func (v *V) GetVertex() (*base.ClusterContext, error) {
+func (v *V) GetVertex() (*f2k8s.Namespace, error) {
 	return v.vertex.ClusterContext, nil
 }

@@ -8,14 +8,14 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/validate"
-	"github.com/skupperproject/skupper/test/utils/base"
 	"github.com/skupperproject/skupper/test/utils/skupper/cli"
 )
 
 type SkupperUpgrade struct {
 	Runner       *frame2.Run
-	Namespace    *base.ClusterContext
+	Namespace    *f2k8s.Namespace
 	ForceRestart bool
 	SkipVersion  bool
 
@@ -90,10 +90,10 @@ func (s SkupperUpgrade) Execute() error {
 		Doc:    "Upgrade Skupper and wait for the upgrade to be complete",
 		MainSteps: []frame2.Step{
 			{
-				Doc: fmt.Sprintf("Upgrade skupper on namespace %q%v", s.Namespace.Namespace, waitMessage),
+				Doc: fmt.Sprintf("Upgrade skupper on namespace %q%v", s.Namespace.GetNamespaceName(), waitMessage),
 				Modify: &CliSkupper{
-					ClusterContext: s.Namespace,
-					Args:           args,
+					F2Namespace: s.Namespace,
+					Args:        args,
 					Cmd: execute.Cmd{
 						Ctx: ctx,
 					},

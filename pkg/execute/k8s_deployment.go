@@ -8,11 +8,11 @@ import (
 	"time"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/skupperproject/skupper/test/utils/base"
-	"github.com/skupperproject/skupper/test/utils/k8s"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
+	"github.com/skupperproject/skupper/test/utils"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // This simply makes a request to k8s.NewDeployment
@@ -20,8 +20,8 @@ import (
 // See K8SDeployment for a more complete interface
 type K8SDeploymentOpts struct {
 	Name           string
-	Namespace      *base.ClusterContext
-	DeploymentOpts k8s.DeploymentOpts
+	Namespace      *f2k8s.Namespace
+	DeploymentOpts DeploymentOpts
 	Wait           time.Duration // Waits for the deployment to be ready.  Otherwise, returns as soon as the create instruction has been issued.  If the wait lapses, return an error.
 
 	Ctx context.Context
@@ -33,14 +33,14 @@ type K8SDeploymentOpts struct {
 
 func (d *K8SDeploymentOpts) Execute() error {
 	ctx := frame2.ContextOrDefault(d.Ctx)
-	deployment, err := k8s.NewDeployment(d.Name, d.Namespace.Namespace, d.DeploymentOpts)
+	deployment, err := newDeployment(d.Name, d.Namespace.GetNamespaceName(), d.DeploymentOpts)
 	if err != nil {
 		return err
 	}
 
 	d.Result = deployment
 
-	d.Result, err = d.Namespace.VanClient.KubeClient.AppsV1().Deployments(d.Namespace.Namespace).Create(ctx, deployment, v1.CreateOptions{})
+	d.Result, err = d.Namespace.DeploymentInterface().Create(ctx, deployment, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("Failed to create deployment: %w", err)
 	}
@@ -85,7 +85,7 @@ func (d *K8SDeploymentOpts) Execute() error {
 // For an example/template on creating a *v1.Deployment by hand, check
 // test/utils/base/cluster_context.go (k8s.NewDeployment)
 type K8SDeployment struct {
-	Namespace  *base.ClusterContext
+	Namespace  *f2k8s.Namespace
 	Deployment *appsv1.Deployment
 
 	Result *appsv1.Deployment
@@ -98,7 +98,7 @@ func (d *K8SDeployment) Execute() error {
 	ctx := frame2.ContextOrDefault(d.Ctx)
 
 	var err error
-	d.Result, err = d.Namespace.VanClient.KubeClient.AppsV1().Deployments(d.Namespace.Namespace).Create(ctx, d.Deployment, v1.CreateOptions{})
+	d.Result, err = d.Namespace.DeploymentInterface().Create(ctx, d.Deployment, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("Failed to create deployment: %w", err)
 	}
@@ -107,7 +107,7 @@ func (d *K8SDeployment) Execute() error {
 }
 
 type K8SDeploymentGet struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	Name      string
 	Ctx       context.Context
 
@@ -121,7 +121,7 @@ func (kdg *K8SDeploymentGet) Validate() error {
 	ctx := frame2.ContextOrDefault(kdg.Ctx)
 
 	var err error
-	kdg.Result, err = kdg.Namespace.VanClient.KubeClient.AppsV1().Deployments(kdg.Namespace.Namespace).Get(ctx, kdg.Name, metav1.GetOptions{})
+	kdg.Result, err = kdg.Namespace.DeploymentInterface().Get(ctx, kdg.Name, metav1.GetOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to get deployment %q: %w", kdg.Name, err)
 	}
@@ -143,7 +143,7 @@ func (kdg *K8SDeploymentGet) Validate() error {
 // RetryOptions.
 type K8SDeploymentWait struct {
 	Name      string
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	Ctx       context.Context
 
 	// On this field, do not set the context.  Use the K8SDeploymentWait.Ctx,
@@ -169,7 +169,7 @@ func (w K8SDeploymentWait) Validate() error {
 	}
 	phase := frame2.Phase{
 		Runner: w.GetRunner(),
-		Doc:    fmt.Sprintf("Waiting for deployment %q on ns %q", w.Name, w.Namespace.Namespace),
+		Doc:    fmt.Sprintf("Waiting for deployment %q on ns %q", w.Name, w.Namespace.GetNamespaceName()),
 		MainSteps: []frame2.Step{
 			{
 				// TODO: stuff within functions need their runners replaced?
@@ -182,7 +182,7 @@ func (w K8SDeploymentWait) Validate() error {
 						}
 						inner1 := frame2.Phase{
 							Runner: w.GetRunner(),
-							Doc:    fmt.Sprintf("Get the deployment %q on ns %q", w.Name, w.Namespace.Namespace),
+							Doc:    fmt.Sprintf("Get the deployment %q on ns %q", w.Name, w.Namespace.GetNamespaceName()),
 							MainSteps: []frame2.Step{
 								{
 									Validator: validator,
@@ -224,7 +224,7 @@ func (w K8SDeploymentWait) Validate() error {
 }
 
 type K8SDeploymentAnnotate struct {
-	Namespace   *base.ClusterContext
+	Namespace   *f2k8s.Namespace
 	Name        string
 	Annotations map[string]string
 
@@ -234,7 +234,7 @@ type K8SDeploymentAnnotate struct {
 func (kda K8SDeploymentAnnotate) Execute() error {
 	ctx := frame2.ContextOrDefault(kda.Ctx)
 	// Retrieving Deployment
-	deploy, err := kda.Namespace.VanClient.KubeClient.AppsV1().Deployments(kda.Namespace.VanClient.Namespace).Get(ctx, kda.Name, metav1.GetOptions{})
+	deploy, err := kda.Namespace.DeploymentInterface().Get(ctx, kda.Name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
@@ -246,14 +246,14 @@ func (kda K8SDeploymentAnnotate) Execute() error {
 	for k, v := range kda.Annotations {
 		deploy.Annotations[k] = v
 	}
-	_, err = kda.Namespace.VanClient.KubeClient.AppsV1().Deployments(kda.Namespace.Namespace).Update(ctx, deploy, metav1.UpdateOptions{})
+	_, err = kda.Namespace.DeploymentInterface().Update(ctx, deploy, metav1.UpdateOptions{})
 	return err
 
 }
 
 type K8SUndeploy struct {
 	Name      string
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	Wait      time.Duration // Waits for the deployment to be gone.  Otherwise, returns as soon as the delete instruction has been issued.  If the wait lapses, return an error.
 
 	Ctx context.Context
@@ -262,7 +262,7 @@ type K8SUndeploy struct {
 
 func (k *K8SUndeploy) Execute() error {
 	ctx := frame2.ContextOrDefault(k.Ctx)
-	err := k.Namespace.VanClient.KubeClient.AppsV1().Deployments(k.Namespace.VanClient.Namespace).Delete(ctx, k.Name, metav1.DeleteOptions{})
+	err := k.Namespace.DeploymentInterface().Delete(ctx, k.Name, metav1.DeleteOptions{})
 	if err != nil {
 		return err
 	}
@@ -276,7 +276,7 @@ func (k *K8SUndeploy) Execute() error {
 			KeepTrying: true,
 		},
 		Fn: func() error {
-			_, err := k.Namespace.VanClient.KubeClient.AppsV1().Deployments(k.Namespace.VanClient.Namespace).Get(ctx, k.Name, metav1.GetOptions{})
+			_, err := k.Namespace.DeploymentInterface().Get(ctx, k.Name, metav1.GetOptions{})
 			if err == nil {
 				return fmt.Errorf("deployment %v still available after deletion", k.Name)
 			}
@@ -288,4 +288,98 @@ func (k *K8SUndeploy) Execute() error {
 		return err
 	}
 	return nil
+}
+
+type SecretMount struct {
+	Name      string
+	Secret    string
+	MountPath string
+}
+
+type DeploymentOpts struct {
+	Image         string
+	Labels        map[string]string
+	RestartPolicy corev1.RestartPolicy
+	Command       []string
+	Args          []string
+	EnvVars       []corev1.EnvVar
+	ResourceReq   corev1.ResourceRequirements
+	SecretMounts  []SecretMount
+}
+
+func newDeployment(name, namespace string, opts DeploymentOpts) (*appsv1.Deployment, error) {
+
+	var err error
+
+	// Validating mandatory fields
+	if utils.StrEmpty(name) {
+		err := fmt.Errorf("deployment name is required")
+		return nil, err
+	}
+	if utils.StrEmpty(opts.Image) {
+		err := fmt.Errorf("image is required")
+		return nil, err
+	}
+
+	var volumeMounts []corev1.VolumeMount
+	var volumes []corev1.Volume
+
+	for _, v := range opts.SecretMounts {
+		volumeMounts = append(volumeMounts, corev1.VolumeMount{
+			Name:      v.Name,
+			MountPath: v.MountPath,
+		})
+		volumes = append(volumes, corev1.Volume{
+			Name: v.Name,
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName: v.Secret,
+				},
+			},
+		})
+	}
+
+	// Container to use
+	containers := []corev1.Container{
+		{
+			Name:            name,
+			Image:           opts.Image,
+			ImagePullPolicy: corev1.PullAlways,
+			Env:             opts.EnvVars,
+			Resources:       opts.ResourceReq,
+			VolumeMounts:    volumeMounts,
+		},
+	}
+	// Customize commands and arguments if any informed
+	if len(opts.Command) > 0 {
+		containers[0].Command = opts.Command
+	}
+	if len(opts.Args) > 0 {
+		containers[0].Args = opts.Args
+	}
+
+	d := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+			Labels:    opts.Labels,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Selector: &metav1.LabelSelector{
+				MatchLabels: opts.Labels,
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: opts.Labels,
+				},
+				Spec: corev1.PodSpec{
+					Volumes:       volumes,
+					Containers:    containers,
+					RestartPolicy: opts.RestartPolicy,
+				},
+			},
+		},
+	}
+
+	return d, err
 }

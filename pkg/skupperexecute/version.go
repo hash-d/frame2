@@ -5,7 +5,7 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
-	"github.com/skupperproject/skupper/test/utils/base"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/skupperproject/skupper/test/utils/skupper/cli"
 )
 
@@ -18,7 +18,7 @@ import (
 // This frame cannot run `skupper version manifest`.  For that,
 // use SkupperManifest.
 type CliSkupperVersion struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	Ctx       context.Context
 
 	// By default, CliSkupperVersion checks the output of
@@ -33,7 +33,7 @@ type CliSkupperVersion struct {
 
 // TODO: replace this by f2k8s.Namespace
 func (c CliSkupperVersion) GetNamespace() string {
-	return c.Namespace.Namespace
+	return c.Namespace.GetNamespaceName()
 }
 
 func (s CliSkupperVersion) Execute() error {
@@ -61,9 +61,9 @@ func (s CliSkupperVersion) Execute() error {
 		MainSteps: []frame2.Step{
 			{
 				Modify: &CliSkupper{
-					Args:           args,
-					ClusterContext: s.Namespace,
-					Cmd:            cmd,
+					Args:        args,
+					F2Namespace: s.Namespace,
+					Cmd:         cmd,
 				},
 			},
 		},

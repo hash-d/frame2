@@ -6,7 +6,7 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
-	"github.com/skupperproject/skupper/test/utils/base"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/skupperproject/skupper/test/utils/tools"
 )
 
@@ -14,7 +14,7 @@ import (
 //
 // If CurlOptions.Timeout is zero, a default is set, instead.
 type Curl struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 
 	// CurlOptions is passed as-is to tools.Curl, with the exception that a
 	// default of 60s is set for the timeout, if the original value is
@@ -31,7 +31,7 @@ type Curl struct {
 
 func (c Curl) Validate() error {
 	if c.DeployCurl {
-		tools.DeployCurl(c.Namespace.VanClient.KubeClient, c.Namespace.Namespace, "curl")
+		tools.DeployCurl(c.Namespace.KubeClient(), c.Namespace.GetNamespaceName(), "curl")
 		waitPhase := frame2.Phase{
 			MainSteps: []frame2.Step{
 				{
@@ -58,9 +58,9 @@ func (c Curl) Validate() error {
 	}
 	c.Log.Printf("Calling Curl on %v", c.Url)
 	resp, err := tools.Curl(
-		c.Namespace.VanClient.KubeClient,
-		c.Namespace.VanClient.RestConfig,
-		c.Namespace.Namespace,
+		c.Namespace.KubeClient(),
+		c.Namespace.GetKubeConfig().GetRestConfig(),
+		c.Namespace.GetNamespaceName(),
 		c.Podname,
 		c.Url,
 		c.CurlOptions,

@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/skupperproject/skupper/test/utils/base"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 )
 
 // TODO these should all move to a skupper-specific thing
@@ -18,7 +18,7 @@ import (
 // the upgrade disruptors that a step and/or namespace is
 // a candidate for running skupper upgrade
 type SkupperUpgradable interface {
-	SkupperUpgradable() *base.ClusterContext
+	SkupperUpgradable() *f2k8s.Namespace
 	GetNamespace() string
 }
 

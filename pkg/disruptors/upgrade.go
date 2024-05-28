@@ -9,8 +9,8 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/skupperexecute"
-	"github.com/skupperproject/skupper/test/utils/base"
 )
 
 type TestUpgradeStrategy string
@@ -58,9 +58,9 @@ func getUpgradeStrategy() (TestUpgradeStrategy, bool) {
 
 // Return the public and private contexts in different slices, but keeping
 // their relative orders.
-func getPubPrvUpgradeTargets(targets []*base.ClusterContext) (pubs, privs []*base.ClusterContext) {
+func getPubPrvUpgradeTargets(targets []*f2k8s.Namespace) (pubs, privs []*f2k8s.Namespace) {
 	for _, c := range targets {
-		if c.Private {
+		if c.GetKind() == f2k8s.Private {
 			privs = append(privs, c)
 		} else {
 			pubs = append(pubs, c)
@@ -72,9 +72,9 @@ func getPubPrvUpgradeTargets(targets []*base.ClusterContext) (pubs, privs []*bas
 // Sort the targets according to some strategy, configured on
 // SKUPPER_TEST_UPGRADE_STRATEGY.  If none set, return the target list
 // unchanged
-func sortUpgradeTargets(targets []*base.ClusterContext) []*base.ClusterContext {
+func sortUpgradeTargets(targets []*f2k8s.Namespace) []*f2k8s.Namespace {
 
-	var ret []*base.ClusterContext
+	var ret []*f2k8s.Namespace
 
 	strategy, invert := getUpgradeStrategy()
 
@@ -101,7 +101,7 @@ func sortUpgradeTargets(targets []*base.ClusterContext) []*base.ClusterContext {
 	return ret
 }
 
-func upgradeSites(targets []*base.ClusterContext, runner *frame2.Run) error {
+func upgradeSites(targets []*f2k8s.Namespace, runner *frame2.Run) error {
 	var steps []frame2.Step
 
 	log.Printf("Upgrading sites %+v", targets)
@@ -141,7 +141,7 @@ func upgradeSites(targets []*base.ClusterContext, runner *frame2.Run) error {
 // the test should be marked as a failure (as it did not deliver
 // what the disruptor promised)
 type UpgradeAndFinalize struct {
-	targets []*base.ClusterContext
+	targets []*f2k8s.Namespace
 	useNew  bool
 }
 
@@ -157,7 +157,7 @@ func (u *UpgradeAndFinalize) PreFinalizerHook(runner *frame2.Run) error {
 
 	for _, t := range targets {
 		steps = append(steps, frame2.Step{
-			Doc: fmt.Sprintf("Disruptor UpgradeAndFinalize: upgrade namespace %v", t.Namespace),
+			Doc: fmt.Sprintf("Disruptor UpgradeAndFinalize: upgrade namespace %v", t.GetNamespaceName()),
 			Modify: &skupperexecute.SkupperUpgrade{
 				Runner:    runner,
 				Namespace: t,
@@ -175,7 +175,7 @@ func (u *UpgradeAndFinalize) PreFinalizerHook(runner *frame2.Run) error {
 
 func (u *UpgradeAndFinalize) PostSubFinalizerHook(runner *frame2.Run) error {
 	u.useNew = false
-	u.targets = []*base.ClusterContext{}
+	u.targets = []*f2k8s.Namespace{}
 	return nil
 }
 
@@ -272,8 +272,8 @@ func setCliPathOldEnv(action execute.SkupperCliPathSetter) {
 // PreFinalizer.  On other strategies, the list will simply
 // be split in two halves
 type MixedVersionVan struct {
-	targets   []*base.ClusterContext
-	remaining []*base.ClusterContext
+	targets   []*f2k8s.Namespace
+	remaining []*f2k8s.Namespace
 	useNew    bool
 }
 
@@ -285,7 +285,7 @@ func (m *MixedVersionVan) PostMainSetupHook(runner *frame2.Run) error {
 	m.useNew = true
 	targets := sortUpgradeTargets(m.targets)
 
-	var cycleTargets, nextCycle []*base.ClusterContext
+	var cycleTargets, nextCycle []*f2k8s.Namespace
 
 	strategy, _ := getUpgradeStrategy()
 
@@ -305,14 +305,14 @@ func (m *MixedVersionVan) PreFinalizerHook(runner *frame2.Run) error {
 	m.useNew = true
 
 	targets := sortUpgradeTargets(m.remaining)
-	m.remaining = []*base.ClusterContext{}
+	m.remaining = []*f2k8s.Namespace{}
 
 	return upgradeSites(targets, runner)
 }
 
 func (u *MixedVersionVan) PostSubFinalizerHook(runner *frame2.Run) error {
 	u.useNew = false
-	u.targets = []*base.ClusterContext{}
+	u.targets = []*f2k8s.Namespace{}
 	return nil
 }
 

@@ -6,10 +6,10 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/skupperexecute"
 	"github.com/hash-d/frame2/pkg/topology"
 	"github.com/hash-d/frame2/pkg/validate"
-	"github.com/skupperproject/skupper/test/utils/base"
 	"github.com/skupperproject/skupper/test/utils/k8s"
 	"github.com/skupperproject/skupper/test/utils/tools"
 	v1 "k8s.io/api/core/v1"
@@ -36,11 +36,11 @@ type HelloWorld struct {
 // prv1, and validate they are available
 func (hw HelloWorld) Execute() error {
 
-	pub, err := (*hw.Topology).Get(topology.Public, 1)
+	pub, err := (*hw.Topology).Get(f2k8s.Public, 1)
 	if err != nil {
 		return fmt.Errorf("failed to get public-1")
 	}
-	prv, err := (*hw.Topology).Get(topology.Private, 1)
+	prv, err := (*hw.Topology).Get(f2k8s.Private, 1)
 	if err != nil {
 		return fmt.Errorf("failed to get private-1")
 	}
@@ -70,7 +70,7 @@ func (hw HelloWorld) Execute() error {
 }
 
 type HelloWorldBackend struct {
-	Target         *base.ClusterContext
+	Target         *f2k8s.Namespace
 	CreateServices bool
 	SkupperExpose  bool
 	Protocol       string // This will default to http if not specified
@@ -90,7 +90,7 @@ func (h *HelloWorldBackend) Execute() error {
 
 	labels := map[string]string{"app": "hello-world-backend"}
 
-	d, err := k8s.NewDeployment("hello-world-backend", h.Target.Namespace, k8s.DeploymentOpts{
+	d, err := k8s.NewDeployment("hello-world-backend", h.Target.GetNamespaceName(), k8s.DeploymentOpts{
 		Image:         "quay.io/skupper/hello-world-backend",
 		Labels:        labels,
 		RestartPolicy: v1.RestartPolicyAlways,
@@ -148,7 +148,7 @@ func (h *HelloWorldBackend) Execute() error {
 }
 
 type HelloWorldFrontend struct {
-	Target         *base.ClusterContext
+	Target         *f2k8s.Namespace
 	CreateServices bool
 	SkupperExpose  bool
 	Protocol       string // This will default to http if not specified
@@ -169,7 +169,7 @@ func (h *HelloWorldFrontend) Execute() error {
 
 	labels := map[string]string{"app": "hello-world-frontend"}
 
-	d, err := k8s.NewDeployment("hello-world-frontend", h.Target.Namespace, k8s.DeploymentOpts{
+	d, err := k8s.NewDeployment("hello-world-frontend", h.Target.GetNamespaceName(), k8s.DeploymentOpts{
 		Image:         "quay.io/skupper/hello-world-frontend",
 		Labels:        labels,
 		RestartPolicy: v1.RestartPolicyAlways,
@@ -231,7 +231,7 @@ func (h *HelloWorldFrontend) Execute() error {
 // The individual validaators (front and back) may be configured, but generally do not need to;
 // they'll use the default values.
 type HelloWorldValidate struct {
-	Namespace               *base.ClusterContext
+	Namespace               *f2k8s.Namespace
 	HelloWorldValidateFront HelloWorldValidateFront
 	HelloWorldValidateBack  HelloWorldValidateBack
 
@@ -276,7 +276,7 @@ func (h HelloWorldValidate) Validate() error {
 }
 
 type HelloWorldValidateFront struct {
-	Namespace       *base.ClusterContext
+	Namespace       *f2k8s.Namespace
 	ServiceName     string // default is hello-world-frontend
 	ServicePort     int    // default is 8080
 	ServiceInsecure bool   // Ignores certificate problems
@@ -323,7 +323,7 @@ func (h HelloWorldValidateFront) Validate() error {
 }
 
 type HelloWorldValidateBack struct {
-	Namespace       *base.ClusterContext
+	Namespace       *f2k8s.Namespace
 	ServiceName     string // default is hello-world-backend
 	ServicePort     int    // default is 8080
 	ServicePath     string // default is api/hello

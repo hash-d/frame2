@@ -1,12 +1,12 @@
 package topology
 
 import (
-	"errors"
 	"fmt"
 	"log"
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/skupperexecute"
 	"github.com/skupperproject/skupper/test/utils/base"
 )
@@ -35,22 +35,22 @@ type Basic interface {
 	// tests that usually run with several namespace to run also with
 	// a smaller number.  For example, on a cluster with 4 private
 	// cluster, a request for number 6 will actually return number 2
-	Get(kind ClusterType, number int) (*base.ClusterContext, error)
+	Get(kind f2k8s.ClusterType, number int) (*f2k8s.Namespace, error)
 
 	// This is the same as Get, but it will fail if the number is higher
 	// than what the cluster provides.  Use this only if the test requires
 	// a specific minimum number of ClusterContexts
-	GetStrict(kind ClusterType, number int) (base.ClusterContext, error)
+	GetStrict(kind f2k8s.ClusterType, number int) (base.ClusterContext, error)
 
 	// Get all clusterContexts of a certain type.  Note this be filtered
 	// depending on the topology
-	GetAll(kind ClusterType) []*base.ClusterContext
+	GetAll(kind f2k8s.ClusterType) []*f2k8s.Namespace
 
 	// Same as above, but unfiltered
-	GetAllStrict(kind ClusterType) []base.ClusterContext
+	GetAllStrict(kind f2k8s.ClusterType) []base.ClusterContext
 
 	// Get a list with all clusterContexts, regardless of type or role
-	ListAll() []*base.ClusterContext
+	ListAll() []*f2k8s.Namespace
 }
 
 // This represents a Topology which starts with a main branch and a secondary
@@ -63,29 +63,14 @@ type TwoBranched interface {
 	Basic
 
 	// Same as Basic.Get(), but specifically on the left branch
-	GetLeft(kind ClusterType, number int) (*base.ClusterContext, error)
+	GetLeft(kind f2k8s.ClusterType, number int) (*f2k8s.Namespace, error)
 
 	// Same as Basic.Get(), but specifically on the right branch
-	GetRight(kind ClusterType, number int) (*base.ClusterContext, error)
+	GetRight(kind f2k8s.ClusterType, number int) (*f2k8s.Namespace, error)
 
 	// Get the ClusterContext that connects the two branches
-	GetVertex() (*base.ClusterContext, error)
+	GetVertex() (*f2k8s.Namespace, error)
 }
-
-// The type of cluster:
-//
-// - Public
-// - Private
-// - DMZ
-//
-// Currently, only the first two are implemented
-type ClusterType int
-
-const (
-	Public ClusterType = iota
-	Private
-	DMZ
-)
 
 // TopoMap: receives
 
@@ -96,13 +81,16 @@ const (
 // Once a TopologyItem has been realized by running its TopologyMap,
 // the respective ClusterContext will be assigned
 type TopologyItem struct {
-	Type                  ClusterType
+	Type                  f2k8s.ClusterType
 	Connections           []*TopologyItem
 	SkipNamespaceCreation bool
 	SkipSkupperDeploy     bool
 	//SkipApplicationDeploy bool TODO
 
-	ClusterContext *base.ClusterContext
+	ClusterContext *f2k8s.Namespace
+
+	// An identifier added to the namespace name
+	Name string
 
 	// TODO: need to add SkupperInstall configuration for the
 	//       topology items, so site-specific configurations
@@ -131,19 +119,17 @@ type TopologyItem struct {
 // get their output
 type TopologyMap struct {
 	// This will become the prefix on the name for the namespaces created
-	Name string
+	Name         string
+	AutoTearDown bool
 
-	// All namespaces are created by a base.ClusterTestRunnerBase.
-	TestRunnerBase *base.ClusterTestRunnerBase
+	TestBase *f2k8s.TestBase
 
 	// Input
 	Map []*TopologyItem
 
-	// Output
-	Private []*base.ClusterContext
-	Public  []*base.ClusterContext
+	frame2.DefaultRunDealer
 
-	GeneratedMap map[*TopologyItem]*base.ClusterContext
+	GeneratedMap map[*TopologyItem]*f2k8s.Namespace
 }
 
 // Creates the ClusterContext items based on the provided map
@@ -164,66 +150,56 @@ func (tm *TopologyMap) Execute() error {
 		return err
 	}
 
-	countPrivate := 0
-	countPublic := 0
-	for _, item := range tm.Map {
-		switch item.Type {
-		case Public:
-			countPublic++
-		case Private:
-			countPrivate++
-		default:
-			return fmt.Errorf("TopologyMap: only Public and Private implemented")
-		}
-	}
-
-	needs := base.ClusterNeeds{
-		NamespaceId:     tm.Name,
-		PublicClusters:  countPublic,
-		PrivateClusters: countPrivate,
-	}
-
-	err = tm.TestRunnerBase.Validate(needs)
+	err = f2k8s.ConnectInitial()
 	if err != nil {
-		return fmt.Errorf("TopologyMap: failed validating needs: %w", err)
+		return fmt.Errorf("TopologyMap: failed connecting to the clusters: %w", err)
 	}
 
-	_, err = tm.TestRunnerBase.Build(needs, nil)
-	if err != nil {
-		return fmt.Errorf("TopologyMap: failed building the contexts: %w", err)
-	}
+	tm.GeneratedMap = map[*TopologyItem]*f2k8s.Namespace{}
 
-	tm.GeneratedMap = map[*TopologyItem]*base.ClusterContext{}
+	steps := []frame2.Step{}
 
-	countPrivate = 0
-	countPublic = 0
 	for _, item := range tm.Map {
+		log.Printf("item: %+v", item)
 
-		switch item.Type {
-		case Public:
-			countPublic++
-			newContext, err := tm.TestRunnerBase.GetPublicContext(countPublic)
-			if err != nil {
-				return fmt.Errorf("TopologyMap failed to get public context %d: %w", countPublic, err)
-			}
-			tm.Public = append(tm.Public, newContext)
-			tm.GeneratedMap[item] = newContext
-			item.ClusterContext = newContext
-		case Private:
-			countPrivate++
-			newContext, err := tm.TestRunnerBase.GetPrivateContext(countPrivate)
-			if err != nil {
-				return fmt.Errorf("TopologyMap failed to get public context %d: %w", countPrivate, err)
-			}
-			tm.Private = append(tm.Private, newContext)
-			tm.GeneratedMap[item] = newContext
-			item.ClusterContext = newContext
-		default:
-			return errors.New("TopologyMap: Only Public and Private implemented")
+		create := &f2k8s.CreateNamespaceTestBase{
+			TestBase:     tm.TestBase,
+			Kind:         item.Type,
+			AutoTearDown: tm.AutoTearDown,
 		}
+
+		// This closure captures the item and &f2k8s.CreateNamespaceTestBase,
+		// and then it saves it on tm.GeneratedMap, so we can do it all in
+		// a single phase
+		save := func() func() error {
+			create := create
+			item := item
+			return func() error {
+				tm.GeneratedMap[item] = &(create.Return)
+				log.Printf("YYY %v - %v", item, tm.GeneratedMap[item])
+				return nil
+			}
+		}()
+
+		steps = append(
+			steps,
+			frame2.Step{
+				Modify: create,
+			},
+			frame2.Step{
+				Doc: "Save reference to created namespace",
+				Modify: execute.Function{
+					Fn: save,
+				},
+			},
+		)
 	}
 
-	return nil
+	phase := frame2.Phase{
+		Runner:    tm.GetRunner(),
+		MainSteps: steps,
+	}
+	return phase.Run()
 }
 
 // TODO: Not yet implemented
@@ -255,6 +231,7 @@ type TopologyBuild struct {
 	teardowns []frame2.Executor
 
 	frame2.DefaultRunDealer
+	frame2.Log
 }
 
 func (t *TopologyBuild) Execute() error {
@@ -268,7 +245,7 @@ func (t *TopologyBuild) Execute() error {
 			},
 		},
 	}
-	steps.Execute()
+	steps.Run()
 
 	tm, err := (*t.Topology).GetTopologyMap()
 	if err != nil {
@@ -278,6 +255,7 @@ func (t *TopologyBuild) Execute() error {
 	// Execute the TopologyMap; create the ClusterContext items
 	buildTopologyMap := frame2.Phase{
 		Runner: t.Runner,
+		Doc:    "Execute the TopologyMap",
 		MainSteps: []frame2.Step{
 			{
 				Modify: tm,
@@ -295,12 +273,14 @@ func (t *TopologyBuild) Execute() error {
 			Doc:    "Create namespaces and install Skupper",
 			Setup: []frame2.Step{
 				{
-					Modify: &execute.TestRunnerCreateNamespace{
-						Namespace:    context,
-						AutoTearDown: t.AutoTearDown,
-					},
-					SkipWhen: topoItem.SkipNamespaceCreation,
-				}, {
+					/*
+							Modify: &f2k8s.CreateNamespaceRaw{
+								Namespace:    context,
+								AutoTearDown: t.AutoTearDown,
+							},
+							SkipWhen: topoItem.SkipNamespaceCreation,
+						}, {
+					*/
 					Modify: &skupperexecute.SkupperInstallSimple{
 						Namespace:     context,
 						EnableConsole: topoItem.EnableConsole,
@@ -309,7 +289,7 @@ func (t *TopologyBuild) Execute() error {
 				},
 			},
 		}
-		createAndInstall.Execute()
+		createAndInstall.Run()
 	}
 
 	connectSteps := frame2.Phase{
@@ -323,7 +303,7 @@ func (t *TopologyBuild) Execute() error {
 			},
 		},
 	}
-	connectSteps.Execute()
+	connectSteps.Run()
 
 	return nil
 }
@@ -353,6 +333,7 @@ type TopologyConnect struct {
 	frame2.DefaultRunDealer
 	// TODO: add some filters and run only one part of the topology
 	// 	 (allow for late runs)
+	frame2.Log
 }
 
 // Assumes that the namespaces are already created, and Skupper installed on all
@@ -370,7 +351,7 @@ func (tc TopologyConnect) Execute() error {
 			if to.SkipNamespaceCreation || to.SkipSkupperDeploy {
 				continue
 			}
-			connName := fmt.Sprintf("%v-to-%v", ctx.Namespace, pivot.Namespace)
+			connName := fmt.Sprintf("%v-to-%v", ctx.GetNamespaceName(), pivot.GetNamespaceName())
 			phase := frame2.Phase{
 				Runner: tc.Runner,
 				Doc:    fmt.Sprintf("Creating connection %q", connName),

@@ -1,16 +1,17 @@
 package execute
 
 import (
+	"context"
 	"fmt"
 	"log"
 
-	"github.com/skupperproject/skupper/pkg/kube"
-	"github.com/skupperproject/skupper/test/utils/base"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type PodSelector struct {
-	Namespace     base.ClusterContext
+	Namespace     *f2k8s.Namespace
 	Selector      string
 	ExpectNone    bool // If true, it will be an error if any pods are found
 	ExpectExactly int  // if greater than 0, exactly this number of pods must be found
@@ -19,12 +20,14 @@ type PodSelector struct {
 	Pods []v1.Pod
 }
 
-func (p PodSelector) Execute() error {
+func (p *PodSelector) Execute() error {
 
-	pods, err := kube.GetPods(p.Selector, p.Namespace.Namespace, p.Namespace.VanClient.KubeClient)
+	options := metav1.ListOptions{LabelSelector: p.Selector}
+	podList, err := p.Namespace.PodInterface().List(context.TODO(), options)
 	if err != nil {
 		return err
 	}
+	pods := podList.Items
 
 	log.Printf("- Found %d pod(s)", len(pods))
 

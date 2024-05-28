@@ -1,8 +1,8 @@
 package topologies
 
 import (
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/topology"
-	"github.com/skupperproject/skupper/test/utils/base"
 )
 
 // Two pub, two private.  Connections always from prv to pub
@@ -16,8 +16,8 @@ import (
 //
 // # Good for minimal multiple link testing
 type N struct {
-	Name           string
-	TestRunnerBase *base.ClusterTestRunnerBase
+	Name     string
+	TestBase *f2k8s.TestBase
 
 	*contextHolder
 
@@ -27,20 +27,20 @@ type N struct {
 func (n *N) Execute() error {
 
 	pub1 := &topology.TopologyItem{
-		Type: topology.Public,
+		Type: f2k8s.Public,
 	}
 	pub2 := &topology.TopologyItem{
-		Type: topology.Public,
+		Type: f2k8s.Public,
 	}
 
 	prv1 := &topology.TopologyItem{
-		Type: topology.Private,
+		Type: f2k8s.Private,
 		Connections: []*topology.TopologyItem{
 			pub2,
 		},
 	}
 	prv2 := &topology.TopologyItem{
-		Type: topology.Private,
+		Type: f2k8s.Private,
 		Connections: []*topology.TopologyItem{
 			pub1,
 			pub2,
@@ -55,9 +55,9 @@ func (n *N) Execute() error {
 	}
 
 	n.Return = &topology.TopologyMap{
-		Name:           n.Name,
-		TestRunnerBase: n.TestRunnerBase,
-		Map:            topoMap,
+		Name:     n.Name,
+		TestBase: n.TestBase,
+		Map:      topoMap,
 	}
 
 	n.contextHolder = &contextHolder{TopologyMap: n.Return}

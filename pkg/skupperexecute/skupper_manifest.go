@@ -11,7 +11,7 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
-	"github.com/skupperproject/skupper/test/utils/base"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 )
 
 type SkupperManifestContentImage struct {
@@ -186,7 +186,7 @@ func (m SkupperManifest) Validate() error {
 // a few times, to ensure the deployment stabilized
 type ManifestMatchesDeployment struct {
 	Path      string
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 
 	Ctx context.Context
 
@@ -197,7 +197,7 @@ type ManifestMatchesDeployment struct {
 
 // TODO: replace this by f2k8s.Namespace
 func (m ManifestMatchesDeployment) GetNamespace() string {
-	return m.Namespace.Namespace
+	return m.Namespace.GetNamespaceName()
 }
 
 func (m ManifestMatchesDeployment) Validate() error {

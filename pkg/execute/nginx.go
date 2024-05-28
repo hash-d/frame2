@@ -4,15 +4,14 @@ import (
 	"time"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/skupperproject/skupper/test/utils/base"
-	"github.com/skupperproject/skupper/test/utils/k8s"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 )
 
 type NginxDeploy struct {
-	Namespace     *base.ClusterContext
+	Namespace     *f2k8s.Namespace
 	Name          string            // default "nginx"
 	Labels        map[string]string // default app: nginx
-	SecretMount   []k8s.SecretMount
+	SecretMount   []SecretMount
 	ExposeService bool
 	SkupperExpose bool // TODO
 	Wait          time.Duration
@@ -33,7 +32,7 @@ func (n NginxDeploy) Execute() error {
 					Name:      name,
 					Namespace: n.Namespace,
 					Wait:      n.Wait,
-					DeploymentOpts: k8s.DeploymentOpts{
+					DeploymentOpts: DeploymentOpts{
 						Image:        "ghcr.io/nginxinc/nginx-unprivileged:latest",
 						Labels:       n.Labels,
 						SecretMounts: n.SecretMount,

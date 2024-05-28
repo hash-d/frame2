@@ -6,7 +6,7 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
-	"github.com/skupperproject/skupper/test/utils/base"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 )
 
 // If both Namespace and ClusterContext are empty, the command will be executed
@@ -18,7 +18,7 @@ type CliSkupper struct {
 	Namespace string
 
 	// Secondary way to get the namespace, used only if Namespace is empty
-	ClusterContext *base.ClusterContext
+	F2Namespace *f2k8s.Namespace
 
 	// You can configure any aspects of the command configuration.  However,
 	// the fields Command, Args and Shell from the exec.Cmd element will be
@@ -35,8 +35,8 @@ func (c CliSkupper) GetNamespace() string {
 	if c.Namespace != "" {
 		return c.Namespace
 	}
-	if c.ClusterContext != nil {
-		return c.ClusterContext.Namespace
+	if c.F2Namespace != nil {
+		return c.F2Namespace.GetNamespaceName()
 	}
 	return ""
 }
@@ -53,15 +53,15 @@ func (cs *CliSkupper) Execute() error {
 	// TODO change this when adding Podman to frame2
 	baseArgs = append(baseArgs, "--platform", "kubernetes")
 
-	if cs.ClusterContext != nil {
-		baseArgs = append(baseArgs, "--kubeconfig", cs.ClusterContext.KubeConfig)
+	if cs.F2Namespace != nil {
+		baseArgs = append(baseArgs, "--kubeconfig", cs.F2Namespace.GetKubeConfig().GetKubeconfigFile())
 	}
 
 	if cs.Namespace != "" {
 		baseArgs = append(baseArgs, "--namespace", cs.Namespace)
 	} else {
-		if cs.ClusterContext != nil {
-			baseArgs = append(baseArgs, "--namespace", cs.ClusterContext.Namespace)
+		if cs.F2Namespace != nil {
+			baseArgs = append(baseArgs, "--namespace", cs.F2Namespace.GetNamespaceName())
 		}
 	}
 	cmd := cs.Cmd

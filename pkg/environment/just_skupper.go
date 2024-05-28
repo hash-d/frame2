@@ -2,9 +2,9 @@ package environment
 
 import (
 	frame2 "github.com/hash-d/frame2/pkg"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/topology"
 	"github.com/hash-d/frame2/pkg/topology/topologies"
-	"github.com/skupperproject/skupper/test/utils/base"
 )
 
 // A Skupper deployment on pub1 (frontend) and prv1 (backend),
@@ -27,11 +27,11 @@ func (j *JustSkupperSimple) Execute() error {
 		name = "just-skupper"
 	}
 
-	baseRunner := base.ClusterTestRunnerBase{}
+	testBase := f2k8s.NewTestBase(name)
 
 	j.Topo = &topologies.Simplest{
 		Name:             name,
-		TestRunnerBase:   &baseRunner,
+		TestBase:         testBase,
 		ConsoleOnPublic:  j.Console,
 		ConsoleOnPrivate: j.Console,
 	}
@@ -74,17 +74,17 @@ func (j *JustSkupperSingle) Execute() error {
 		name = "just-skupper"
 	}
 
-	baseRunner := base.ClusterTestRunnerBase{}
+	testBase := f2k8s.NewTestBase(name)
 
-	kind := topology.Private
+	kind := f2k8s.Private
 	if j.Public {
-		kind = topology.Public
+		kind = f2k8s.Public
 	}
 
 	j.Topo = &topologies.Single{
-		Name:           name,
-		TestRunnerBase: &baseRunner,
-		Type:           kind,
+		Name:     name,
+		TestBase: testBase,
+		Type:     kind,
 	}
 
 	execute := frame2.Phase{

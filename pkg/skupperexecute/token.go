@@ -13,6 +13,7 @@ import (
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/hash-d/frame2/pkg/frames/f2general"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/frames/k8svalidate"
 	"github.com/jmespath/go-jmespath"
 	"github.com/skupperproject/skupper/test/utils/base"
@@ -20,7 +21,7 @@ import (
 )
 
 type TokenCreate struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 
 	Expiry    string
 	Name      string
@@ -41,7 +42,7 @@ type TokenCreate struct {
 
 // TODO: replace this by f2k8s.Namespace
 func (t TokenCreate) GetNamespace() string {
-	return t.Namespace.Namespace
+	return t.Namespace.GetNamespaceName()
 }
 
 func (t *TokenCreate) Teardown() frame2.Executor {
@@ -85,7 +86,7 @@ func (tc *TokenCreate) Execute() error {
 			{
 				Modify: &CliSkupper{
 					Args:      args,
-					Namespace: tc.Namespace.Namespace,
+					Namespace: tc.Namespace.GetNamespaceName(),
 				},
 			},
 		},

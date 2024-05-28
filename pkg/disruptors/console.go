@@ -20,7 +20,7 @@ func (n NoConsole) DisruptorEnvValue() string {
 func (u *NoConsole) Inspect(step *frame2.Step, phase *frame2.Phase) {
 	if mod, ok := step.Modify.(*skupperexecute.CliSkupperInstall); ok {
 		mod.EnableConsole = false
-		log.Printf("NO_CONSOLE: %v", mod.Namespace.Namespace)
+		log.Printf("NO_CONSOLE: %v", mod.Namespace.GetNamespaceName())
 	}
 }
 
@@ -34,7 +34,7 @@ func (c ConsoleOnAll) DisruptorEnvValue() string {
 func (c *ConsoleOnAll) Inspect(step *frame2.Step, phase *frame2.Phase) {
 	if mod, ok := step.Modify.(*skupperexecute.CliSkupperInstall); ok {
 		mod.EnableConsole = true
-		log.Printf("CONSOLE_ON_ALL: %v", mod.Namespace.Namespace)
+		log.Printf("CONSOLE_ON_ALL: %v", mod.Namespace.GetNamespaceName())
 	}
 }
 
@@ -48,7 +48,7 @@ func (n NoFlowCollector) DisruptorEnvValue() string {
 func (u *NoFlowCollector) Inspect(step *frame2.Step, phase *frame2.Phase) {
 	if mod, ok := step.Modify.(*skupperexecute.CliSkupperInstall); ok {
 		mod.EnableFlowCollector = false
-		log.Printf("NO_FLOW_COLLECTOR: %v", mod.Namespace.Namespace)
+		log.Printf("NO_FLOW_COLLECTOR: %v", mod.Namespace.GetNamespaceName())
 	}
 }
 
@@ -62,7 +62,7 @@ func (f FlowCollectorOnAll) DisruptorEnvValue() string {
 func (f FlowCollectorOnAll) Inspect(step *frame2.Step, phase *frame2.Phase) {
 	if mod, ok := step.Modify.(*skupperexecute.CliSkupperInstall); ok {
 		mod.EnableFlowCollector = true
-		log.Printf("FLOW_COLLECTOR_ON_ALL: %v", mod.Namespace.Namespace)
+		log.Printf("FLOW_COLLECTOR_ON_ALL: %v", mod.Namespace.GetNamespaceName())
 	}
 }
 
@@ -86,7 +86,7 @@ func (c *ConsoleAuth) Inspect(step *frame2.Step, phase *frame2.Phase) {
 		mod.ConsoleAuth = c.Mode
 		mod.ConsoleUser = c.User
 		mod.ConsolePassword = c.Password
-		log.Printf("CONSOLE_AUTH: %v", mod.Namespace.Namespace)
+		log.Printf("CONSOLE_AUTH: %v", mod.Namespace.GetNamespaceName())
 	}
 }
 

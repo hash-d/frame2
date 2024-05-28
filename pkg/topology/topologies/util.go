@@ -3,6 +3,7 @@ package topologies
 import (
 	"fmt"
 
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/topology"
 	"github.com/skupperproject/skupper/test/utils/base"
 )
@@ -43,7 +44,7 @@ func (c *contextHolder) GetTopologyMap() (*topology.TopologyMap, error) {
 // tests that usually run with several namespace to run also with
 // a smaller number.  For example, on a cluster with 4 private
 // cluster, a request for number 6 will actually return number 2
-func (c *contextHolder) Get(kind topology.ClusterType, number int) (*base.ClusterContext, error) {
+func (c *contextHolder) Get(kind f2k8s.ClusterType, number int) (*f2k8s.Namespace, error) {
 	if c.TopologyMap == nil {
 		return nil, fmt.Errorf("topology has not yet been run")
 	}
@@ -65,32 +66,30 @@ func (c *contextHolder) Get(kind topology.ClusterType, number int) (*base.Cluste
 // This is the same as Get, but it will fail if the number is higher
 // than what the cluster provides.  Use this only if the test requires
 // a specific minimum number of ClusterContexts
-func (c *contextHolder) GetStrict(kind topology.ClusterType, number int) (base.ClusterContext, error) {
+func (c *contextHolder) GetStrict(kind f2k8s.ClusterType, number int) (base.ClusterContext, error) {
 	panic("not implemented") // TODO: Implement
 }
 
 // Get all clusterContexts of a certain type.  Note this be filtered
 // depending on the topology
-func (c *contextHolder) GetAll(kind topology.ClusterType) []*base.ClusterContext {
+func (c *contextHolder) GetAll(kind f2k8s.ClusterType) []*f2k8s.Namespace {
 	switch kind {
-	case topology.Public:
-		return c.TopologyMap.Public
-	case topology.Private:
-		return c.TopologyMap.Private
+	case f2k8s.Public, f2k8s.Private:
+		return c.TopologyMap.TestBase.GetDomainNamespaces(kind)
 	}
 	panic("Only public and private implemented")
 
 }
 
 // Same as above, but unfiltered
-func (c *contextHolder) GetAllStrict(kind topology.ClusterType) []base.ClusterContext {
+func (c *contextHolder) GetAllStrict(kind f2k8s.ClusterType) []base.ClusterContext {
 	panic("not implemented") // TODO: Implement
 }
 
 // Get a list with all clusterContexts, regardless of type or role
-func (c *contextHolder) ListAll() []*base.ClusterContext {
-	ret := []*base.ClusterContext{}
-	ret = append(ret, c.TopologyMap.Public...)
-	ret = append(ret, c.TopologyMap.Private...)
+func (c *contextHolder) ListAll() []*f2k8s.Namespace {
+	ret := []*f2k8s.Namespace{}
+	ret = append(ret, c.TopologyMap.TestBase.GetDomainNamespaces(f2k8s.Public)...)
+	ret = append(ret, c.TopologyMap.TestBase.GetDomainNamespaces(f2k8s.Private)...)
 	return ret
 }
