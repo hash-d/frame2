@@ -8,12 +8,12 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
-	"github.com/skupperproject/skupper/test/utils/base"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/skupperproject/skupper/test/utils/skupper/cli"
 )
 
 type SkupperExpose struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	Type      string
 	Name      string
 
@@ -40,7 +40,7 @@ type SkupperExpose struct {
 
 // TODO: relace this with f2k8s.Namespace
 func (s SkupperExpose) GetNamespace() string {
-	return s.Namespace.Namespace
+	return s.Namespace.GetNamespaceName()
 }
 
 func (s SkupperExpose) Execute() error {
@@ -96,7 +96,7 @@ func (s SkupperExpose) Execute() error {
 // the CLI, create annotations, use Ansible or site controller,
 // per configuration.
 type SkupperExpose1_3 struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	Type      string
 	Name      string
 
@@ -183,9 +183,9 @@ func (se SkupperExpose1_3) Execute() error {
 		MainSteps: []frame2.Step{
 			{
 				Modify: &CliSkupper{
-					Args:           args,
-					ClusterContext: se.Namespace,
-					Cmd:            cmd,
+					Args:        args,
+					F2Namespace: se.Namespace,
+					Cmd:         cmd,
 				},
 			},
 		},
@@ -215,7 +215,7 @@ func (se SkupperExpose1_3) Teardown() frame2.Executor {
 // the CLI, create annotations, use Ansible or site controller,
 // per configuration.
 type SkupperExpose1_2 struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	Type      string
 	Name      string
 
@@ -298,9 +298,9 @@ func (se SkupperExpose1_2) Execute() error {
 		MainSteps: []frame2.Step{
 			{
 				Modify: &CliSkupper{
-					Args:           args,
-					ClusterContext: se.Namespace,
-					Cmd:            cmd,
+					Args:        args,
+					F2Namespace: se.Namespace,
+					Cmd:         cmd,
 				},
 			},
 		},
@@ -327,7 +327,7 @@ func (se SkupperExpose1_2) Teardown() frame2.Executor {
 }
 
 type SkupperUnexpose struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	Type      string
 	Name      string
 	Address   string
@@ -353,8 +353,8 @@ func (su SkupperUnexpose) Execute() error {
 		MainSteps: []frame2.Step{
 			{
 				Modify: &CliSkupper{
-					Args:           args,
-					ClusterContext: su.Namespace,
+					Args:        args,
+					F2Namespace: su.Namespace,
 				},
 			},
 		},

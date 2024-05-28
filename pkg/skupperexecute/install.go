@@ -8,14 +8,14 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/validate"
 	"github.com/skupperproject/skupper/api/types"
-	"github.com/skupperproject/skupper/test/utils/base"
 )
 
 // For a defaults alternative, check SkupperInstallSimple
 type SkupperInstall struct {
-	Namespace  *base.ClusterContext
+	Namespace  *f2k8s.Namespace
 	RouterSpec types.SiteConfigSpec
 	Ctx        context.Context
 	MaxWait    time.Duration // If not set, defaults to types.DefaultTimeoutDuration*2
@@ -26,7 +26,7 @@ type SkupperInstall struct {
 }
 
 // Interface execute.SkupperUpgradable; allow this to be used with Upgrade disruptors
-func (s SkupperInstall) SkupperUpgradable() *base.ClusterContext {
+func (s SkupperInstall) SkupperUpgradable() *f2k8s.Namespace {
 	return s.Namespace
 }
 
@@ -35,42 +35,44 @@ func (s SkupperInstall) SkupperUpgradable() *base.ClusterContext {
 func (si SkupperInstall) Execute() error {
 
 	return fmt.Errorf("VanClient site creation should not be used")
+	/*
 
-	ctx := si.Ctx
-	if ctx == nil {
-		ctx = context.Background()
-	}
+		ctx := si.Ctx
+		if ctx == nil {
+			ctx = context.Background()
+		}
 
-	wait := si.MaxWait
-	if wait == 0 {
-		wait = types.DefaultTimeoutDuration * 2
-	}
+		wait := si.MaxWait
+		if wait == 0 {
+			wait = types.DefaultTimeoutDuration * 2
+		}
 
-	publicSiteConfig, err := si.Namespace.VanClient.SiteConfigCreate(ctx, si.RouterSpec)
-	if err != nil {
-		return fmt.Errorf("SkupperInstall failed to create SiteConfig: %w", err)
-	}
-	err = si.Namespace.VanClient.RouterCreate(ctx, *publicSiteConfig)
-	if err != nil {
-		return fmt.Errorf("SkupperInstall failed to create router: %w", err)
-	}
+		publicSiteConfig, err := si.Namespace.VanClient.SiteConfigCreate(ctx, si.RouterSpec)
+		if err != nil {
+			return fmt.Errorf("SkupperInstall failed to create SiteConfig: %w", err)
+		}
+		err = si.Namespace.VanClient.RouterCreate(ctx, *publicSiteConfig)
+		if err != nil {
+			return fmt.Errorf("SkupperInstall failed to create router: %w", err)
+		}
 
-	phase := frame2.Phase{
-		Runner: si.Runner,
-		MainSteps: []frame2.Step{
-			{
-				Validator: &ValidateSkupperAvailable{
-					Namespace:  si.Namespace,
-					MaxWait:    wait,
-					SkipWait:   si.SkipStatus,
-					SkipStatus: si.SkipStatus,
-					Ctx:        ctx,
+		phase := frame2.Phase{
+			Runner: si.Runner,
+			MainSteps: []frame2.Step{
+				{
+					Validator: &ValidateSkupperAvailable{
+						Namespace:  si.Namespace,
+						MaxWait:    wait,
+						SkipWait:   si.SkipStatus,
+						SkipStatus: si.SkipStatus,
+						Ctx:        ctx,
+					},
 				},
 			},
-		},
-	}
+		}
 
-	return phase.Run()
+		return phase.Run()
+	*/
 
 }
 
@@ -78,7 +80,7 @@ func (si SkupperInstall) Execute() error {
 // It cannot be configured.  For a configurable version, use
 // SkupperInstall, instead.
 type SkupperInstallSimple struct {
-	Namespace     *base.ClusterContext
+	Namespace     *f2k8s.Namespace
 	EnableConsole bool
 
 	frame2.DefaultRunDealer
@@ -101,7 +103,7 @@ func (sis SkupperInstallSimple) Execute() error {
 }
 
 type CliSkupperInstall struct {
-	Namespace                *base.ClusterContext
+	Namespace                *f2k8s.Namespace
 	Ctx                      context.Context
 	MaxWait                  time.Duration // If not set, defaults to types.DefaultTimeoutDuration*2
 	SkipWait                 bool
@@ -129,12 +131,12 @@ type CliSkupperInstall struct {
 
 // TODO: replace this by f2k8s.Namespace
 func (c CliSkupperInstall) GetNamespace() string {
-	return c.Namespace.Namespace
+	return c.Namespace.GetNamespaceName()
 }
 
 // Interface execute.SkupperUpgradable; allow this to be used with Upgrade disruptors
-func (s CliSkupperInstall) SkupperUpgradable() *base.ClusterContext {
-	return s.Namespace
+func (c CliSkupperInstall) SkupperUpgradable() *f2k8s.Namespace {
+	return c.Namespace
 }
 
 func (s CliSkupperInstall) Execute() error {
@@ -214,8 +216,8 @@ func (s CliSkupperInstall) Execute() error {
 		MainSteps: []frame2.Step{
 			{
 				Modify: &CliSkupper{
-					Args:           args,
-					ClusterContext: s.Namespace,
+					Args:        args,
+					F2Namespace: s.Namespace,
 				},
 				Validator: &ValidateSkupperAvailable{
 					Namespace:  s.Namespace,
@@ -232,7 +234,7 @@ func (s CliSkupperInstall) Execute() error {
 }
 
 type ValidateSkupperAvailable struct {
-	Namespace  *base.ClusterContext
+	Namespace  *f2k8s.Namespace
 	Ctx        context.Context
 	MaxWait    time.Duration // If not set, defaults to types.DefaultTimeoutDuration*2
 	SkipWait   bool

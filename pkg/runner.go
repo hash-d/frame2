@@ -288,7 +288,7 @@ func (r *Run) subFinalize() {
 			r.T.Run("post-subfinalizer-hook", func(t *testing.T) {
 				err = d.PostSubFinalizerHook(r.ChildWithT(t, HookRunner))
 				if err != nil {
-					log.Printf("[R] %v test marked as failed on post-subfinalizer hook: %v", err)
+					log.Printf("[R] %v test marked as failed on post-subfinalizer hook: %v", t.Name(), err)
 					t.Errorf("post-subfinalizer hook failed: %v", err)
 				}
 			})
@@ -306,7 +306,7 @@ func (r *Run) Finalize() {
 			r.T.Run("pre-finalizer-hook", func(t *testing.T) {
 				err = d.PreFinalizerHook(r.ChildWithT(t, HookRunner))
 				if err != nil {
-					log.Printf("[R] %v test marked as failed on pre-finalizer hook: %v", err)
+					log.Printf("[R] %v test marked as failed on pre-finalizer hook: %v", t.Name(), err)
 					t.Errorf("pre-finalizer hook failed: %v", err)
 				}
 			})
@@ -567,7 +567,7 @@ func processStep_(t *testing.T, step Step, kind RunnerType, Log FrameLogger, p *
 		}
 		duration := time.Now().Sub(start)
 		if err != nil {
-			Log.Printf("[R] %v modify-not-ok %T (%v)", id, step.Modify, duration)
+			Log.Printf("[R] %v modify-not-ok %T (%v): %v", id, step.Modify, duration, err)
 			return fmt.Errorf("modify step failed: %w", err)
 		} else {
 			Log.Printf("[R] %v modify-ok %T (%v)", id, step.Modify, duration)
@@ -916,7 +916,7 @@ func (p *Phase) teardown() {
 				if t == nil {
 					p.Log.Printf("Tear down step %d failed: %v", i, err)
 				} else {
-					log.Printf("[R] %v test failed on teardown: %v", err)
+					log.Printf("[R] %v test failed on teardown: %v", t.Name(), err)
 					t.Errorf("teardown failed: %v", err)
 				}
 				// We do not return here; we keep going doing whatever
@@ -932,11 +932,14 @@ func (p *Phase) teardown() {
 		for i := len(p.teardowns) - 1; i >= 0; i-- {
 			td := p.teardowns[i]
 			p.Log.Printf("[R] Teardown: %T", td)
-			if err := td.Execute(); err != nil {
+			autoTearDownStep := Step{
+				Modify: td,
+			}
+			if err := processStep(t, autoTearDownStep, &p.Log, p, TearDownRunner); err != nil {
 				if t == nil {
 					p.Log.Printf("auto-teardown failed: %v", err)
 				} else {
-					log.Printf("[R] %v test failed on auto-teardown: %v", err)
+					log.Printf("[R] %v test failed on auto-teardown: %v", t.Name(), err)
 					t.Errorf("auto-teardown failed: %v", err)
 				}
 				// We do not return here; we keep going doing whatever
@@ -946,18 +949,37 @@ func (p *Phase) teardown() {
 	}
 }
 
+// TODO: add SetContext and GetContext, too?
 type RunDealer interface {
 	SetRunner(parent *Run, kind RunnerType)
 	GetRunner() *Run
 }
 
+// DefaultRunDealer is a helper for building frames of more complex behavior
+//
+// This struct should be embedded into frames that deal with the Context,
+// or that execute other frames via a frame2.Phase.
+//
+// The framework will automatically update their Runner.
+//
+// This should be always embedded directly, and never as a reference type.
 type DefaultRunDealer struct {
 	// Perhaps make this private?
 	// For now it is public to break less things
 	Runner *Run
+
+	// TODO
+	// When implemented, should it really be here, or have another one
+	// for it?
+	// This needs to be public, so user can change it at will?
+	Ctx context.Context
 }
 
 func (d *DefaultRunDealer) SetRunner(parent *Run, kind RunnerType) {
+	if d == nil {
+		log.Printf("Nil DefaultRunDealer; parent %v, kind %v", parent, kind)
+		log.Printf("DefaultRunDealer should not be embedded as a reference type")
+	}
 	if parent == nil {
 		d.Runner = nil
 		return

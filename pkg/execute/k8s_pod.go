@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	frame2 "github.com/hash-d/frame2/pkg"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/skupperproject/skupper/test/utils/base"
 	"github.com/skupperproject/skupper/test/utils/k8s"
 	"github.com/skupperproject/skupper/test/utils/skupper/cli"
@@ -20,7 +21,7 @@ import (
 // Otherwise, the pods with the given label will be listed, and the first
 // in the list will be returned
 type K8SPodGet struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	Name      string
 	Labels    map[string]string
 	Ctx       context.Context
@@ -36,7 +37,7 @@ func (g *K8SPodGet) Execute() error {
 
 	if g.Name != "" {
 		var err error
-		g.Result, err = g.Namespace.VanClient.KubeClient.CoreV1().Pods(g.Namespace.Namespace).Get(ctx, g.Name, metav1.GetOptions{})
+		g.Result, err = g.Namespace.PodInterface().Get(ctx, g.Name, metav1.GetOptions{})
 		if err != nil {
 			return fmt.Errorf("failed to get pod %q by name: %w", g.Name, err)
 		}
@@ -49,7 +50,7 @@ func (g *K8SPodGet) Execute() error {
 		items = append(items, fmt.Sprintf("%s=%s", k, v))
 	}
 	selector := strings.Join(items, ",")
-	podList, err := g.Namespace.VanClient.KubeClient.CoreV1().Pods(g.Namespace.Namespace).List(
+	podList, err := g.Namespace.PodInterface().List(
 		ctx,
 		metav1.ListOptions{
 			LabelSelector: selector,
@@ -95,9 +96,9 @@ func (e *K8SPodExecute) Execute() error {
 	}
 
 	stdout, stderr, err := k8s.Execute(
-		e.Pod.Namespace.VanClient.KubeClient,
-		e.Pod.Namespace.VanClient.RestConfig,
-		e.Pod.Namespace.Namespace,
+		e.Pod.Namespace.KubeClient(),
+		e.Pod.Namespace.GetKubeConfig().GetRestConfig(),
+		e.Pod.Namespace.GetNamespaceName(),
 		e.Pod.Result.GetName(),
 		e.Container,
 		e.Command)

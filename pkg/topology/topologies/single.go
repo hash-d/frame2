@@ -1,18 +1,18 @@
 package topologies
 
 import (
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/topology"
-	"github.com/skupperproject/skupper/test/utils/base"
 )
 
 // This barely counts as a Skupper topology: it's a single namespace.
 type Single struct {
-	Name           string
-	TestRunnerBase *base.ClusterTestRunnerBase
+	Name     string
+	TestBase *f2k8s.TestBase
 
 	SkipSkupperDeploy bool
 
-	Type topology.ClusterType
+	Type f2k8s.ClusterType
 
 	// Add on
 	*contextHolder
@@ -31,9 +31,9 @@ func (s *Single) Execute() error {
 	}
 
 	s.Return = &topology.TopologyMap{
-		Name:           s.Name,
-		TestRunnerBase: s.TestRunnerBase,
-		Map:            topoMap,
+		Name:     s.Name,
+		TestBase: s.TopologyMap.TestBase,
+		Map:      topoMap,
 	}
 
 	s.contextHolder = &contextHolder{TopologyMap: s.Return}

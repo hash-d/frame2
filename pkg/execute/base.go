@@ -7,7 +7,7 @@ import (
 	"github.com/skupperproject/skupper/test/utils/base"
 )
 
-type BuildClusterContext struct {
+type buildClusterContext struct {
 	RunnerBase   *base.ClusterTestRunnerBase
 	Needs        base.ClusterNeeds
 	AutoTearDown bool
@@ -16,7 +16,7 @@ type BuildClusterContext struct {
 	frame2.DefaultRunDealer
 }
 
-func (b BuildClusterContext) Execute() error {
+func (b buildClusterContext) Execute() error {
 	if b.RunnerBase == nil {
 		b.RunnerBase = &base.ClusterTestRunnerBase{}
 	}
@@ -24,28 +24,30 @@ func (b BuildClusterContext) Execute() error {
 	if err != nil {
 		return fmt.Errorf("failed to validate needs: %w", err)
 	}
-	contexts, err := b.RunnerBase.Build(b.Needs, nil)
-	if err != nil {
-		return fmt.Errorf("failed to build RunnerBase: %w", err)
-	}
-
-	for _, c := range contexts {
-		p := frame2.Phase{
-			Runner: b.GetRunner(),
-			Setup: []frame2.Step{
-				{
-					Modify: TestRunnerCreateNamespace{
-						Namespace:    c,
-						AutoTearDown: b.AutoTearDown,
-					},
-				},
-			},
-		}
-		err = p.Run()
+	/*
+		contexts, err := b.RunnerBase.Build(b.Needs, nil)
 		if err != nil {
-			return fmt.Errorf("failed to create clusterContext: %w", err)
+			return fmt.Errorf("failed to build RunnerBase: %w", err)
 		}
-	}
+
+			for _, c := range contexts {
+				p := frame2.Phase{
+					Runner: b.GetRunner(),
+					Setup: []frame2.Step{
+						{
+							Modify: TestRunnerCreateNamespace{
+								Namespace:    c,
+								AutoTearDown: b.AutoTearDown,
+							},
+						},
+					},
+				}
+				err = p.Run()
+				if err != nil {
+					return fmt.Errorf("failed to create clusterContext: %w", err)
+				}
+			}
+	*/
 
 	return nil
 }

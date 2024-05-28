@@ -3,9 +3,9 @@ package environment
 import (
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/deploy"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/topology"
 	"github.com/hash-d/frame2/pkg/topology/topologies"
-	"github.com/skupperproject/skupper/test/utils/base"
 )
 
 // A Patient Portal deployment on pub1 (frontend), prv1 (DB) and prv2 (payment),
@@ -30,12 +30,12 @@ func (p *PatientPortalDefault) Execute() error {
 		name = "patient-portal"
 	}
 
-	baseRunner := base.ClusterTestRunnerBase{}
+	testBase := f2k8s.NewTestBase(p.Name)
 
 	var topoSimplest topology.Basic
 	topoSimplest = &topologies.Simplest{
 		Name:             name,
-		TestRunnerBase:   &baseRunner,
+		TestBase:         testBase,
 		ConsoleOnPrivate: p.EnableConsole,
 	}
 

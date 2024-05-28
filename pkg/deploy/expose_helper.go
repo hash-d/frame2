@@ -5,8 +5,8 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/skupperexecute"
-	"github.com/skupperproject/skupper/test/utils/base"
 	apiv1 "k8s.io/api/core/v1"
 )
 
@@ -15,7 +15,7 @@ import (
 // As its name implies, it's just a helper.  Several 'deploy' pieces would repeat
 // this code, so it's been extracted for reuse
 type ExposeHelper struct {
-	Target *base.ClusterContext
+	Target *f2k8s.Namespace
 
 	// This will create K8S services
 	CreateServices bool

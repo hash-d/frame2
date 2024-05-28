@@ -7,10 +7,11 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	corev1 "k8s.io/api/core/v1"
 )
 
-// Any namespaces created via execute.TestRunnerCreateNamespace will receive
+// Any namespaces created via f2k8s.CreateNamespaceRaw will receive
 // annotations that force  PSA on restricted mode
 //
 // TODO: In the future, make this more configurable (ie, different settings for
@@ -48,7 +49,7 @@ func (u *PodSecurityAdmission) Inspect(step *frame2.Step, phase *frame2.Phase) {
 	if version == "" {
 		version = "latest"
 	}
-	if mod, ok := step.Modify.(*execute.TestRunnerCreateNamespace); ok {
+	if mod, ok := step.Modify.(*f2k8s.CreateNamespaceRaw); ok {
 		if mod.Labels == nil {
 			mod.Labels = make(map[string]string)
 		}
@@ -61,7 +62,7 @@ func (u *PodSecurityAdmission) Inspect(step *frame2.Step, phase *frame2.Phase) {
 		mod.Labels["pod-security.kubernetes.io/enforce"] = "restricted"
 		mod.Labels["pod-security.kubernetes.io/enforce-version"] = version
 
-		log.Printf("PSA: %v", mod.Namespace.Namespace)
+		log.Printf("PSA: %v", mod.Name)
 	}
 }
 
@@ -113,6 +114,6 @@ func (d *PSADeployment) Inspect(step *frame2.Step, phase *frame2.Phase) {
 			}
 		}
 
-		log.Printf("PSA_DEPLOYMENT: %v", mod.Namespace.Namespace)
+		log.Printf("PSA_DEPLOYMENT: %v", mod.Namespace.GetNamespaceName())
 	}
 }

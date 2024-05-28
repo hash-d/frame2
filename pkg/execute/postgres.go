@@ -5,11 +5,11 @@ import (
 	"fmt"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/skupperproject/skupper/test/utils/base"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 )
 
 type PostgresPing struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	Podname   string
 	Labels    map[string]string
 	Container string

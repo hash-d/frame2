@@ -24,8 +24,8 @@ type Log struct {
 	Logger *log.Logger
 }
 
-func (l Log) Printf(format string, v ...any) {
-	if l.Logger == nil {
+func (l *Log) Printf(format string, v ...any) {
+	if l == nil || l.Logger == nil {
 		log.Printf(format, v...)
 	} else {
 		l.Logger.Printf(format, v...)

@@ -17,6 +17,6 @@ func (n EnableTls) DisruptorEnvValue() string {
 func (u *EnableTls) Inspect(step *frame2.Step, phase *frame2.Phase) {
 	if mod, ok := step.Modify.(*skupperexecute.SkupperExpose); ok {
 		mod.GenerateTlsSecrets = true
-		log.Printf("ENABLE_TLS: %v", mod.Namespace.Namespace)
+		log.Printf("ENABLE_TLS: %v", mod.Namespace.GetNamespaceName())
 	}
 }

@@ -7,7 +7,7 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
-	"github.com/skupperproject/skupper/test/utils/base"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/skupperproject/skupper/test/utils/skupper/cli"
 )
 
@@ -19,7 +19,7 @@ import (
 // be done on the output of the command, ensuring it matches
 // the expectation.
 type Status struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	Ctx       context.Context
 
 	Verbose bool
@@ -54,7 +54,7 @@ type Status struct {
 
 // TODO: replace this by f2k8s.Namespace
 func (s Status) GetNamespace() string {
-	return s.Namespace.Namespace
+	return s.Namespace.GetNamespaceName()
 }
 
 // TODO: move this to a new SkupperInstallVAN or something; leave SkupperInstall as a
@@ -114,7 +114,7 @@ func (s Status) Execute() error {
 			if s.Enabled {
 				stdoutNot = append(stdoutNot, *regexp.MustCompile("Skupper is not enabled in namespace"))
 			} else {
-				stdout = append(stdout, "Skupper is enabled for namespace", s.Namespace.Namespace)
+				stdout = append(stdout, "Skupper is enabled for namespace", s.Namespace.GetNamespaceName())
 			}
 		}
 		if s.Mode != "" {
@@ -174,9 +174,9 @@ func (s Status) Execute() error {
 		MainSteps: []frame2.Step{
 			{
 				Modify: &CliSkupper{
-					Args:           args,
-					ClusterContext: s.Namespace,
-					Cmd:            cmd,
+					Args:        args,
+					F2Namespace: s.Namespace,
+					Cmd:         cmd,
 				},
 			},
 		},

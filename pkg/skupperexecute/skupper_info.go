@@ -4,8 +4,8 @@ import (
 	"context"
 
 	frame2 "github.com/hash-d/frame2/pkg"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/skupperproject/skupper/api/types"
-	"github.com/skupperproject/skupper/test/utils/base"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -36,7 +36,7 @@ const (
 // Gets various information about Skupper
 // TODO: add ConfigMaps, skmanage executions
 type SkupperInfo struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 
 	Result SkupperInfoContents
 
@@ -51,7 +51,7 @@ func (s *SkupperInfo) Validate() error {
 	var err error
 
 	// Router deployment
-	s.Result.RouterDeployment, err = s.Namespace.VanClient.KubeClient.AppsV1().Deployments(s.Namespace.Namespace).Get(ctx, types.TransportDeploymentName, metav1.GetOptions{})
+	s.Result.RouterDeployment, err = s.Namespace.DeploymentInterface().Get(ctx, types.TransportDeploymentName, metav1.GetOptions{})
 	if err != nil {
 		s.Log.Printf("failed to get deployment %q: %v", types.TransportDeploymentName, err)
 	} else {
@@ -89,7 +89,7 @@ func (s *SkupperInfo) Validate() error {
 	}
 
 	// Service Controller Deployment
-	s.Result.ServiceControllerDeployment, err = s.Namespace.VanClient.KubeClient.AppsV1().Deployments(s.Namespace.Namespace).Get(ctx, types.ControllerDeploymentName, metav1.GetOptions{})
+	s.Result.ServiceControllerDeployment, err = s.Namespace.DeploymentInterface().Get(ctx, types.ControllerDeploymentName, metav1.GetOptions{})
 	if err != nil {
 		s.Log.Printf("failed to get deployment %q: %v", types.TransportDeploymentName, err)
 	} else {
@@ -119,7 +119,7 @@ func (s *SkupperInfo) Validate() error {
 	}
 
 	// Prometheus deployment
-	s.Result.PrometheusDeployment, err = s.Namespace.VanClient.KubeClient.AppsV1().Deployments(s.Namespace.Namespace).Get(ctx, types.PrometheusDeploymentName, metav1.GetOptions{})
+	s.Result.PrometheusDeployment, err = s.Namespace.DeploymentInterface().Get(ctx, types.PrometheusDeploymentName, metav1.GetOptions{})
 	if err != nil {
 		s.Log.Printf("failed to get deployment %q: %v", types.TransportDeploymentName, err)
 	} else {
@@ -148,7 +148,7 @@ func (s *SkupperInfo) Validate() error {
 
 	}
 
-	s.Result.AllPods, err = s.Namespace.VanClient.KubeClient.CoreV1().Pods(s.Namespace.Namespace).List(
+	s.Result.AllPods, err = s.Namespace.PodInterface().List(
 		ctx,
 		metav1.ListOptions{
 			LabelSelector: "app.kubernetes.io/part-of=skupper",

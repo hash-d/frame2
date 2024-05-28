@@ -5,9 +5,9 @@ import (
 	"log"
 
 	frame2 "github.com/hash-d/frame2/pkg"
+	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/skupperproject/skupper/api/types"
-	"github.com/skupperproject/skupper/pkg/kube"
-	"github.com/skupperproject/skupper/test/utils/base"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -18,7 +18,7 @@ var (
 )
 
 type Container struct {
-	Namespace        *base.ClusterContext
+	Namespace        *f2k8s.Namespace
 	PodSelector      string
 	ContainerName    string // If empty, check all containers on selected pods
 	ExpectNone       bool   // If true, it will be an error if any pods are found
@@ -44,10 +44,23 @@ func (c Container) Validate() error {
 func (c Container) Run() error {
 	log.Printf("Validating %+v", c)
 
-	pods, err := kube.GetPods(c.PodSelector, c.Namespace.Namespace, c.Namespace.VanClient.KubeClient)
-	if err != nil {
-		return err
+	selector := execute.PodSelector{
+		Namespace: c.Namespace,
+		Selector:  c.PodSelector,
 	}
+
+	phase := frame2.Phase{
+		Runner: c.Runner,
+		MainSteps: []frame2.Step{
+			{
+				Modify: &selector,
+			},
+		},
+	}
+	if err := phase.Run(); err != nil {
+		return fmt.Errorf("failed to list pods: %w", err)
+	}
+	pods := selector.Pods
 
 	log.Printf("- Found %d pod(s)", len(pods))
 

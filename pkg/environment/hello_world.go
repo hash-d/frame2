@@ -3,9 +3,9 @@ package environment
 import (
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/deploy"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/topology"
 	"github.com/hash-d/frame2/pkg/topology/topologies"
-	"github.com/skupperproject/skupper/test/utils/base"
 )
 
 // A Hello World deployment on pub1 (frontend) and prv1 (backend),
@@ -27,11 +27,11 @@ func (hwd *HelloWorldDefault) Execute() error {
 		name = "hello-world"
 	}
 
-	baseRunner := base.ClusterTestRunnerBase{}
+	testBase := f2k8s.NewTestBase(name)
 
 	hwd.topology = &topologies.Simplest{
-		Name:           name,
-		TestRunnerBase: &baseRunner,
+		Name:     name,
+		TestBase: testBase,
 	}
 
 	execute := frame2.Phase{
@@ -71,11 +71,11 @@ type HelloWorldN struct {
 
 func (h *HelloWorldN) Execute() error {
 
-	baseRunner := base.ClusterTestRunnerBase{}
+	testBase := f2k8s.NewTestBase(h.Name)
 
 	h.Topology = &topologies.N{
-		Name:           h.Name,
-		TestRunnerBase: &baseRunner,
+		Name:     h.Name,
+		TestBase: testBase,
 	}
 	phase := frame2.Phase{
 		Runner: h.GetRunner(),

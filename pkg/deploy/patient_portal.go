@@ -7,10 +7,9 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/topology"
 	"github.com/hash-d/frame2/pkg/validate"
-	"github.com/skupperproject/skupper/test/utils/base"
-	"github.com/skupperproject/skupper/test/utils/k8s"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -38,21 +37,21 @@ type PatientPortal struct {
 
 func (p PatientPortal) Execute() error {
 
-	//	pub, err := (*p.Topology).Get(topology.Public, 1)
+	//	pub, err := (*p.Topology).Get(f2k8s.Public, 1)
 	//	if err != nil {
 	//		return fmt.Errorf("failed to get public-1")
 	//	}
-	db_ns, err := (*p.Topology).Get(topology.Private, 1)
+	db_ns, err := (*p.Topology).Get(f2k8s.Private, 1)
 	if err != nil {
 		return fmt.Errorf("failed to get database namespace")
 	}
 
-	payment_ns, err := (*p.Topology).Get(topology.Private, 2)
+	payment_ns, err := (*p.Topology).Get(f2k8s.Private, 2)
 	if err != nil {
 		return fmt.Errorf("failed to get payment processor namespace")
 	}
 
-	front_ns, err := (*p.Topology).Get(topology.Public, 1)
+	front_ns, err := (*p.Topology).Get(f2k8s.Public, 1)
 	if err != nil {
 		return fmt.Errorf("failed to get frontend namespace")
 	}
@@ -95,7 +94,7 @@ func (p PatientPortal) Execute() error {
 //
 // quay.io/skupper/patient-portal-database
 type PatientDatabase struct {
-	Target *base.ClusterContext
+	Target *f2k8s.Namespace
 
 	Image string // default quay.io/skupper/patient-portal-database
 
@@ -132,7 +131,7 @@ func (p PatientDatabase) Execute() error {
 				Modify: &execute.K8SDeploymentOpts{
 					Name:      "database",
 					Namespace: p.Target,
-					DeploymentOpts: k8s.DeploymentOpts{
+					DeploymentOpts: execute.DeploymentOpts{
 						Image:         image,
 						Labels:        labels,
 						RestartPolicy: corev1.RestartPolicyAlways,
@@ -160,7 +159,7 @@ func (p PatientDatabase) Execute() error {
 // Deploys the patient payment processor
 type PatientPayment struct {
 	Runner *frame2.Run
-	Target *base.ClusterContext
+	Target *f2k8s.Namespace
 
 	Image string // default quay.io/skupper/patient-portal-payment-processor
 
@@ -195,7 +194,7 @@ func (p PatientPayment) Execute() error {
 				Modify: &execute.K8SDeploymentOpts{
 					Name:      "payment-processor",
 					Namespace: p.Target,
-					DeploymentOpts: k8s.DeploymentOpts{
+					DeploymentOpts: execute.DeploymentOpts{
 						Image:         image,
 						Labels:        labels,
 						RestartPolicy: corev1.RestartPolicyAlways,
@@ -223,7 +222,7 @@ func (p PatientPayment) Execute() error {
 // Deploys the patient frontend
 type PatientFrontend struct {
 	Runner *frame2.Run
-	Target *base.ClusterContext
+	Target *f2k8s.Namespace
 
 	Image string // quay.io/skupper/patient-portal-frontend
 
@@ -258,7 +257,7 @@ func (p PatientFrontend) Execute() error {
 				Modify: &execute.K8SDeploymentOpts{
 					Name:      "frontend",
 					Namespace: p.Target,
-					DeploymentOpts: k8s.DeploymentOpts{
+					DeploymentOpts: execute.DeploymentOpts{
 						Image:         image,
 						Labels:        labels,
 						RestartPolicy: corev1.RestartPolicyAlways,
@@ -300,7 +299,7 @@ func (p PatientFrontend) Execute() error {
 }
 
 type PatientValidatePayment struct {
-	Namespace   *base.ClusterContext
+	Namespace   *f2k8s.Namespace
 	ServiceName string // default is payment-processor
 	ServicePort int    // default is 8080
 	ServicePath string // default is api/pay
@@ -343,7 +342,7 @@ func (p PatientValidatePayment) Validate() error {
 }
 
 type PatientFrontendHealth struct {
-	Namespace   *base.ClusterContext
+	Namespace   *f2k8s.Namespace
 	ServiceName string // default is frontend
 	ServicePort int    // default is 8080
 	ServicePath string // default is api/health
@@ -389,7 +388,7 @@ func (p PatientFrontendHealth) Validate() error {
 // DB from that deployment using pg_isready
 // TODO change this to use a test helper pod, instead of the frontend
 type PatientDbPing struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 
 	frame2.Log
 	frame2.DefaultRunDealer

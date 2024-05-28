@@ -11,8 +11,7 @@ import (
 	clientset "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/skupperproject/skupper/test/utils/base"
-	"github.com/skupperproject/skupper/test/utils/k8s"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -20,8 +19,8 @@ import (
 // See OCPDeploymentConfig for a more complete interface
 type OCPDeploymentConfigOpts struct {
 	Name           string
-	Namespace      *base.ClusterContext
-	DeploymentOpts k8s.DeploymentOpts
+	Namespace      *f2k8s.Namespace
+	DeploymentOpts DeploymentOpts
 	Wait           time.Duration // Waits for the deployment to be ready.  Otherwise, returns as soon as the create instruction has been issued.  If the wait lapses, return an error.
 
 	Ctx context.Context
@@ -92,7 +91,7 @@ func (d *OCPDeploymentConfigOpts) Execute() error {
 			Template: &v1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      d.Name,
-					Namespace: d.Namespace.Namespace,
+					Namespace: d.Namespace.GetNamespaceName(),
 					Labels:    d.DeploymentOpts.Labels,
 				},
 				Spec: v1.PodSpec{
@@ -155,7 +154,7 @@ func (d *OCPDeploymentConfigOpts) Execute() error {
 //
 // # See OCPDeploymentConfigOpts for a simpler interface
 type OCPDeploymentConfig struct {
-	Namespace        *base.ClusterContext
+	Namespace        *f2k8s.Namespace
 	DeploymentConfig *osappsv1.DeploymentConfig
 
 	Result *osappsv1.DeploymentConfig
@@ -166,11 +165,11 @@ func (d *OCPDeploymentConfig) Execute() error {
 	ctx := frame2.ContextOrDefault(d.Ctx)
 
 	var err error
-	client, err := clientset.NewForConfig(d.Namespace.VanClient.RestConfig)
+	client, err := clientset.NewForConfig(d.Namespace.GetKubeConfig().GetRestConfig())
 	if err != nil {
 		return fmt.Errorf("Failed to obtain clientset")
 	}
-	d.Result, err = client.DeploymentConfigs(d.Namespace.Namespace).Create(
+	d.Result, err = client.DeploymentConfigs(d.Namespace.GetNamespaceName()).Create(
 		ctx,
 		d.DeploymentConfig,
 		metav1.CreateOptions{},
@@ -184,7 +183,7 @@ func (d *OCPDeploymentConfig) Execute() error {
 }
 
 type OCPDeploymentConfigGet struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	Name      string
 	Ctx       context.Context
 
@@ -197,9 +196,9 @@ type OCPDeploymentConfigGet struct {
 func (d *OCPDeploymentConfigGet) Validate() error {
 	ctx := frame2.ContextOrDefault(d.Ctx)
 
-	client, err := clientset.NewForConfig(d.Namespace.VanClient.RestConfig)
+	client, err := clientset.NewForConfig(d.Namespace.GetKubeConfig().GetRestConfig())
 
-	d.Result, err = client.DeploymentConfigs(d.Namespace.Namespace).Get(
+	d.Result, err = client.DeploymentConfigs(d.Namespace.GetNamespaceName()).Get(
 		ctx,
 		d.Name,
 		metav1.GetOptions{},
@@ -226,7 +225,7 @@ func (d *OCPDeploymentConfigGet) Validate() error {
 // RetryOptions.
 type OCPDeploymentConfigWait struct {
 	Name      string
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	Ctx       context.Context
 
 	// On this field, do not set the context.  Use the OCPDeploymentConfigWait.Ctx,
@@ -252,7 +251,7 @@ func (w OCPDeploymentConfigWait) Validate() error {
 	}
 	phase := frame2.Phase{
 		Runner: w.GetRunner(),
-		Doc:    fmt.Sprintf("Waiting for deploymentconfig %q on ns %q", w.Name, w.Namespace.Namespace),
+		Doc:    fmt.Sprintf("Waiting for deploymentconfig %q on ns %q", w.Name, w.Namespace.GetNamespaceName()),
 		MainSteps: []frame2.Step{
 			{
 				// TODO: stuff within functions need their runners replaced?
@@ -265,7 +264,7 @@ func (w OCPDeploymentConfigWait) Validate() error {
 						}
 						inner1 := frame2.Phase{
 							Runner: w.GetRunner(),
-							Doc:    fmt.Sprintf("Get the deploymentconfig %q on ns %q", w.Name, w.Namespace.Namespace),
+							Doc:    fmt.Sprintf("Get the deploymentconfig %q on ns %q", w.Name, w.Namespace.GetNamespaceName()),
 							MainSteps: []frame2.Step{
 								{
 									Validator: validator,
@@ -340,7 +339,7 @@ func (kda OCPDeploymentConfigAnnotate) Execute() error {
 
 type OCPDeploymentConfigUndeploy struct {
 	Name      string
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	Wait      time.Duration // Waits for the deployment to be gone.  Otherwise, returns as soon as the delete instruction has been issued.  If the wait lapses, return an error.
 
 	Ctx context.Context
@@ -350,9 +349,9 @@ type OCPDeploymentConfigUndeploy struct {
 func (k *OCPDeploymentConfigUndeploy) Execute() error {
 	ctx := frame2.ContextOrDefault(k.Ctx)
 
-	client, err := clientset.NewForConfig(k.Namespace.VanClient.RestConfig)
+	client, err := clientset.NewForConfig(k.Namespace.GetKubeConfig().GetRestConfig())
 
-	err = client.DeploymentConfigs(k.Namespace.Namespace).Delete(
+	err = client.DeploymentConfigs(k.Namespace.GetNamespaceName()).Delete(
 		ctx,
 		k.Name,
 		metav1.DeleteOptions{},

@@ -6,12 +6,13 @@ import (
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/hash-d/frame2/pkg/frames/f2general"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/frames/k8svalidate"
 	"github.com/skupperproject/skupper/test/utils/base"
 )
 
 type LinkCreate struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 
 	// The token file to be used on the link creation
 	File string
@@ -24,7 +25,7 @@ type LinkCreate struct {
 
 // TODO: replace this by f2k8s.Namespace
 func (l LinkCreate) GetNamespace() string {
-	return l.Namespace.Namespace
+	return l.Namespace.GetNamespaceName()
 }
 
 func (lc *LinkCreate) Execute() error {
@@ -47,8 +48,8 @@ func (lc *LinkCreate) Execute() error {
 		MainSteps: []frame2.Step{
 			{
 				Modify: &CliSkupper{
-					Args:           args,
-					ClusterContext: lc.Namespace,
+					Args:        args,
+					F2Namespace: lc.Namespace,
 				},
 			},
 		},

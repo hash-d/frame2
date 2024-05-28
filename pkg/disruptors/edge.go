@@ -4,6 +4,7 @@ import (
 	"log"
 
 	frame2 "github.com/hash-d/frame2/pkg"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/skupperexecute"
 )
 
@@ -22,10 +23,10 @@ func (n EdgeOnPrivate) DisruptorEnvValue() string {
 // the UI frames?
 func (n *EdgeOnPrivate) Inspect(step *frame2.Step, phase *frame2.Phase) {
 	if mod, ok := step.Modify.(*skupperexecute.CliSkupperInstall); ok {
-		if mod.Namespace.Private {
+		if mod.Namespace.GetKind() == f2k8s.Private {
 			log.Printf(
 				"EdgeOnPrivate disruptor updating installation on %q to use edge mode",
-				mod.Namespace.Namespace,
+				mod.Namespace.GetNamespaceName(),
 			)
 			mod.RouterMode = "edge"
 		}

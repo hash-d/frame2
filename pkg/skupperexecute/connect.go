@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/skupperproject/skupper/test/utils/base"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 )
 
 // Connects two Skupper instances installed in different namespaces or clusters
@@ -21,8 +21,8 @@ import (
 // all Connect knows, the two sites could even be on different versions.  Keep
 // Connect simple.
 type Connect struct {
-	From *base.ClusterContext
-	To   *base.ClusterContext
+	From *f2k8s.Namespace
+	To   *f2k8s.Namespace
 
 	SecretName string
 	Expiry     string
@@ -44,13 +44,13 @@ func (sc Connect) Execute() error {
 
 	log.Printf("execute.SkupperConnect")
 
-	log.Printf("connecting %v to %v", sc.From.Namespace, sc.To.Namespace)
+	log.Printf("connecting %v to %v", sc.From.GetNamespaceName(), sc.To.GetNamespaceName())
 
 	i := rand.Intn(1000)
-	secretFile := "/tmp/" + sc.To.Namespace + "_secret.yaml." + strconv.Itoa(i)
+	secretFile := "/tmp/" + sc.To.GetNamespaceName() + "_secret.yaml." + strconv.Itoa(i)
 	phase := frame2.Phase{
 		Runner: sc.Runner,
-		Doc:    fmt.Sprintf("Connect skupper from namespace %q to %q", sc.From.Namespace, sc.To.Namespace),
+		Doc:    fmt.Sprintf("Connect skupper from namespace %q to %q", sc.From.GetNamespaceName(), sc.To.GetNamespaceName()),
 		MainSteps: []frame2.Step{
 			{
 				Modify: &TokenCreate{
