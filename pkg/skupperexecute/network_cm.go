@@ -5,13 +5,13 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/frames/f2general"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/frames/k8svalidate"
-	"github.com/skupperproject/skupper/test/utils/base"
 )
 
 // INCOMPLETE TODO
 type NetworkStatusConfigMap struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 
 	SiteName string
 

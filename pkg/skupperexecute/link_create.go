@@ -8,7 +8,6 @@ import (
 	"github.com/hash-d/frame2/pkg/frames/f2general"
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/frames/k8svalidate"
-	"github.com/skupperproject/skupper/test/utils/base"
 )
 
 type LinkCreate struct {
@@ -58,7 +57,7 @@ func (lc *LinkCreate) Execute() error {
 }
 
 type OutgoingLinkCheck struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	Name      string
 	Cost      string
 

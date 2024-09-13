@@ -16,7 +16,6 @@ import (
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/frames/k8svalidate"
 	"github.com/jmespath/go-jmespath"
-	"github.com/skupperproject/skupper/test/utils/base"
 	"sigs.k8s.io/yaml"
 )
 
@@ -97,7 +96,7 @@ func (tc *TokenCreate) Execute() error {
 // Verify that a Token (the file and its Kubernetes representation
 // as a secret) matches some expectations.
 type TokenCheck struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 
 	FileName string
 

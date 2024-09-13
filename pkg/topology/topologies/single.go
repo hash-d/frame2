@@ -32,7 +32,7 @@ func (s *Single) Execute() error {
 
 	s.Return = &topology.TopologyMap{
 		Name:     s.Name,
-		TestBase: s.TopologyMap.TestBase,
+		TestBase: s.TestBase,
 		Map:      topoMap,
 	}
 

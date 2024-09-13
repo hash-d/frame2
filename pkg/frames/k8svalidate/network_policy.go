@@ -4,13 +4,13 @@ import (
 	"context"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/skupperproject/skupper/test/utils/base"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type NetworkPolicy struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	Name      string
 	Ctx       context.Context
 
@@ -29,7 +29,7 @@ type NetworkPolicy struct {
 func (n *NetworkPolicy) Validate() error {
 	ctx := frame2.ContextOrDefault(n.Ctx)
 	//	asserter := frame2.Asserter{}
-	_, err := n.Namespace.VanClient.KubeClient.NetworkingV1().NetworkPolicies(n.Namespace.Namespace).Get(
+	_, err := n.Namespace.NetworkPolicyInterface().Get(
 		ctx,
 		n.Name,
 		v1.GetOptions{},

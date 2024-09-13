@@ -8,7 +8,7 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/frames/f2general"
-	"github.com/skupperproject/skupper/test/utils/base"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	core "k8s.io/api/core/v1"
 	corev1 "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,7 +16,7 @@ import (
 
 // TODO: Uniformize fields and struct name, between this and ConfigMap
 type SecretGet struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	Name      string
 
 	// TODO change all these for a f2general.MapCheck
@@ -54,10 +54,8 @@ type SecretGet struct {
 }
 
 func (s SecretGet) Validate() error {
-	client := s.Namespace.VanClient.KubeClient
-
 	var err error
-	s.Secret, err = client.CoreV1().Secrets(s.Namespace.Namespace).Get(
+	s.Secret, err = s.Namespace.SecretInterface().Get(
 		context.Background(),
 		s.Name,
 		meta.GetOptions{},
@@ -69,7 +67,7 @@ func (s SecretGet) Validate() error {
 		return err
 	}
 	if s.ExpectAbsent {
-		return fmt.Errorf("secret %q was expected be absent, but was found in namespace %q", s.Name, s.Namespace.Namespace)
+		return fmt.Errorf("secret %q was expected be absent, but was found in namespace %q", s.Name, s.Namespace.GetNamespaceName())
 	}
 	if s.ExpectAll {
 		if len(s.Expect) != len(s.Secret.Data) {
