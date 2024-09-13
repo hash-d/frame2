@@ -54,7 +54,10 @@ func (cs *CliSkupper) Execute() error {
 	baseArgs = append(baseArgs, "--platform", "kubernetes")
 
 	if cs.F2Namespace != nil {
-		baseArgs = append(baseArgs, "--kubeconfig", cs.F2Namespace.GetKubeConfig().GetKubeconfigFile())
+		file := cs.F2Namespace.GetKubeConfig().GetKubeconfigFile()
+		if file != "" {
+			baseArgs = append(baseArgs, "--kubeconfig", cs.F2Namespace.GetKubeConfig().GetKubeconfigFile())
+		}
 	}
 
 	if cs.Namespace != "" {

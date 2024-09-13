@@ -87,7 +87,7 @@ type TopologyItem struct {
 	SkipSkupperDeploy     bool
 	//SkipApplicationDeploy bool TODO
 
-	ClusterContext *f2k8s.Namespace
+	Namespace *f2k8s.Namespace
 
 	// An identifier added to the namespace name
 	Name string
@@ -165,6 +165,7 @@ func (tm *TopologyMap) Execute() error {
 		create := &f2k8s.CreateNamespaceTestBase{
 			TestBase:     tm.TestBase,
 			Kind:         item.Type,
+			Id:           item.Name,
 			AutoTearDown: tm.AutoTearDown,
 		}
 
@@ -176,7 +177,7 @@ func (tm *TopologyMap) Execute() error {
 			item := item
 			return func() error {
 				tm.GeneratedMap[item] = &(create.Return)
-				log.Printf("YYY %v - %v", item, tm.GeneratedMap[item])
+				item.Namespace = &create.Return
 				return nil
 			}
 		}()

@@ -19,12 +19,12 @@ func init() {
 	asS := hex.EncodeToString(hash[:])
 
 	id = _id.String()
-	smallId = asS[:3]
+	shortId = asS[:3]
 
 	log.Printf(
 		"This frame2 execution is identified with UUID %v and partial MD5 %v",
 		id,
-		smallId,
+		shortId,
 	)
 
 }

@@ -2,15 +2,17 @@ package skupperexecute
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/skupperproject/skupper/test/utils/base"
+	frame2 "github.com/hash-d/frame2/pkg"
+	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 )
 
 type SkupperDelete struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 
 	Context context.Context
+	frame2.DefaultRunDealer
 }
 
 // TODO: remove autodebug
@@ -21,17 +23,20 @@ func (s *SkupperDelete) Execute() error {
 		ctx = context.Background()
 	}
 
-	err := s.Namespace.VanClient.SiteConfigRemove(ctx)
-	if err != nil {
-		return fmt.Errorf("SkupperDelete failed to remove SiteConfig: %w", err)
+	phase := frame2.Phase{
+		Runner: s.GetRunner(),
+		MainSteps: []frame2.Step{
+			{
+				Modify: &CliSkupper{
+					F2Namespace: s.Namespace,
+					Args:        []string{"delete"},
+					Cmd: execute.Cmd{
+						Ctx: ctx,
+					},
+				},
+			},
+		},
 	}
+	return phase.Run()
 
-	// This is done automatically when site config is removed.
-	// See https://github.com/skupperproject/skupper/issues/765
-	// 	err = s.Namespace.VanClient.RouterRemove(ctx)
-	// 	if err != nil {
-	// 		return fmt.Errorf("SkupperDelete failed to remove Router: %w", err)
-	// 	}
-
-	return nil
 }

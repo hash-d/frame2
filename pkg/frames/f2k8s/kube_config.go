@@ -155,10 +155,14 @@ func (k *KubeConfig) connect() error {
 	if err != nil {
 		return err
 	}
+	server := ""
+	if cluster, ok := rawConfig.Clusters[rawConfig.CurrentContext]; ok {
+		server = cluster.Server
+	}
 	k.Log.Printf(
 		"KubeConfig: Connecting %q to server %q (%q)",
 		k.name,
-		rawConfig.Clusters[rawConfig.CurrentContext].Server,
+		server,
 		k.kubeConfigPath,
 	)
 	restconfig, err := kubeconfig.ClientConfig()

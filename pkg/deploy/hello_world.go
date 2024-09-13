@@ -88,9 +88,9 @@ func (h *HelloWorldBackend) Execute() error {
 		proto = "http"
 	}
 
-	labels := map[string]string{"app": "hello-world-backend"}
+	labels := map[string]string{"app": "backend"}
 
-	d, err := k8s.NewDeployment("hello-world-backend", h.Target.GetNamespaceName(), k8s.DeploymentOpts{
+	d, err := k8s.NewDeployment("backend", h.Target.GetNamespaceName(), k8s.DeploymentOpts{
 		Image:         "quay.io/skupper/hello-world-backend",
 		Labels:        labels,
 		RestartPolicy: v1.RestartPolicyAlways,
@@ -113,7 +113,7 @@ func (h *HelloWorldBackend) Execute() error {
 				Doc: "Creating a local service for hello-world-backend",
 				Modify: &execute.K8SServiceCreate{
 					Namespace: h.Target,
-					Name:      "hello-world-backend",
+					Name:      "backend",
 					Labels:    labels,
 					Ports:     []int32{8080},
 				},
@@ -123,7 +123,7 @@ func (h *HelloWorldBackend) Execute() error {
 				Modify: &skupperexecute.SkupperExpose{
 					Namespace: h.Target,
 					Type:      "service",
-					Name:      "hello-world-backend",
+					Name:      "backend",
 					Protocol:  proto,
 				},
 				SkipWhen: !h.CreateServices || !h.SkupperExpose,
@@ -133,13 +133,13 @@ func (h *HelloWorldBackend) Execute() error {
 					Namespace: h.Target,
 					Ports:     []int{8080},
 					Type:      "deployment",
-					Name:      "hello-world-backend",
+					Name:      "backend",
 					Protocol:  proto,
 				},
 				SkipWhen: h.CreateServices || !h.SkupperExpose,
 				Validator: &execute.K8SDeploymentWait{
 					Namespace: h.Target,
-					Name:      "hello-world-backend",
+					Name:      "backend",
 				},
 			},
 		},
@@ -167,9 +167,9 @@ func (h *HelloWorldFrontend) Execute() error {
 		proto = "http"
 	}
 
-	labels := map[string]string{"app": "hello-world-frontend"}
+	labels := map[string]string{"app": "frontend"}
 
-	d, err := k8s.NewDeployment("hello-world-frontend", h.Target.GetNamespaceName(), k8s.DeploymentOpts{
+	d, err := k8s.NewDeployment("frontend", h.Target.GetNamespaceName(), k8s.DeploymentOpts{
 		Image:         "quay.io/skupper/hello-world-frontend",
 		Labels:        labels,
 		RestartPolicy: v1.RestartPolicyAlways,
@@ -189,10 +189,10 @@ func (h *HelloWorldFrontend) Execute() error {
 					Ctx:        ctx,
 				},
 			}, {
-				Doc: "Creating a local service for hello-world-frontend",
+				Doc: "Creating a local service for frontend",
 				Modify: &execute.K8SServiceCreate{
 					Namespace: h.Target,
-					Name:      "hello-world-frontend",
+					Name:      "frontend",
 					Labels:    labels,
 					Ports:     []int32{8080},
 				},
@@ -202,7 +202,7 @@ func (h *HelloWorldFrontend) Execute() error {
 				Modify: &skupperexecute.SkupperExpose{
 					Namespace: h.Target,
 					Type:      "service",
-					Name:      "hello-world-frontend",
+					Name:      "frontend",
 					Protocol:  proto,
 				},
 				SkipWhen: !h.CreateServices || !h.SkupperExpose,
@@ -212,12 +212,12 @@ func (h *HelloWorldFrontend) Execute() error {
 					Namespace: h.Target,
 					Ports:     []int{8080},
 					Type:      "deployment",
-					Name:      "hello-world-frontend",
+					Name:      "frontend",
 					Protocol:  proto,
 				},
 				Validator: &execute.K8SDeploymentWait{
 					Namespace: h.Target,
-					Name:      "hello-world-frontend",
+					Name:      "frontend",
 				},
 				SkipWhen: h.CreateServices || !h.SkupperExpose,
 			},
@@ -241,7 +241,7 @@ type HelloWorldValidate struct {
 
 func (h HelloWorldValidate) Validate() error {
 	if h.Namespace == nil {
-		return fmt.Errorf("HelloWorldValidate configuration error: empty Namespace")
+		panic("HelloWorldValidate configuration error: empty Namespace")
 	}
 
 	if h.HelloWorldValidateFront.Namespace == nil {
@@ -277,7 +277,7 @@ func (h HelloWorldValidate) Validate() error {
 
 type HelloWorldValidateFront struct {
 	Namespace       *f2k8s.Namespace
-	ServiceName     string // default is hello-world-frontend
+	ServiceName     string // default is frontend
 	ServicePort     int    // default is 8080
 	ServiceInsecure bool   // Ignores certificate problems
 	ServiceProto    string // default is http
@@ -292,7 +292,7 @@ func (h HelloWorldValidateFront) Validate() error {
 	}
 	svc := h.ServiceName
 	if svc == "" {
-		svc = "hello-world-frontend"
+		svc = "frontend"
 	}
 	port := h.ServicePort
 	if port == 0 {
@@ -324,7 +324,7 @@ func (h HelloWorldValidateFront) Validate() error {
 
 type HelloWorldValidateBack struct {
 	Namespace       *f2k8s.Namespace
-	ServiceName     string // default is hello-world-backend
+	ServiceName     string // default is backend
 	ServicePort     int    // default is 8080
 	ServicePath     string // default is api/hello
 	ServiceProto    string // default http
@@ -340,7 +340,7 @@ func (h HelloWorldValidateBack) Validate() error {
 	}
 	svc := h.ServiceName
 	if svc == "" {
-		svc = "hello-world-backend"
+		svc = "backend"
 	}
 	port := h.ServicePort
 	if port == 0 {

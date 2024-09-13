@@ -111,6 +111,7 @@ func (c *CreateNamespaceRaw) Execute() error {
 		labels = map[string]string{}
 	}
 	labels["frame2.id"] = frame2.GetId()
+	labels["frame2.shortid"] = frame2.GetShortId()
 
 	ns, err := c.Cluster.GetKubeClient().CoreV1().Namespaces().Create(
 		context.Background(),
@@ -172,8 +173,17 @@ func (c *CreateNamespaceTestBase) Execute() (err error) {
 		kind:     c.Kind,
 	}
 
+	labels := c.Labels
+	if labels == nil {
+		labels = map[string]string{}
+	}
+	labels["frame2.testbase"] = c.TestBase.namespaceId
+	if c.Id != "" {
+		labels["frame2.ns.id"] = c.Id
+	}
+
 	raw := CreateNamespaceRaw{
-		Labels:       c.Labels,
+		Labels:       labels,
 		Annotations:  c.Annotations,
 		AutoTearDown: c.AutoTearDown,
 	}
