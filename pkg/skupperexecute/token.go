@@ -85,8 +85,8 @@ func (tc *TokenCreate) Execute() error {
 		MainSteps: []frame2.Step{
 			{
 				Modify: &CliSkupper{
-					Args:      args,
-					Namespace: tc.Namespace.GetNamespaceName(),
+					Args:        args,
+					F2Namespace: tc.Namespace,
 				},
 			},
 		},

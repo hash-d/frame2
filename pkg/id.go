@@ -1,7 +1,7 @@
 package frame2
 
 var id string
-var smallId string
+var shortId string
 
 // Returns the string form of the UUID that identifies this test execution
 //
@@ -13,6 +13,6 @@ func GetId() string {
 
 // Returns the small format of GetId().  It's the three first hex characters
 // of the MD5 form of GetId()
-func GetSmallId() string {
-	return smallId
+func GetShortId() string {
+	return shortId
 }

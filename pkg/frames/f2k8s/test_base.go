@@ -91,7 +91,7 @@ func (t *TestBase) Next(kind ClusterType, suffix string) (name string, cluster *
 	name = fmt.Sprintf(
 		"%s-%s-%s-%d",
 		kind,
-		frame2.GetSmallId(),
+		frame2.GetShortId(),
 		t.namespaceId,
 		nextId,
 	)

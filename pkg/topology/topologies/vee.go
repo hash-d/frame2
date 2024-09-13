@@ -38,19 +38,23 @@ type V struct {
 func (v *V) Execute() error {
 	pub1 := &topology.TopologyItem{
 		Type: f2k8s.Public,
+		Name: "left-fe",
 	}
 	prv1 := &topology.TopologyItem{
 		Type: f2k8s.Private,
+		Name: "left-be",
 		Connections: []*topology.TopologyItem{
 			pub1,
 		},
 	}
 	pub2 := &topology.TopologyItem{
 		SkipSkupperDeploy: true,
+		Name:              "right-fe",
 		Type:              f2k8s.Public,
 	}
 	prv2 := &topology.TopologyItem{
 		SkipSkupperDeploy: true,
+		Name:              "right-be",
 		Type:              f2k8s.Private,
 		Connections: []*topology.TopologyItem{
 			pub2,
@@ -58,6 +62,7 @@ func (v *V) Execute() error {
 	}
 	v.vertex = &topology.TopologyItem{
 		Type: f2k8s.Public,
+		Name: "vertex",
 		Connections: []*topology.TopologyItem{
 			pub1,
 			pub2,
@@ -111,5 +116,5 @@ func (v *V) GetRight(kind f2k8s.ClusterType, number int) (*f2k8s.Namespace, erro
 
 // Get the ClusterContext that connects the two branches
 func (v *V) GetVertex() (*f2k8s.Namespace, error) {
-	return v.vertex.ClusterContext, nil
+	return v.vertex.Namespace, nil
 }

@@ -8,8 +8,8 @@ import (
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/disruptors"
 	"github.com/hash-d/frame2/pkg/environment"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/skupperexecute"
-	"github.com/hash-d/frame2/pkg/topology"
 	"gotest.tools/assert"
 )
 
@@ -94,11 +94,11 @@ func (ct ConnectTester) Validate() error {
 
 	// We do not care whether pub or private; just pick the first one
 	// (there should be only one)
-	pub, err := envSetup.Topo.Get(topology.Public, 1)
+	pub, err := envSetup.Topo.Get(f2k8s.Public, 1)
 	if err != nil {
 		return fmt.Errorf("failed to get pub ns: %w", err)
 	}
-	prv, err := envSetup.Topo.Get(topology.Private, 1)
+	prv, err := envSetup.Topo.Get(f2k8s.Private, 1)
 	if err != nil {
 		return fmt.Errorf("failed to get prv ns: %w", err)
 	}

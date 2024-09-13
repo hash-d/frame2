@@ -9,5 +9,5 @@ import (
 func TestInit(t *testing.T) {
 
 	assert.Assert(t, GetId() != "")
-	assert.Assert(t, GetSmallId() != "")
+	assert.Assert(t, GetShortId() != "")
 }

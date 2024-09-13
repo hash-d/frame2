@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	frame2 "github.com/hash-d/frame2/pkg"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/skupperexecute"
-	"github.com/skupperproject/skupper/test/utils/base"
 )
 
 // Migrate an application and Skupper out of a
@@ -21,13 +21,13 @@ import (
 // step or after the link step (for the situations, for example,
 // where the application depends on other services on the VAN)
 type Migrate struct {
-	From                *base.ClusterContext
-	To                  *base.ClusterContext
+	From                *f2k8s.Namespace
+	To                  *f2k8s.Namespace
 	DeploySteps         []frame2.Step
 	UndeploySteps       []frame2.Step
-	LinkTo              []*base.ClusterContext
-	LinkFrom            []*base.ClusterContext
-	UnlinkFrom          []*base.ClusterContext // Avoids dangling link configuration
+	LinkTo              []*f2k8s.Namespace
+	LinkFrom            []*f2k8s.Namespace
+	UnlinkFrom          []*f2k8s.Namespace // Avoids dangling link configuration
 	DeployBeforeSkupper bool
 	AssertFromEmpty     bool
 
@@ -53,7 +53,7 @@ func (m *Migrate) Execute() error {
 		Runner: m.Runner,
 		MainSteps: []frame2.Step{
 			{
-				Doc: fmt.Sprintf("Install Skupper on new namespace %q", m.To.Namespace),
+				Doc: fmt.Sprintf("Install Skupper on new namespace %q", m.To.GetNamespaceName()),
 				Modify: &skupperexecute.SkupperInstallSimple{
 					Namespace: m.To,
 				},
@@ -63,8 +63,8 @@ func (m *Migrate) Execute() error {
 	skupperInstallPhase.Run()
 
 	type linkStruct struct {
-		from *base.ClusterContext
-		to   *base.ClusterContext
+		from *f2k8s.Namespace
+		to   *f2k8s.Namespace
 	}
 
 	links := []linkStruct{}
@@ -80,9 +80,9 @@ func (m *Migrate) Execute() error {
 
 	for _, l := range links {
 		linkSteps = append(linkSteps, frame2.Step{
-			Doc: fmt.Sprintf("connecting %v to %v", l.from.Namespace, l.to.Namespace),
+			Doc: fmt.Sprintf("connecting %v to %v", l.from.GetNamespaceName(), l.to.GetNamespaceName()),
 			Modify: skupperexecute.Connect{
-				LinkName: fmt.Sprintf("%v-to-%v", l.from.Namespace, l.to.Namespace),
+				LinkName: fmt.Sprintf("%v-to-%v", l.from.GetNamespaceName(), l.to.GetNamespaceName()),
 				From:     l.from,
 				To:       l.to,
 			},
@@ -101,9 +101,9 @@ func (m *Migrate) Execute() error {
 	var unlinkSteps []frame2.Step
 	for _, l := range m.UnlinkFrom {
 		unlinkSteps = append(unlinkSteps, frame2.Step{
-			Doc: fmt.Sprintf("removing link from %v to %v", l.Namespace, m.From.Namespace),
+			Doc: fmt.Sprintf("removing link from %v to %v", l.GetNamespaceName(), m.From.GetNamespaceName()),
 			Modify: skupperexecute.SkupperUnLink{
-				Name:   fmt.Sprintf("%v-to-%v", l.Namespace, m.From.Namespace),
+				Name:   fmt.Sprintf("%v-to-%v", l.GetNamespaceName(), m.From.GetNamespaceName()),
 				From:   l,
 				To:     m.From,
 				Runner: m.Runner,
