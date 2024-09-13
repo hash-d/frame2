@@ -12,6 +12,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 	appsv1 "k8s.io/client-go/kubernetes/typed/apps/v1"
 	clientcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	networkingv1 "k8s.io/client-go/kubernetes/typed/networking/v1"
+	rbacv1 "k8s.io/client-go/kubernetes/typed/rbac/v1"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -67,8 +69,24 @@ func (n Namespace) ServiceInterface() clientcorev1.ServiceInterface {
 	return n.cluster.kubeClient.CoreV1().Services(n.name)
 }
 
+func (n Namespace) SecretInterface() clientcorev1.SecretInterface {
+	return n.cluster.kubeClient.CoreV1().Secrets(n.name)
+}
+
+func (n Namespace) ConfigMapInterface() clientcorev1.ConfigMapInterface {
+	return n.cluster.kubeClient.CoreV1().ConfigMaps(n.name)
+}
+
 func (n Namespace) DeploymentInterface() appsv1.DeploymentInterface {
 	return n.cluster.kubeClient.AppsV1().Deployments(n.name)
+}
+
+func (n Namespace) ClusterRoleBindingInterface() rbacv1.ClusterRoleBindingInterface {
+	return n.cluster.kubeClient.RbacV1().ClusterRoleBindings()
+}
+
+func (n Namespace) NetworkPolicyInterface() networkingv1.NetworkPolicyInterface {
+	return n.cluster.kubeClient.NetworkingV1().NetworkPolicies(n.name)
 }
 
 func (n Namespace) KubeClient() kubernetes.Interface {

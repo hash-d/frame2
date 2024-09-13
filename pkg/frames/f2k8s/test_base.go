@@ -83,17 +83,17 @@ func (t *TestBase) Next(kind ClusterType, suffix string) (name string, cluster *
 		actualKind = Public
 		clusterList = domainClusters[actualKind]
 	}
-	nsList := t.domainById[actualKind]
+	nsList := t.domainById[kind]
 	nextId := len(nsList)
 	clusterSelect := nextId % len(clusterList)
 	cluster = clusterList[clusterSelect]
 
 	name = fmt.Sprintf(
-		"%s-%s-%s-%d",
+		"%s-%d-%s-%s",
 		kind,
+		nextId,
 		frame2.GetShortId(),
 		t.namespaceId,
-		nextId,
 	)
 	if suffix != "" {
 		name += "-" + suffix

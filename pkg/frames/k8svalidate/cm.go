@@ -7,14 +7,14 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/frames/f2general"
-	"github.com/skupperproject/skupper/test/utils/base"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // TODO: Uniformize fields and struct name, between this and SecretGet
 type ConfigMap struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	Name      string
 	Ctx       context.Context
 
@@ -40,7 +40,7 @@ type ConfigMap struct {
 func (c *ConfigMap) Validate() error {
 	ctx := frame2.ContextOrDefault(c.Ctx)
 	asserter := frame2.Asserter{}
-	cm, err := c.Namespace.VanClient.KubeClient.CoreV1().ConfigMaps(c.Namespace.Namespace).Get(
+	cm, err := c.Namespace.ConfigMapInterface().Get(
 		ctx,
 		c.Name,
 		v1.GetOptions{},
@@ -49,7 +49,7 @@ func (c *ConfigMap) Validate() error {
 		return fmt.Errorf("failed retrieving cm %q: %v", c.Name, err)
 	}
 	if c.LogContents {
-		log.Printf("Contents of CM %q on %q:\n%+v", c.Name, c.Namespace.Namespace, cm.Data)
+		log.Printf("Contents of CM %q on %q:\n%+v", c.Name, c.Namespace.GetNamespaceName(), cm.Data)
 	}
 	for k, v := range c.Values {
 		log.Printf("- Checking key %q", k)

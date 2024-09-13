@@ -4,7 +4,7 @@ import (
 	"context"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/skupperproject/skupper/test/utils/base"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,7 +16,7 @@ type ClusterRoleBindingGet struct {
 	//
 	// The Namespace will then also be used to confirm that the
 	// acquired binding points to this namespace
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	Name      string
 	Ctx       context.Context
 
@@ -33,7 +33,7 @@ type ClusterRoleBindingGet struct {
 func (c *ClusterRoleBindingGet) Validate() error {
 	ctx := frame2.ContextOrDefault(c.Ctx)
 	asserter := frame2.Asserter{}
-	bindings, err := c.Namespace.VanClient.KubeClient.RbacV1().ClusterRoleBindings().Get(ctx, c.Name, v1.GetOptions{})
+	bindings, err := c.Namespace.ClusterRoleBindingInterface().Get(ctx, c.Name, v1.GetOptions{})
 	c.Result = bindings
 	if err != nil {
 		if c.ExpectAbsent && errors.IsNotFound(err) {
@@ -43,7 +43,7 @@ func (c *ClusterRoleBindingGet) Validate() error {
 	}
 	var foundSubject bool
 	for _, subject := range bindings.Subjects {
-		if c.Namespace.Namespace == subject.Namespace {
+		if c.Namespace.GetNamespaceName() == subject.Namespace {
 			foundSubject = true
 		}
 	}

@@ -6,12 +6,12 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/frames/f2general"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/frames/k8svalidate"
-	"github.com/skupperproject/skupper/test/utils/base"
 )
 
 type RouterCheck struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 
 	Mode     string
 	LogLevel string

@@ -7,8 +7,8 @@ import (
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/disruptors"
 	"github.com/hash-d/frame2/pkg/environment"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/skupperexecute"
-	"github.com/hash-d/frame2/pkg/topology"
 	"gotest.tools/assert"
 )
 
@@ -41,9 +41,9 @@ func TestStatusSimple(t *testing.T) {
 	}
 	assert.Assert(t, setup.Run())
 
-	pub, err := envSetup.Topo.Get(topology.Public, 1)
+	pub, err := envSetup.Topo.Get(f2k8s.Public, 1)
 	assert.Assert(t, err)
-	prv, err := envSetup.Topo.Get(topology.Private, 1)
+	prv, err := envSetup.Topo.Get(f2k8s.Private, 1)
 	assert.Assert(t, err)
 
 	basicRetry := frame2.RetryOptions{
@@ -167,13 +167,13 @@ func TestStatusHelloWorldN(t *testing.T) {
 	}
 	assert.Assert(t, setup.Run())
 
-	pub1, err := envSetup.Topology.Get(topology.Public, 1)
+	pub1, err := envSetup.Topology.Get(f2k8s.Public, 1)
 	assert.Assert(t, err)
-	prv1, err := envSetup.Topology.Get(topology.Private, 1)
+	prv1, err := envSetup.Topology.Get(f2k8s.Private, 1)
 	assert.Assert(t, err)
-	pub2, err := envSetup.Topology.Get(topology.Public, 2)
+	pub2, err := envSetup.Topology.Get(f2k8s.Public, 2)
 	assert.Assert(t, err)
-	prv2, err := envSetup.Topology.Get(topology.Private, 2)
+	prv2, err := envSetup.Topology.Get(f2k8s.Private, 2)
 	assert.Assert(t, err)
 
 	basicRetry := frame2.RetryOptions{

@@ -8,12 +8,12 @@ import (
 	clientset "github.com/openshift/client-go/route/clientset/versioned/typed/route/v1"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/skupperproject/skupper/test/utils/base"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type RouteGet struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 
 	Name string
 
@@ -28,11 +28,11 @@ func (r *RouteGet) Validate() error {
 	ctx := frame2.ContextOrDefault(r.Ctx)
 
 	var err error
-	client, err := clientset.NewForConfig(r.Namespace.VanClient.RestConfig)
+	client, err := clientset.NewForConfig(r.Namespace.GetKubeConfig().GetRestConfig())
 	if err != nil {
 		return fmt.Errorf("failed to obtain clientset")
 	}
-	r.Result, err = client.Routes(r.Namespace.Namespace).Get(ctx, r.Name, metav1.GetOptions{})
+	r.Result, err = client.Routes(r.Namespace.GetNamespaceName()).Get(ctx, r.Name, metav1.GetOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to get route: %w", err)
 	}

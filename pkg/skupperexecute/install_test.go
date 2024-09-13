@@ -7,6 +7,7 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/disruptors"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/frames/f2ocp"
 	"github.com/hash-d/frame2/pkg/frames/k8svalidate"
 	"github.com/hash-d/frame2/pkg/skupperexecute"
@@ -14,7 +15,6 @@ import (
 	"github.com/hash-d/frame2/pkg/topology"
 	"github.com/hash-d/frame2/pkg/topology/topologies"
 	"github.com/hash-d/frame2/pkg/validate"
-	"github.com/skupperproject/skupper/test/utils/base"
 	"gotest.tools/assert"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -36,7 +36,7 @@ import (
 // test more useful, especially on upgrade testing
 func TestSkupperInstallEffects(t *testing.T) {
 
-	baseRunner := &base.ClusterTestRunnerBase{}
+	testBase := f2k8s.NewTestBase("install-effects")
 	runner := &frame2.Run{
 		T: t,
 	}
@@ -52,8 +52,8 @@ func TestSkupperInstallEffects(t *testing.T) {
 
 	topo = &topologies.Single{
 		Name:              "skupper-install-effects",
-		TestRunnerBase:    baseRunner,
-		Type:              topology.Private,
+		TestBase:          testBase,
+		Type:              f2k8s.Private,
 		SkipSkupperDeploy: true,
 	}
 	build := topology.TopologyBuild{
@@ -72,7 +72,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 	}
 	assert.Assert(t, setup.Run())
 
-	ns, err := topo.Get(topology.Private, 1)
+	ns, err := topo.Get(f2k8s.Private, 1)
 	assert.Assert(t, err)
 
 	basicWait := frame2.RetryOptions{
@@ -372,7 +372,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 						Namespace: ns,
 						Name: fmt.Sprintf(
 							"skupper-service-controller-extended-%s",
-							ns.Namespace,
+							ns.GetNamespaceName(),
 						),
 					},
 					&k8svalidate.ConfigMap{
