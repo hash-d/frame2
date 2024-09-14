@@ -489,22 +489,22 @@ func TestSkupperInstallEffects(t *testing.T) {
 			"router-cpu": {
 				Doc: "Set the number of CPUs on the router",
 				Patch: skupperexecute.CliSkupperInstall{
-					RouterCPU: "5",
+					RouterCPU: "134m",
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
 					&k8svalidate.ConfigMap{
 						Namespace: ns,
 						Name:      "skupper-site",
-						Values:    map[string]string{"router-cpu": "5"},
+						Values:    map[string]string{"router-cpu": "134m"},
 					},
 					&validate.Container{
 						Namespace:     ns,
 						PodSelector:   validate.RouterSelector,
 						ContainerName: "router",
 						ExpectExactly: 1,
-						CPURequest:    "5",
-						CPULimit:      "5",
+						CPURequest:    "134m",
+						CPULimit:      "134m",
 					},
 				},
 			},
