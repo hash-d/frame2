@@ -5,30 +5,30 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/topology"
 	"github.com/hash-d/frame2/pkg/topology/topologies"
-	"github.com/skupperproject/skupper/test/utils/base"
 )
 
 func TestTopologyMap(t *testing.T) {
-	runner := base.ClusterTestRunnerBase{}
+	testBase := f2k8s.NewTestBase("topo-map")
 
 	pub1 := &topology.TopologyItem{
-		Type: topology.Public,
+		Type: f2k8s.Public,
 	}
 	pub2 := &topology.TopologyItem{
-		Type: topology.Public,
+		Type: f2k8s.Public,
 	}
 
 	prv1 := &topology.TopologyItem{
-		Type: topology.Private,
+		Type: f2k8s.Private,
 		Connections: []*topology.TopologyItem{
 			pub1,
 			pub2,
 		},
 	}
 	prv2 := &topology.TopologyItem{
-		Type: topology.Private,
+		Type: f2k8s.Private,
 		Connections: []*topology.TopologyItem{
 			pub2,
 		},
@@ -42,9 +42,9 @@ func TestTopologyMap(t *testing.T) {
 	}
 
 	tm := topology.TopologyMap{
-		Name:           "topo",
-		TestRunnerBase: &runner,
-		Map:            topoMap,
+		Name:     "topo",
+		TestBase: testBase,
+		Map:      topoMap,
 	}
 	var custom topology.Basic
 	custom = &topologies.Custom{

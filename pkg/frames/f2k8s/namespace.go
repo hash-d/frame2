@@ -163,6 +163,8 @@ func (c *CreateNamespaceRaw) Teardown() frame2.Executor {
 // The namespace also receives a label frame2.id, with which it is easy to
 // identify (and possibly modify or remove) any namespaces created by a test
 // run.
+//
+// f2k8s.ConnectInitial must have been called prior to this
 type CreateNamespaceTestBase struct {
 	Id       string
 	TestBase *TestBase

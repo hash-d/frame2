@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/hash-d/frame2/pkg/validate"
+	"github.com/hash-d/frame2/pkg/skupperexecute"
 )
 
 func TestSkupperManifest(t *testing.T) {
@@ -13,7 +13,7 @@ func TestSkupperManifest(t *testing.T) {
 		T: t,
 	}
 
-	expected := []validate.SkupperManifestContentImage{
+	expected := []skupperexecute.SkupperManifestContentImage{
 		{
 			Name:       "quay.io/skupper/skupper-router:main",
 			Repository: "https://github.com/skupperproject/skupper-router",
@@ -43,10 +43,10 @@ func TestSkupperManifest(t *testing.T) {
 			MainSteps: []frame2.Step{
 				{
 					Doc: "Positive check",
-					Validator: &validate.SkupperManifest{
+					Validator: &skupperexecute.SkupperManifest{
 						Path: "testdata/manifest.json",
-						Expected: validate.SkupperManifestContent{
-							Images: []validate.SkupperManifestContentImage{
+						Expected: skupperexecute.SkupperManifestContent{
+							Images: []skupperexecute.SkupperManifestContentImage{
 								{
 									Name:       e.Name,
 									Repository: e.Repository,
@@ -58,10 +58,10 @@ func TestSkupperManifest(t *testing.T) {
 					// Today, this is overkill, as we do not check Repository.  In practice, it checks that
 					// :noexpected many times, with no additional checks
 					Doc: "Negative check",
-					Validator: &validate.SkupperManifest{
+					Validator: &skupperexecute.SkupperManifest{
 						Path: "testdata/manifest.json",
-						Expected: validate.SkupperManifestContent{
-							Images: []validate.SkupperManifestContentImage{
+						Expected: skupperexecute.SkupperManifestContent{
+							Images: []skupperexecute.SkupperManifestContentImage{
 								{
 									Name:       "quay.io/skupper/skupper-router:notexpected",
 									Repository: e.Repository,

@@ -7,8 +7,8 @@ import (
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/environment"
 	"github.com/hash-d/frame2/pkg/execute"
-	"github.com/hash-d/frame2/pkg/topology"
-	"github.com/hash-d/frame2/pkg/validate"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
+	"github.com/hash-d/frame2/pkg/skupperexecute"
 	"gotest.tools/assert"
 )
 
@@ -19,7 +19,7 @@ func TestSkupperInfo(t *testing.T) {
 	}
 
 	installCurrent := environment.JustSkupperSimple{
-		Name:    "frame2-skupper-info-test",
+		Name:    "skupper-info",
 		Console: true,
 		//AutoTearDown: true,
 	}
@@ -36,10 +36,10 @@ func TestSkupperInfo(t *testing.T) {
 	}
 	assert.Assert(t, SetupPhase.Run())
 
-	namespace, err := installCurrent.Topo.Get(topology.Public, 1)
+	namespace, err := installCurrent.Topo.Get(f2k8s.Public, 1)
 	assert.Assert(t, err)
 
-	getInfoCurrent := validate.SkupperInfo{
+	getInfoCurrent := skupperexecute.SkupperInfo{
 		Namespace: namespace,
 	}
 
@@ -64,10 +64,10 @@ func TestSkupperInfo(t *testing.T) {
 						if getInfoCurrent.Result.HasRouter {
 							return nil
 						}
-						return fmt.Errorf("The namespace %q has no skupper-router, so we can't consider it for manifest check", namespace.Namespace)
+						return fmt.Errorf("The namespace %q has no skupper-router, so we can't consider it for manifest check", namespace.GetNamespaceName())
 					},
 				},
-				Validator: &validate.SkupperManifest{
+				Validator: &skupperexecute.SkupperManifest{
 					Expected: getInfoCurrent.Result.Images,
 				},
 			},

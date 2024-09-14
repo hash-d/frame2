@@ -4,10 +4,11 @@ import (
 	"testing"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/frames/k8sexecute"
 	"github.com/hash-d/frame2/pkg/frames/k8svalidate"
-	"github.com/skupperproject/skupper/test/utils/base"
+	"github.com/hash-d/frame2/pkg/topology"
+	"github.com/hash-d/frame2/pkg/topology/topologies"
 	"gotest.tools/assert"
 	core "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,25 +18,36 @@ func TestCreateGetDeleteSecret(t *testing.T) {
 	r := frame2.Run{
 		T: t,
 	}
-	runnerBase := base.ClusterTestRunnerBase{}
+	testBase := f2k8s.NewTestBase("k8s-secret")
+	var topo topology.Basic
+	topo = &topologies.Single{
+		Name:              "k8s-secret",
+		TestBase:          testBase,
+		SkipSkupperDeploy: true,
+	}
 	setup := frame2.Phase{
 		Runner: &r,
 		Setup: []frame2.Step{
 			{
-				Modify: &execute.BuildClusterContext{
-					RunnerBase: &runnerBase,
-					Needs: base.ClusterNeeds{
-						NamespaceId:    "k8s-secret",
-						PublicClusters: 1,
-					},
+				Modify: topo,
+			},
+		},
+	}
+	assert.Assert(t, setup.Run())
+	build := frame2.Phase{
+		Runner: &r,
+		MainSteps: []frame2.Step{
+			{
+				Modify: &topology.TopologyBuild{
+					Topology:     &topo,
 					AutoTearDown: true,
 				},
 			},
 		},
 	}
-	assert.Assert(t, setup.Run())
+	assert.Assert(t, build.Run())
 
-	pub1, err := runnerBase.GetPublicContext(1)
+	pub1, err := topo.Get(f2k8s.Public, 1)
 	assert.Assert(t, err)
 
 	main := frame2.Phase{
@@ -48,7 +60,7 @@ func TestCreateGetDeleteSecret(t *testing.T) {
 					Secret: &core.Secret{
 						ObjectMeta: v1.ObjectMeta{
 							Name:      "test-secret",
-							Namespace: pub1.Namespace,
+							Namespace: pub1.GetNamespaceName(),
 						},
 						Type: core.SecretTypeOpaque,
 						Data: map[string][]byte{
