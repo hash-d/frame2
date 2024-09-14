@@ -7,20 +7,20 @@ import (
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/environment"
 	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/topology"
 	"github.com/hash-d/frame2/pkg/topology/topologies"
-	"github.com/skupperproject/skupper/test/utils/base"
 )
 
 func TestHelloWorld(t *testing.T) {
 
-	testRunnerBase := base.ClusterTestRunnerBase{}
+	testBase := f2k8s.NewTestBase("hello-world")
 	runner := frame2.Run{T: t}
 
 	var topologyN topology.Basic
 	topologyN = &topologies.N{
-		Name:           "hello-n",
-		TestRunnerBase: &testRunnerBase,
+		Name:     "hello-n",
+		TestBase: testBase,
 	}
 
 	prepareTopology := frame2.Phase{

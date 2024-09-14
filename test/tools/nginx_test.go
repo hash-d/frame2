@@ -5,38 +5,34 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/validate"
-	"github.com/skupperproject/skupper/test/utils/base"
 	"gotest.tools/assert"
 )
 
 func TestNginxDeploy(t *testing.T) {
-	baseRunner := base.ClusterTestRunnerBase{}
 
 	r := &frame2.Run{
 		T: t,
 	}
-	cc := execute.BuildClusterContext{
-		RunnerBase: &baseRunner,
-		Needs: base.ClusterNeeds{
-			PrivateClusters: 1,
-			PublicClusters:  0,
-			NamespaceId:     "test-nginx-deploy",
-		},
+	assert.Assert(t, f2k8s.ConnectInitial())
+	testBase := f2k8s.NewTestBase("nginx")
+	ns := &f2k8s.CreateNamespaceTestBase{
+		TestBase:     testBase,
 		AutoTearDown: true,
+		Kind:         f2k8s.Public,
 	}
-	p1 := frame2.Phase{
+	setup := frame2.Phase{
 		Runner: r,
-		Setup: []frame2.Step{
+		MainSteps: []frame2.Step{
 			{
-				Modify: &cc,
+				Modify: ns,
 			},
 		},
 	}
-	p1.Run()
+	assert.Assert(t, setup.Run())
 
-	prv1, err := cc.RunnerBase.GetPrivateContext(1)
-	assert.Assert(t, err)
+	prv1 := &ns.Return
 
 	p2 := frame2.Phase{
 		Runner: r,

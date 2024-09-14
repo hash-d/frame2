@@ -12,6 +12,7 @@ type Single struct {
 
 	SkipSkupperDeploy bool
 
+	// Default Public
 	Type f2k8s.ClusterType
 
 	// Add on
@@ -22,8 +23,13 @@ type Single struct {
 
 func (s *Single) Execute() error {
 
+	kind := s.Type
+	if kind == "" {
+		kind = f2k8s.Public
+	}
+
 	ns := &topology.TopologyItem{
-		Type:              s.Type,
+		Type:              kind,
 		SkipSkupperDeploy: s.SkipSkupperDeploy,
 	}
 	topoMap := []*topology.TopologyItem{

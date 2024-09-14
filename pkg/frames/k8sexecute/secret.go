@@ -4,13 +4,13 @@ import (
 	"context"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/skupperproject/skupper/test/utils/base"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	core "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type SecretCreate struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	Secret    *core.Secret
 
 	*frame2.Log
@@ -18,9 +18,8 @@ type SecretCreate struct {
 }
 
 func (s SecretCreate) Execute() error {
-	client := s.Namespace.VanClient.KubeClient
 
-	_, err := client.CoreV1().Secrets(s.Namespace.Namespace).Create(
+	_, err := s.Namespace.SecretInterface().Create(
 		context.Background(),
 		s.Secret,
 		meta.CreateOptions{},
@@ -29,7 +28,7 @@ func (s SecretCreate) Execute() error {
 }
 
 type SecretDelete struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	Name      string
 
 	Secret *core.Secret // return
@@ -39,10 +38,9 @@ type SecretDelete struct {
 }
 
 func (s SecretDelete) Execute() error {
-	client := s.Namespace.VanClient.KubeClient
 
 	var err error
-	err = client.CoreV1().Secrets(s.Namespace.Namespace).Delete(
+	err = s.Namespace.SecretInterface().Delete(
 		context.Background(),
 		s.Name,
 		meta.DeleteOptions{},
