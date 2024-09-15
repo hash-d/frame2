@@ -223,7 +223,7 @@ func (c *CreateNamespaceTestBase) Execute() (err error) {
 	// Actually create the namespace
 	phase := frame2.Phase{
 		Runner: c.GetRunner(),
-		MainSteps: []frame2.Step{
+		Setup: []frame2.Step{
 			{
 				Modify: &raw,
 			},
@@ -235,6 +235,7 @@ func (c *CreateNamespaceTestBase) Execute() (err error) {
 
 }
 
+/*
 func (c *CreateNamespaceTestBase) Teardown() frame2.Executor {
 	if c.AutoTearDown {
 		return &DeleteNamespaceTestBase{
@@ -243,6 +244,7 @@ func (c *CreateNamespaceTestBase) Teardown() frame2.Executor {
 	}
 	return nil
 }
+*/
 
 type DeleteNamespaceTestBase struct {
 	Namespace *Namespace
