@@ -135,7 +135,7 @@ func (tc TokenCreateTester) Execute() error {
 		panic("I need a file to write and read")
 	}
 	envSetup := &environment.JustSkupperSingle{
-		Name:         "token-create-test",
+		Name:         "token-create",
 		AutoTearDown: true,
 	}
 
