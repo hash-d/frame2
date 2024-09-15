@@ -132,10 +132,10 @@ type TopologyMap struct {
 	GeneratedMap map[*TopologyItem]*f2k8s.Namespace
 }
 
-// Creates the ClusterContext items based on the provided map
+// Creates the namespaces items based on the provided map
 //
-// The actual namespaces are not yet created on this step.  Give the TopologyMap to a
-// TopologyBuild to create them (and everything else)
+// The actual namespaces are not yet created on this step.  The skupper VAN is created on
+// TopologyBuild.
 //
 // TODO: Validate: check for duplicates, disconnected items, etc (but allow to skip validation)
 func (tm *TopologyMap) Execute() error {
@@ -252,6 +252,7 @@ func (t *TopologyBuild) Execute() error {
 	if err != nil {
 		return fmt.Errorf("failed to get topologyMap: %w", err)
 	}
+	tm.AutoTearDown = t.AutoTearDown
 
 	// Execute the TopologyMap; create the ClusterContext items
 	buildTopologyMap := frame2.Phase{
@@ -263,7 +264,10 @@ func (t *TopologyBuild) Execute() error {
 			},
 		},
 	}
-	buildTopologyMap.Run()
+	err = buildTopologyMap.Run()
+	if err != nil {
+		return fmt.Errorf("failed to build topology: %w", err)
+	}
 	log.Printf("Generated TopologyMap: %+v", tm)
 
 	log.Printf("Creating namespaces and installing Skupper")
@@ -274,14 +278,6 @@ func (t *TopologyBuild) Execute() error {
 			Doc:    "Create namespaces and install Skupper",
 			Setup: []frame2.Step{
 				{
-					/*
-							Modify: &f2k8s.CreateNamespaceRaw{
-								Namespace:    context,
-								AutoTearDown: t.AutoTearDown,
-							},
-							SkipWhen: topoItem.SkipNamespaceCreation,
-						}, {
-					*/
 					Modify: &skupperexecute.SkupperInstallSimple{
 						Namespace:     context,
 						EnableConsole: topoItem.EnableConsole,
