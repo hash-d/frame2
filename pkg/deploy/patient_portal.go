@@ -118,7 +118,7 @@ func (p PatientDatabase) Execute() error {
 
 	image := p.Image
 	if image == "" {
-		image = "quay.io/dhashimo/patient-portal-database"
+		image = "quay.io/skupper/patient-portal-database"
 	}
 
 	labels := map[string]string{"app": "patient-portal-database"}
@@ -181,7 +181,7 @@ func (p PatientPayment) Execute() error {
 
 	image := p.Image
 	if image == "" {
-		image = "quay.io/dhashimo/patient-portal-payment-processor"
+		image = "quay.io/skupper/patient-portal-payment-processor"
 	}
 
 	labels := map[string]string{"app": "patient-portal-payment"}
@@ -244,7 +244,7 @@ func (p PatientFrontend) Execute() error {
 
 	image := p.Image
 	if image == "" {
-		image = "quay.io/dhashimo/patient-portal-frontend"
+		image = "quay.io/skupper/patient-portal-frontend"
 	}
 
 	labels := map[string]string{"app": "frontend"}
@@ -302,7 +302,7 @@ type PatientValidatePayment struct {
 	Namespace   *f2k8s.Namespace
 	ServiceName string // default is payment-processor
 	ServicePort int    // default is 8080
-	ServicePath string // default is api/pay
+	ServicePath string // default is api/health
 
 	frame2.Log
 	frame2.DefaultRunDealer
@@ -322,7 +322,7 @@ func (p PatientValidatePayment) Validate() error {
 	}
 	path := p.ServicePath
 	if path == "" {
-		path = "api/pay"
+		path = "api/health"
 	}
 	phase := frame2.Phase{
 		Runner: p.Runner,
@@ -401,12 +401,13 @@ func (p PatientDbPing) Validate() error {
 		Doc:    "Ping the DB",
 		MainSteps: []frame2.Step{
 			{
-				Validator: &execute.PostgresPing{
+				Validator: &execute.PsycopgPing{
 					Namespace: p.Namespace,
 					Labels:    map[string]string{"app": "frontend"},
-					DbName:    "database",
+					DbName:    "patient_portal",
 					DbHost:    "database",
 					Username:  "patient_portal",
+					Password:  "secret",
 					Log:       p.Log,
 				},
 			},
