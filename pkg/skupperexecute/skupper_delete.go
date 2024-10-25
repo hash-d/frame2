@@ -16,6 +16,7 @@ type SkupperDelete struct {
 }
 
 // TODO: remove autodebug
+// TODO: using old version on post-subfinalizer-hook with UPGRADE_AND_FINALIZE
 func (s *SkupperDelete) Execute() error {
 
 	ctx := s.Context
