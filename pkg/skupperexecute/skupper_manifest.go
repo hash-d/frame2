@@ -86,6 +86,11 @@ func (m SkupperManifest) getManifestPath(dir string) string {
 								Dir: dir,
 							},
 						},
+						// SkupperManifest works on the binary only (and env vars),
+						// it does not hit the cluster, so we do not give it a
+						// Namespace
+						//
+						// F2Namespace: NONE
 					},
 				},
 			},

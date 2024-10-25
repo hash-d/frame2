@@ -174,6 +174,7 @@ func (u *UpgradeAndFinalize) PreFinalizerHook(runner *frame2.Run) error {
 }
 
 func (u *UpgradeAndFinalize) PostSubFinalizerHook(runner *frame2.Run) error {
+	log.Printf("UpgradeAndFinalize: clearing targets on PostSubFinalizerHook")
 	u.useNew = false
 	u.targets = []*f2k8s.Namespace{}
 	return nil
