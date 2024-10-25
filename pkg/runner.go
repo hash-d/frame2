@@ -278,20 +278,20 @@ func (r *Run) subFinalize() {
 			subPhase.Run()
 
 		})
-	}
-	// Regardless of whether we had subfinalizers or not, we need to run the
-	// post-sub-finalizer-hook for any disruptors
-	for _, d := range r.getDisruptors() {
-		if d, ok := d.(FinalizerHook); ok {
-			log.Printf("[R] Running post-subfinalizer hook")
-			var err error
-			r.T.Run("post-subfinalizer-hook", func(t *testing.T) {
-				err = d.PostSubFinalizerHook(r.ChildWithT(t, HookRunner))
-				if err != nil {
-					log.Printf("[R] %v test marked as failed on post-subfinalizer hook: %v", t.Name(), err)
-					t.Errorf("post-subfinalizer hook failed: %v", err)
-				}
-			})
+		// Regardless of whether we had subfinalizers or not, we need to run the
+		// post-sub-finalizer-hook for any disruptors
+		for _, d := range r.getDisruptors() {
+			if d, ok := d.(FinalizerHook); ok {
+				log.Printf("[R] Running post-subfinalizer hook")
+				var err error
+				r.T.Run("post-subfinalizer-hook", func(t *testing.T) {
+					err = d.PostSubFinalizerHook(r.ChildWithT(t, HookRunner))
+					if err != nil {
+						log.Printf("[R] %v test marked as failed on post-subfinalizer hook: %v", t.Name(), err)
+						t.Errorf("post-subfinalizer hook failed: %v", err)
+					}
+				})
+			}
 		}
 	}
 }
