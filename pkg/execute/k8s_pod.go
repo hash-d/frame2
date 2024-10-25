@@ -95,6 +95,8 @@ func (e *K8SPodExecute) Execute() error {
 		return fmt.Errorf("K8SPodExecute failed to get pod: %w", err)
 	}
 
+	e.Log.Printf("Executing on pod %q: %s", e.Pod.Result.Name, e.Command)
+
 	stdout, stderr, err := k8s.Execute(
 		e.Pod.Namespace.KubeClient(),
 		e.Pod.Namespace.GetKubeConfig().GetRestConfig(),
