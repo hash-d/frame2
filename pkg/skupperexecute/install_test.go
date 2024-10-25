@@ -46,6 +46,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 		&disruptors.ConsoleAuth{},
 		&disruptors.SkipManifestCheck{},
 		&disruptors.KeepWalking{},
+		&disruptors.EdgeOnPrivate{},
 	})
 
 	var topo topology.Basic
