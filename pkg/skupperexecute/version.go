@@ -6,7 +6,6 @@ import (
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
-	"github.com/skupperproject/skupper/test/utils/skupper/cli"
 )
 
 // Runs skupper version.  By default, this command always shows
@@ -43,7 +42,7 @@ func (s CliSkupperVersion) Execute() error {
 	}
 
 	if !s.SkipOutputCheck && s.GetSkupperVersion() != "" {
-		cmd.Expect = cli.Expect{
+		cmd.Expect = frame2.Expect{
 			StdOut: []string{
 				"client version",
 				s.GetSkupperVersion(),

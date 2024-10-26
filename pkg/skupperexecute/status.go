@@ -8,7 +8,6 @@ import (
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
-	"github.com/skupperproject/skupper/test/utils/skupper/cli"
 )
 
 // With only a namespace configured, this command will simply
@@ -158,7 +157,7 @@ func (s Status) Execute() error {
 		}
 	}
 
-	cmd.Expect = cli.Expect{
+	cmd.Expect = frame2.Expect{
 		StdOut:      stdout,
 		StdOutReNot: stdoutNot,
 		StdOutRe:    reStdout,

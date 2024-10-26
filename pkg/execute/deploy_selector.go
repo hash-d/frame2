@@ -1,22 +1,25 @@
 package execute
 
 import (
-	"github.com/skupperproject/skupper/pkg/kube"
-	"github.com/skupperproject/skupper/test/utils/base"
-	v1 "k8s.io/api/apps/v1"
+	"context"
+
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
+	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type DeploySelector struct {
-	Namespace base.ClusterContext
+	Namespace f2k8s.Namespace
 	Name      string
+	Ctx       context.Context
 
 	// Return value
-	Deploy *v1.Deployment
+	Deploy *appsv1.Deployment
 }
 
 func (d *DeploySelector) Execute() error {
 
-	deploy, err := kube.GetDeployment(d.Name, d.Namespace.Namespace, d.Namespace.VanClient.KubeClient)
+	deploy, err := d.Namespace.DeploymentInterface().Get(d.Ctx, d.Name, metav1.GetOptions{})
 	d.Deploy = deploy
 	if err != nil {
 		return err

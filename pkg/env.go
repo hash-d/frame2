@@ -1,6 +1,13 @@
 package frame2
 
+import (
+	"fmt"
+	"os"
+	"strconv"
+)
+
 // Frame2-specific environment variables
+// TODO: move this to its own 'env' package
 
 const (
 	// This sets the 'Allow' parameter of the retry block for the final
@@ -8,6 +15,12 @@ const (
 	// marked as final will be retried this many times at the end of the
 	// test.
 	ENV_FINAL_RETRY = "SKUPPER_TEST_FINAL_RETRY"
+)
+
+const (
+	// If defined, both stdout and stderr of all issued skupper commands
+	// will be shown on the test output, even if they did not fail
+	ENV_CLI_VERBOSE_COMMANDS = "SKUPPER_TEST_CLI_VERBOSE_COMMANDS"
 )
 
 // TODO: Move all skupper-specific variables to a skupper-specific file, on a
@@ -109,4 +122,27 @@ var EnvOldMap = map[string]string{
 	EnvOldControllerPodmanImageEnvKey:      "SKUPPER_CONTROLLER_PODMAN_IMAGE",
 	EnvOldControllerPodmanPullPolicyEnvKey: "SKUPPER_CONTROLLER_PODMAN_IMAGE_PULL_POLICY",
 	EnvOldOauthProxyRegistryEnvKey:         "OAUTH_PROXY_IMAGE_REGISTRY",
+}
+
+func IsVerboseCommandOutput() bool {
+	_, showVerbose := os.LookupEnv(ENV_CLI_VERBOSE_COMMANDS)
+	return showVerbose
+}
+
+// Returns the integer value of the named variable; returns the default value if not
+// defined or empty.  If there is a value and not an int, panic
+//
+// TODO: once this file is moved to a package 'env', the function name 'env.GetInt'
+// will make more sense
+func GetInt(name string, default_ int) int {
+	val, found := os.LookupEnv(name)
+	if !found || val == "" {
+		return default_
+	}
+	ret, err := strconv.Atoi(val)
+	if err != nil {
+		panic(fmt.Sprintf("variable %q has non-integer value %q", name, val))
+	}
+	return ret
+
 }

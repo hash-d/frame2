@@ -12,8 +12,6 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/imdario/mergo"
-	"github.com/skupperproject/skupper/test/utils/base"
-	"github.com/skupperproject/skupper/test/utils/skupper/cli"
 )
 
 const CmdDefaultTimeout = 2 * time.Minute
@@ -26,7 +24,7 @@ const CmdDefaultTimeout = 2 * time.Minute
 // execution, for further processing.
 //
 // Yet, most output check should be possible using the provided
-// cli.Expect configuration.
+// frame2.Expect configuration.
 //
 // If both AcceptReturn and FailReturn are defined and the return
 // status is not present on either, an error will be returned
@@ -55,7 +53,7 @@ type Cmd struct {
 	Ctx           context.Context
 	Timeout       time.Duration // If not provided, a default timeout of 2 min is used
 	Shell         bool          // if set, Cmd.Path and Cmd.Args are ignored; use Command under sh -c
-	cli.Expect                  // Configures checks on Stdout and Stderr
+	frame2.Expect               // Configures checks on Stdout and Stderr
 	AcceptReturn  []int         // consider these return status as a success.  Default only 0
 	FailReturn    []int         // Fail on any of these return status.  Default anything other than 0
 	ForceOutput   bool          // Shows this command's output on log, regardless of environment config
@@ -199,7 +197,7 @@ func (c *Cmd) Execute() error {
 	c.CmdResult.Err = cmdErr
 
 	if !c.ForceNoOutput {
-		if c.ForceOutput || base.IsVerboseCommandOutput() {
+		if c.ForceOutput || frame2.IsVerboseCommandOutput() {
 			c.Log.Printf("STDOUT:\n%v\n", stdout.String())
 			c.Log.Printf("STDERR:\n%v\n", stderr.String())
 			c.Log.Printf("Error: %v\n", cmdErr)

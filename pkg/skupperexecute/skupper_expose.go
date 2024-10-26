@@ -9,7 +9,6 @@ import (
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
-	"github.com/skupperproject/skupper/test/utils/skupper/cli"
 )
 
 type SkupperExpose struct {
@@ -173,7 +172,7 @@ func (se SkupperExpose1_3) Execute() error {
 		if err != nil {
 			return fmt.Errorf("SkupperExpose failed to compile FailureReason %q as a regexp: %w", se.FailureReason, err)
 		}
-		cmd.Expect = cli.Expect{
+		cmd.Expect = frame2.Expect{
 			StdErrRe: []regexp.Regexp{*re},
 		}
 	}
@@ -288,7 +287,7 @@ func (se SkupperExpose1_2) Execute() error {
 		if err != nil {
 			return fmt.Errorf("SkupperExpose failed to compile FailureReason %q as a regexp: %w", se.FailureReason, err)
 		}
-		cmd.Expect = cli.Expect{
+		cmd.Expect = frame2.Expect{
 			StdErrRe: []regexp.Regexp{*re},
 		}
 	}

@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/skupperproject/skupper/test/utils/base"
 )
 
 // TODO: Uniformize use of contexts; create main context that has a deadline
@@ -269,7 +268,7 @@ func (r *Run) subFinalize() {
 					{
 						Validators: r.subFinalValidators,
 						ValidatorRetry: RetryOptions{
-							Allow: base.GetEnvInt(ENV_FINAL_RETRY, 1),
+							Allow: GetInt(ENV_FINAL_RETRY, 1),
 						},
 					},
 				},
@@ -323,7 +322,7 @@ func (r *Run) Finalize() {
 				{
 					Validators: r.finalValidators,
 					ValidatorRetry: RetryOptions{
-						Allow: base.GetEnvInt(ENV_FINAL_RETRY, 1),
+						Allow: GetInt(ENV_FINAL_RETRY, 1),
 					},
 				},
 			},
@@ -430,7 +429,6 @@ type Phase struct {
 	Setup     []Step
 	Teardown  []Step
 	MainSteps []Step
-	//BaseRunner *base.ClusterTestRunnerBase
 	teardowns []Executor
 	Runner    *Run
 
@@ -815,10 +813,6 @@ func (p *Phase) run() error {
 
 	//	if t != nil && p.Name == "" {
 	//		t.Fatal("test name must be defined")
-	//	}
-
-	//	if t != nil && p.BaseRunner == nil {
-	//		p.BaseRunner = &base.ClusterTestRunnerBase{}
 	//	}
 
 	if len(p.Setup) > 0 {

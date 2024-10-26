@@ -10,71 +10,7 @@ import (
 	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/validate"
-	"github.com/skupperproject/skupper/api/types"
 )
-
-// For a defaults alternative, check SkupperInstallSimple
-type SkupperInstall struct {
-	Namespace  *f2k8s.Namespace
-	RouterSpec types.SiteConfigSpec
-	Ctx        context.Context
-	MaxWait    time.Duration // If not set, defaults to types.DefaultTimeoutDuration*2
-	SkipWait   bool
-	SkipStatus bool
-
-	frame2.DefaultRunDealer
-}
-
-// Interface execute.SkupperUpgradable; allow this to be used with Upgrade disruptors
-func (s SkupperInstall) SkupperUpgradable() *f2k8s.Namespace {
-	return s.Namespace
-}
-
-// TODO: move this to a new SkupperInstallVAN or something; leave SkupperInstall as a
-// SkupperOp that calls either that or CliSkupperInit
-func (si SkupperInstall) Execute() error {
-
-	return fmt.Errorf("VanClient site creation should not be used")
-	/*
-
-		ctx := si.Ctx
-		if ctx == nil {
-			ctx = context.Background()
-		}
-
-		wait := si.MaxWait
-		if wait == 0 {
-			wait = types.DefaultTimeoutDuration * 2
-		}
-
-		publicSiteConfig, err := si.Namespace.VanClient.SiteConfigCreate(ctx, si.RouterSpec)
-		if err != nil {
-			return fmt.Errorf("SkupperInstall failed to create SiteConfig: %w", err)
-		}
-		err = si.Namespace.VanClient.RouterCreate(ctx, *publicSiteConfig)
-		if err != nil {
-			return fmt.Errorf("SkupperInstall failed to create router: %w", err)
-		}
-
-		phase := frame2.Phase{
-			Runner: si.Runner,
-			MainSteps: []frame2.Step{
-				{
-					Validator: &ValidateSkupperAvailable{
-						Namespace:  si.Namespace,
-						MaxWait:    wait,
-						SkipWait:   si.SkipStatus,
-						SkipStatus: si.SkipStatus,
-						Ctx:        ctx,
-					},
-				},
-			},
-		}
-
-		return phase.Run()
-	*/
-
-}
 
 // A Skupper installation that uses some default configurations.
 // It cannot be configured.  For a configurable version, use

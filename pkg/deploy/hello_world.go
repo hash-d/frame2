@@ -10,8 +10,6 @@ import (
 	"github.com/hash-d/frame2/pkg/skupperexecute"
 	"github.com/hash-d/frame2/pkg/topology"
 	"github.com/hash-d/frame2/pkg/validate"
-	"github.com/skupperproject/skupper/test/utils/k8s"
-	"github.com/skupperproject/skupper/test/utils/tools"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -90,24 +88,20 @@ func (h *HelloWorldBackend) Execute() error {
 
 	labels := map[string]string{"app": "backend"}
 
-	d, err := k8s.NewDeployment("backend", h.Target.GetNamespaceName(), k8s.DeploymentOpts{
-		Image:         "quay.io/skupper/hello-world-backend",
-		Labels:        labels,
-		RestartPolicy: v1.RestartPolicyAlways,
-	})
-	if err != nil {
-		return fmt.Errorf("HelloWorldBackend: failed to deploy: %w", err)
-	}
-
 	phase := frame2.Phase{
 		Runner: h.Runner,
 		MainSteps: []frame2.Step{
 			{
 				Doc: "Installing hello-world-backend",
-				Modify: &execute.K8SDeployment{
-					Namespace:  h.Target,
-					Deployment: d,
-					Ctx:        ctx,
+				Modify: &execute.K8SDeploymentOpts{
+					Name:      "backend",
+					Namespace: h.Target,
+					DeploymentOpts: execute.DeploymentOpts{
+						Image:         "quay.io/skupper/hello-world-backend",
+						Labels:        labels,
+						RestartPolicy: v1.RestartPolicyAlways,
+					},
+					Ctx: ctx,
 				},
 			}, {
 				Doc: "Creating a local service for hello-world-backend",
@@ -169,24 +163,20 @@ func (h *HelloWorldFrontend) Execute() error {
 
 	labels := map[string]string{"app": "frontend"}
 
-	d, err := k8s.NewDeployment("frontend", h.Target.GetNamespaceName(), k8s.DeploymentOpts{
-		Image:         "quay.io/skupper/hello-world-frontend",
-		Labels:        labels,
-		RestartPolicy: v1.RestartPolicyAlways,
-	})
-	if err != nil {
-		return fmt.Errorf("HelloWorldFrontend: failed to deploy: %w", err)
-	}
-
 	phase := frame2.Phase{
 		Runner: h.Runner,
 		MainSteps: []frame2.Step{
 			{
 				Doc: "Installing hello-world-frontend",
-				Modify: &execute.K8SDeployment{
-					Namespace:  h.Target,
-					Deployment: d,
-					Ctx:        ctx,
+				Modify: &execute.K8SDeploymentOpts{
+					Name:      "frontend",
+					Namespace: h.Target,
+					DeploymentOpts: execute.DeploymentOpts{
+						Image:         "quay.io/skupper/hello-world-frontend",
+						Labels:        labels,
+						RestartPolicy: v1.RestartPolicyAlways,
+					},
+					Ctx: ctx,
 				},
 			}, {
 				Doc: "Creating a local service for frontend",
@@ -311,7 +301,7 @@ func (h HelloWorldValidateFront) Validate() error {
 					Url:         fmt.Sprintf("%s://%s:%d", proto, svc, port),
 					Fail400Plus: true,
 					Log:         h.Log,
-					CurlOptions: tools.CurlOpts{
+					CurlOptions: validate.CurlOpts{
 						Insecure: h.ServiceInsecure,
 					},
 				},
@@ -363,7 +353,7 @@ func (h HelloWorldValidateBack) Validate() error {
 					Url:         fmt.Sprintf("%s://%s:%d/%s", proto, svc, port, path),
 					Fail400Plus: true,
 					Log:         h.Log,
-					CurlOptions: tools.CurlOpts{
+					CurlOptions: validate.CurlOpts{
 						Insecure: h.ServiceInsecure,
 					},
 				},

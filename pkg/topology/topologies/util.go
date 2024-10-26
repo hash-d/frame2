@@ -5,7 +5,6 @@ import (
 
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/topology"
-	"github.com/skupperproject/skupper/test/utils/base"
 )
 
 // This is an add-on for the topologies in this package.  When embedded into
@@ -66,7 +65,7 @@ func (c *contextHolder) Get(kind f2k8s.ClusterType, number int) (*f2k8s.Namespac
 // This is the same as Get, but it will fail if the number is higher
 // than what the cluster provides.  Use this only if the test requires
 // a specific minimum number of ClusterContexts
-func (c *contextHolder) GetStrict(kind f2k8s.ClusterType, number int) (base.ClusterContext, error) {
+func (c *contextHolder) GetStrict(kind f2k8s.ClusterType, number int) (f2k8s.Namespace, error) {
 	panic("not implemented") // TODO: Implement
 }
 
@@ -82,7 +81,7 @@ func (c *contextHolder) GetAll(kind f2k8s.ClusterType) []*f2k8s.Namespace {
 }
 
 // Same as above, but unfiltered
-func (c *contextHolder) GetAllStrict(kind f2k8s.ClusterType) []base.ClusterContext {
+func (c *contextHolder) GetAllStrict(kind f2k8s.ClusterType) []f2k8s.Namespace {
 	panic("not implemented") // TODO: Implement
 }
 

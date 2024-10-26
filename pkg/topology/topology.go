@@ -8,7 +8,6 @@ import (
 	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/skupperexecute"
-	"github.com/skupperproject/skupper/test/utils/base"
 )
 
 // Any topology needs to implement this interface.
@@ -40,14 +39,14 @@ type Basic interface {
 	// This is the same as Get, but it will fail if the number is higher
 	// than what the cluster provides.  Use this only if the test requires
 	// a specific minimum number of ClusterContexts
-	GetStrict(kind f2k8s.ClusterType, number int) (base.ClusterContext, error)
+	GetStrict(kind f2k8s.ClusterType, number int) (f2k8s.Namespace, error)
 
 	// Get all clusterContexts of a certain type.  Note this be filtered
 	// depending on the topology
 	GetAll(kind f2k8s.ClusterType) []*f2k8s.Namespace
 
 	// Same as above, but unfiltered
-	GetAllStrict(kind f2k8s.ClusterType) []base.ClusterContext
+	GetAllStrict(kind f2k8s.ClusterType) []f2k8s.Namespace
 
 	// Get a list with all clusterContexts, regardless of type or role
 	ListAll() []*f2k8s.Namespace

@@ -5,14 +5,14 @@ import (
 	"fmt"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/skupperproject/skupper/test/utils/base"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	apps "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // Executes a fully specified K8S Statefulset
 type K8SStatefulSet struct {
-	Namespace    *base.ClusterContext
+	Namespace    *f2k8s.Namespace
 	StatefulSet  *apps.StatefulSet
 	AutoTeardown bool
 	Ctx          context.Context
@@ -24,7 +24,7 @@ func (k *K8SStatefulSet) Execute() error {
 	ctx := frame2.ContextOrDefault(k.Ctx)
 
 	var err error
-	k.Result, err = k.Namespace.VanClient.KubeClient.AppsV1().StatefulSets(k.Namespace.Namespace).Create(ctx, k.StatefulSet, metav1.CreateOptions{})
+	k.Result, err = k.Namespace.StatefulSetInterface().Create(ctx, k.StatefulSet, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("Failed to create statefulset %q: %w", k.StatefulSet.Name, err)
 	}
@@ -45,7 +45,7 @@ func (k *K8SStatefulSet) Teardown() frame2.Executor {
 }
 
 type K8SStatefulSetRemove struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 	Name      string
 
 	Ctx context.Context
@@ -54,7 +54,7 @@ type K8SStatefulSetRemove struct {
 func (k *K8SStatefulSetRemove) Execute() error {
 	ctx := frame2.ContextOrDefault(k.Ctx)
 
-	err := k.Namespace.VanClient.KubeClient.AppsV1().StatefulSets(k.Namespace.Namespace).Delete(ctx, k.Name, metav1.DeleteOptions{})
+	err := k.Namespace.StatefulSetInterface().Delete(ctx, k.Name, metav1.DeleteOptions{})
 	if err != nil {
 		return fmt.Errorf("Failed to remove statefulset %q: %w", k.Name, err)
 	}
