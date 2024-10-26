@@ -7,14 +7,14 @@ import (
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
-	"github.com/skupperproject/skupper/api/types"
+	"github.com/hash-d/frame2/pkg/frames/f2sk/f2skconst"
 	v1 "k8s.io/api/core/v1"
 )
 
 var (
-	RouterSelector            = fmt.Sprintf("%s=%s", types.ComponentAnnotation, types.TransportComponentName)
-	ConfigSyncSelector        = fmt.Sprintf("%s=%s", types.ComponentAnnotation, types.ConfigSyncContainerName)
-	ServiceControllerSelector = fmt.Sprintf("%s=%s", types.ComponentAnnotation, types.ControllerComponentName)
+	RouterSelector            = fmt.Sprintf("%s=%s", f2skconst.ComponentAnnotation, f2skconst.TransportComponentName)
+	ConfigSyncSelector        = fmt.Sprintf("%s=%s", f2skconst.ComponentAnnotation, f2skconst.ConfigSyncContainerName)
+	ServiceControllerSelector = fmt.Sprintf("%s=%s", f2skconst.ComponentAnnotation, f2skconst.ControllerComponentName)
 )
 
 type Container struct {

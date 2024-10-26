@@ -5,7 +5,7 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
-	"github.com/skupperproject/skupper/api/types"
+	"github.com/hash-d/frame2/pkg/frames/f2sk/f2skconst"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -26,6 +26,8 @@ type SkupperInfoContents struct {
 	AllPods *corev1.PodList
 }
 
+// On skupper code, defined on pkg/utils/configs/manifest.go, but not as
+// constants
 const (
 	SkupperRouterRepo = "https://github.com/skupperproject/skupper-router"
 	SkupperRepo       = "https://github.com/skupperproject/skupper"
@@ -51,14 +53,14 @@ func (s *SkupperInfo) Validate() error {
 	var err error
 
 	// Router deployment
-	s.Result.RouterDeployment, err = s.Namespace.DeploymentInterface().Get(ctx, types.TransportDeploymentName, metav1.GetOptions{})
+	s.Result.RouterDeployment, err = s.Namespace.DeploymentInterface().Get(ctx, f2skconst.TransportDeploymentName, metav1.GetOptions{})
 	if err != nil {
-		s.Log.Printf("failed to get deployment %q: %v", types.TransportDeploymentName, err)
+		s.Log.Printf("failed to get deployment %q: %v", f2skconst.TransportDeploymentName, err)
 	} else {
 		s.Result.HasRouter = true
 		for _, container := range s.Result.RouterDeployment.Spec.Template.Spec.Containers {
 			switch container.Name {
-			case types.TransportComponentName:
+			case f2skconst.TransportComponentName:
 				s.Result.Images.Images = append(
 					s.Result.Images.Images,
 					SkupperManifestContentImage{
@@ -66,9 +68,10 @@ func (s *SkupperInfo) Validate() error {
 						Repository: SkupperRouterRepo,
 					},
 				)
-			case types.ConfigSyncContainerName:
+			case f2skconst.ConfigSyncContainerName:
 				s.Result.Images.Images = append(
 					s.Result.Images.Images,
+
 					SkupperManifestContentImage{
 						Name:       container.Image,
 						Repository: SkupperRepo,
@@ -89,14 +92,14 @@ func (s *SkupperInfo) Validate() error {
 	}
 
 	// Service Controller Deployment
-	s.Result.ServiceControllerDeployment, err = s.Namespace.DeploymentInterface().Get(ctx, types.ControllerDeploymentName, metav1.GetOptions{})
+	s.Result.ServiceControllerDeployment, err = s.Namespace.DeploymentInterface().Get(ctx, f2skconst.ControllerDeploymentName, metav1.GetOptions{})
 	if err != nil {
-		s.Log.Printf("failed to get deployment %q: %v", types.TransportDeploymentName, err)
+		s.Log.Printf("failed to get deployment %q: %v", f2skconst.TransportDeploymentName, err)
 	} else {
 		s.Result.HasServiceController = true
 		for _, container := range s.Result.ServiceControllerDeployment.Spec.Template.Spec.Containers {
 			switch container.Name {
-			case types.ControllerContainerName, types.FlowCollectorContainerName:
+			case f2skconst.ControllerContainerName, f2skconst.FlowCollectorContainerName:
 				s.Result.Images.Images = append(
 					s.Result.Images.Images,
 					SkupperManifestContentImage{
@@ -119,14 +122,14 @@ func (s *SkupperInfo) Validate() error {
 	}
 
 	// Prometheus deployment
-	s.Result.PrometheusDeployment, err = s.Namespace.DeploymentInterface().Get(ctx, types.PrometheusDeploymentName, metav1.GetOptions{})
+	s.Result.PrometheusDeployment, err = s.Namespace.DeploymentInterface().Get(ctx, f2skconst.PrometheusDeploymentName, metav1.GetOptions{})
 	if err != nil {
-		s.Log.Printf("failed to get deployment %q: %v", types.TransportDeploymentName, err)
+		s.Log.Printf("failed to get deployment %q: %v", f2skconst.TransportDeploymentName, err)
 	} else {
 		s.Result.HasPrometheus = true
 		for _, container := range s.Result.PrometheusDeployment.Spec.Template.Spec.Containers {
 			switch container.Name {
-			case types.PrometheusContainerName:
+			case f2skconst.PrometheusContainerName:
 				s.Result.Images.Images = append(
 					s.Result.Images.Images,
 					SkupperManifestContentImage{
