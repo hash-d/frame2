@@ -5,7 +5,7 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
-	"github.com/skupperproject/skupper/test/utils/base"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 )
 
 // TODO - This should move to a validate package, but it can't be there
@@ -15,7 +15,7 @@ import (
 // Executes nslookup within a pod, to check whether a name is valid
 // within a namespace or cluster
 type Nslookup struct {
-	Namespace *base.ClusterContext
+	Namespace *f2k8s.Namespace
 
 	Name string
 
@@ -27,7 +27,7 @@ type Nslookup struct {
 
 func (n Nslookup) Validate() error {
 
-	arg := fmt.Sprintf("kubectl --namespace %s exec deploy/dnsutils -- nslookup %q", n.Namespace.Namespace, n.Name)
+	arg := fmt.Sprintf("kubectl --namespace %s exec deploy/dnsutils -- nslookup %q", n.Namespace.GetNamespaceName(), n.Name)
 
 	n.Cmd.Command = arg
 	n.Cmd.Shell = true

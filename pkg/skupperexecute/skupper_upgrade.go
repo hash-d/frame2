@@ -10,7 +10,6 @@ import (
 	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/validate"
-	"github.com/skupperproject/skupper/test/utils/skupper/cli"
 )
 
 type SkupperUpgrade struct {
@@ -80,7 +79,7 @@ func (s SkupperUpgrade) Execute() error {
 		}
 	}
 
-	expect := cli.Expect{}
+	expect := frame2.Expect{}
 	if s.CheckUpdateRequired {
 		expect.StdOutReNot = []regexp.Regexp{*regexp.MustCompile("No update required in")}
 	}

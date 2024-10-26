@@ -2,13 +2,13 @@ package execute
 
 import (
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/skupperproject/skupper/test/utils/base"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 )
 
 type OcCli struct {
 	Args []string
 
-	ClusterContext *base.ClusterContext
+	Namespace *f2k8s.Namespace
 
 	// You can configure any aspects of the command configuration.  However,
 	// the fields Command, Args and Shell from the exec.Cmd element will be

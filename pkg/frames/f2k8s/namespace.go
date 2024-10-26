@@ -81,6 +81,10 @@ func (n Namespace) DeploymentInterface() appsv1.DeploymentInterface {
 	return n.cluster.kubeClient.AppsV1().Deployments(n.name)
 }
 
+func (n Namespace) StatefulSetInterface() appsv1.StatefulSetInterface {
+	return n.cluster.kubeClient.AppsV1().StatefulSets(n.name)
+}
+
 func (n Namespace) ClusterRoleBindingInterface() rbacv1.ClusterRoleBindingInterface {
 	return n.cluster.kubeClient.RbacV1().ClusterRoleBindings()
 }

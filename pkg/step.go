@@ -5,8 +5,6 @@ import (
 	"log"
 	"os"
 	"strings"
-
-	"github.com/skupperproject/skupper/test/frame2"
 )
 
 const EnvFrame2Verbose = "SKUPPER_TEST_FRAME2_VERBOSE"
@@ -90,7 +88,7 @@ func (s *Step) IterFrames(transform TransformFunc) error {
 
 	if s.Modify != nil {
 		if ret, err := transform(s.Modify); err == nil {
-			if ret, ok := ret.(frame2.Executor); ok {
+			if ret, ok := ret.(Executor); ok {
 				s.Modify = ret
 			} else {
 				return fmt.Errorf("TransformFunc did not return an Executor on Modify (%T)", ret)
@@ -102,7 +100,7 @@ func (s *Step) IterFrames(transform TransformFunc) error {
 
 	if s.Validator != nil {
 		if ret, err := transform(s.Validator); err == nil {
-			if ret, ok := ret.(frame2.Validator); ok {
+			if ret, ok := ret.(Validator); ok {
 				s.Validator = ret
 			} else {
 				return fmt.Errorf("TransformFunc did not return a Validator on Validator(%T)", ret)
@@ -114,7 +112,7 @@ func (s *Step) IterFrames(transform TransformFunc) error {
 
 	for i, v := range s.Validators {
 		if ret, err := transform(v); err == nil {
-			if ret, ok := ret.(frame2.Validator); ok {
+			if ret, ok := ret.(Validator); ok {
 				s.Validators[i] = ret
 			} else {
 				return fmt.Errorf("TransformFunc did not return a Validator on Validators[%d](%T)", i, ret)

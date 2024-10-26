@@ -8,7 +8,6 @@ import (
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/hash-d/frame2/pkg/skupperexecute"
-	"github.com/skupperproject/skupper/test/utils/skupper/cli"
 )
 
 type CliLinkStatus struct {
@@ -52,7 +51,7 @@ func (cls CliLinkStatus) Execute() error {
 			if err != nil {
 				return err
 			}
-			e := cli.Expect{}
+			e := frame2.Expect{}
 
 			stdout, stderr := cls.CliLinkStatus.Cmd.CmdResult.Stdout, cls.CliLinkStatus.Cmd.CmdResult.Stderr
 			// Outgoing

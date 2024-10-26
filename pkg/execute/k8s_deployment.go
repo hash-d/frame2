@@ -9,7 +9,6 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
-	"github.com/skupperproject/skupper/test/utils"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -312,11 +311,11 @@ func newDeployment(name, namespace string, opts DeploymentOpts) (*appsv1.Deploym
 	var err error
 
 	// Validating mandatory fields
-	if utils.StrEmpty(name) {
+	if name == "" {
 		err := fmt.Errorf("deployment name is required")
 		return nil, err
 	}
-	if utils.StrEmpty(opts.Image) {
+	if opts.Image == "" {
 		err := fmt.Errorf("image is required")
 		return nil, err
 	}

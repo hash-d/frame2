@@ -5,12 +5,12 @@ import (
 	"log"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/skupperproject/skupper/test/utils/base"
+	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type DeployScale struct {
-	Namespace      base.ClusterContext
+	Namespace      f2k8s.Namespace
 	DeploySelector // Do not populate the Namespace within the PodSelector; it will be auto-populated
 	Replicas       int32
 	Ctx            context.Context
@@ -30,8 +30,7 @@ func (d DeployScale) Execute() error {
 	deploy := d.DeploySelector.Deploy
 
 	deploy.Spec.Replicas = &d.Replicas
-	_, err = d.Namespace.VanClient.KubeClient.AppsV1().
-		Deployments(d.Namespace.Namespace).Update(ctx, deploy, v1.UpdateOptions{})
+	_, err = d.Namespace.DeploymentInterface().Update(ctx, deploy, v1.UpdateOptions{})
 
 	return err
 

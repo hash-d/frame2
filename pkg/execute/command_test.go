@@ -11,7 +11,6 @@ import (
 	"time"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/skupperproject/skupper/test/utils/skupper/cli"
 	"gotest.tools/assert"
 )
 
@@ -147,7 +146,7 @@ var tests = frame2.Phase{
 					Cmd: exec.Cmd{
 						Args: []string{"Hello"},
 					},
-					Expect: cli.Expect{
+					Expect: frame2.Expect{
 						StdOut: []string{"Hello"},
 					},
 				},
@@ -169,7 +168,7 @@ var tests = frame2.Phase{
 					Cmd: exec.Cmd{
 						Args: []string{"Hello"},
 					},
-					Expect: cli.Expect{
+					Expect: frame2.Expect{
 						StdOut: []string{"Hello"},
 					},
 				},
@@ -196,7 +195,7 @@ var tests = frame2.Phase{
 						// you're using arg[0] as the command name
 						Args: []string{"myecho", "Hello"},
 					},
-					Expect: cli.Expect{
+					Expect: frame2.Expect{
 						StdOut:      []string{"Hello"},
 						StdOutReNot: []regexp.Regexp{*regexp.MustCompile("myecho")},
 					},
@@ -212,7 +211,7 @@ var tests = frame2.Phase{
 						// you're using arg[0] as the command name
 						Args: []string{"mysleep"},
 					},
-					Expect: cli.Expect{
+					Expect: frame2.Expect{
 						// We have no arguments, but we set the name as "mysleep",
 						// so it should show on the error
 						StdErr: []string{"mysleep"},
@@ -237,7 +236,7 @@ var tests = frame2.Phase{
 				cmd: Cmd{
 					Command: "echo hello",
 					Shell:   true,
-					Expect: cli.Expect{
+					Expect: frame2.Expect{
 						StdOut: []string{"hello"},
 					},
 				},
@@ -248,7 +247,7 @@ var tests = frame2.Phase{
 				cmd: Cmd{
 					Command: "cal",
 					Shell:   true,
-					Expect: cli.Expect{
+					Expect: frame2.Expect{
 						// This might fail sporadically after 2100...
 						StdOut: []string{" 20"},
 					},
@@ -260,7 +259,7 @@ var tests = frame2.Phase{
 				cmd: Cmd{
 					Command: unknownCommand,
 					Shell:   true,
-					Expect: cli.Expect{
+					Expect: frame2.Expect{
 						StdErr: []string{unknownCommand},
 					},
 					AcceptReturn: []int{127}, // 127 is for command not found
@@ -272,7 +271,7 @@ var tests = frame2.Phase{
 			Validator: &cmdValidator{
 				cmd: Cmd{
 					Command: "date",
-					Expect: cli.Expect{
+					Expect: frame2.Expect{
 						// Does Expect fail in some way, because the output
 						// is not available?
 						StdOut: []string{""},
@@ -291,7 +290,7 @@ var tests = frame2.Phase{
 					Command: "echo hello; /usr/bin/sleep 60",
 					Shell:   true,
 					Timeout: time.Second,
-					Expect: cli.Expect{
+					Expect: frame2.Expect{
 						StdOut: []string{"hello"},
 					},
 				},
