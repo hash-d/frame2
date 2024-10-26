@@ -63,7 +63,7 @@ func (c Curl) Validate() error {
 		// There is no reason to give Curl no time to respond
 		c.CurlOptions.Timeout = 60
 	}
-	c.Log.Printf("Calling Curl on %v", c.Url)
+	c.Log.Printf("Calling Curl from %q on %q", c.Podname, c.Url)
 	resp, err := curl(
 		c.Namespace.KubeClient(),
 		c.Namespace.GetKubeConfig().GetRestConfig(),

@@ -9,7 +9,6 @@ import (
 	openshiftapps "github.com/openshift/client-go/apps/clientset/versioned"
 
 	routev1client "github.com/openshift/client-go/route/clientset/versioned/typed/route/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/discovery"
@@ -18,10 +17,6 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
-
-var scheme = runtime.NewScheme()
-var codecs = serializer.NewCodecFactory(scheme)
-var parameterCodec = runtime.NewParameterCodec(scheme)
 
 var clusters = []*KubeConfig{}
 var domainClusters = map[ClusterType][]*KubeConfig{}

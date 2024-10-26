@@ -17,6 +17,10 @@ import (
 //
 // Do not use this out of f2k8s.  Today, it is exported because it is used
 // by validate/curl, which will be moved to f2k8s (?) in a refactoring
+//
+// TODO: perhaps use a call to kubectl exec, instead; it would make the test
+// more easily reproduceable manually, and we probably could get rid of
+// pkg/frames/f2k8s/scheme.go & go altogether
 func Execute(kubeClient kubernetes.Interface, config *rest.Config, ns string, pod, container string, command []string) (bytes.Buffer, bytes.Buffer, error) {
 	// nil safe
 	stdout := bytes.Buffer{}
