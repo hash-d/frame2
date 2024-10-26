@@ -14,7 +14,6 @@ import (
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
-	"github.com/skupperproject/skupper/test/utils/k8s"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -192,7 +191,7 @@ func curl(kubeClient kubernetes.Interface, config *restclient.Config, ns, podNam
 	var stderr bytes.Buffer
 
 	go func() {
-		_, stderr, err = k8s.Execute(kubeClient, config, ns, pod.Name, pod.Spec.Containers[0].Name, command)
+		_, stderr, err = f2k8s.Execute(kubeClient, config, ns, pod.Name, pod.Spec.Containers[0].Name, command)
 		close(curlDoneCh)
 	}()
 
@@ -213,7 +212,7 @@ func curl(kubeClient kubernetes.Interface, config *restclient.Config, ns, podNam
 	}
 
 	// Reading response Body
-	stdout, stderr, err := k8s.Execute(kubeClient, config, ns, pod.Name, pod.Spec.Containers[0].Name, []string{"cat", bodyFile})
+	stdout, stderr, err := f2k8s.Execute(kubeClient, config, ns, pod.Name, pod.Spec.Containers[0].Name, []string{"cat", bodyFile})
 	if err != nil {
 		log.Printf("error retrieving response Body - %s", stderr.String())
 		return nil, err
@@ -221,7 +220,7 @@ func curl(kubeClient kubernetes.Interface, config *restclient.Config, ns, podNam
 	response.Body = stdout.String()
 
 	// Reading header file
-	stdout, stderr, err = k8s.Execute(kubeClient, config, ns, pod.Name, pod.Spec.Containers[0].Name, []string{"cat", headersFile})
+	stdout, stderr, err = f2k8s.Execute(kubeClient, config, ns, pod.Name, pod.Spec.Containers[0].Name, []string{"cat", headersFile})
 	if err != nil {
 		log.Printf("error retrieving Output Headers - %s", stderr.String())
 		return nil, err
@@ -261,7 +260,7 @@ func curl(kubeClient kubernetes.Interface, config *restclient.Config, ns, podNam
 	}
 
 	// Removing the Output files
-	_, stderr, err = k8s.Execute(kubeClient, config, ns, pod.Name, pod.Spec.Containers[0].Name, []string{"rm", headersFile, bodyFile})
+	_, stderr, err = f2k8s.Execute(kubeClient, config, ns, pod.Name, pod.Spec.Containers[0].Name, []string{"rm", headersFile, bodyFile})
 	if err != nil {
 		log.Printf("error removing Headers and Body files - %s", stderr.String())
 		return nil, err
