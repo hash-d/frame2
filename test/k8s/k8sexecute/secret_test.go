@@ -5,10 +5,10 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
+	"github.com/hash-d/frame2/pkg/frames/f2skupper1/topology"
+	"github.com/hash-d/frame2/pkg/frames/f2skupper1/topology/topologies"
 	"github.com/hash-d/frame2/pkg/frames/k8sexecute"
 	"github.com/hash-d/frame2/pkg/frames/k8svalidate"
-	"github.com/hash-d/frame2/pkg/topology"
-	"github.com/hash-d/frame2/pkg/topology/topologies"
 	"gotest.tools/assert"
 	core "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"

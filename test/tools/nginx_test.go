@@ -4,9 +4,7 @@ import (
 	"testing"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
-	"github.com/hash-d/frame2/pkg/validate"
 	"gotest.tools/assert"
 )
 
@@ -39,16 +37,16 @@ func TestNginxDeploy(t *testing.T) {
 		MainSteps: []frame2.Step{
 			{
 				Doc: "Deploy a plain nginx and check the deployment",
-				Modify: execute.NginxDeploy{
+				Modify: f2k8s.NginxDeploy{
 					Namespace:     prv1,
 					ExposeService: true,
 				},
 				Validators: []frame2.Validator{
-					&execute.K8SDeploymentGet{
+					&f2k8s.K8SDeploymentGet{
 						Namespace: prv1,
 						Name:      "nginx",
 					},
-					&validate.Curl{
+					&f2k8s.Curl{
 						Namespace:   prv1,
 						Url:         "http://nginx:8080",
 						Fail400Plus: true,

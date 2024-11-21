@@ -1,13 +1,13 @@
 package skupper
 
 import (
+	"github.com/hash-d/frame2/pkg/frames/f2general"
 	"testing"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
-	"github.com/hash-d/frame2/pkg/topology"
-	"github.com/hash-d/frame2/pkg/topology/topologies"
+	"github.com/hash-d/frame2/pkg/frames/f2skupper1/topology"
+	"github.com/hash-d/frame2/pkg/frames/f2skupper1/topology/topologies"
 )
 
 func TestTopologyMap(t *testing.T) {
@@ -66,7 +66,7 @@ func TestTopologyMap(t *testing.T) {
 		MainSteps: []frame2.Step{
 			{
 				Doc: "Show it to me",
-				Modify: execute.Print{
+				Modify: f2general.Print{
 					Data: []interface{}{topoMap},
 				},
 			},

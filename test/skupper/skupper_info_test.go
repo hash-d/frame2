@@ -2,13 +2,13 @@ package skupper
 
 import (
 	"fmt"
+	"github.com/hash-d/frame2/pkg/frames/f2general"
+	"github.com/hash-d/frame2/pkg/frames/f2skupper1"
+	"github.com/hash-d/frame2/pkg/frames/f2skupper1/f2sk1environment"
 	"testing"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/hash-d/frame2/pkg/environment"
-	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
-	"github.com/hash-d/frame2/pkg/skupperexecute"
 	"gotest.tools/assert"
 )
 
@@ -18,7 +18,7 @@ func TestSkupperInfo(t *testing.T) {
 		T: t,
 	}
 
-	installCurrent := environment.JustSkupperSimple{
+	installCurrent := f2sk1environment.JustSkupperSimple{
 		Name:    "skupper-info",
 		Console: true,
 		//AutoTearDown: true,
@@ -39,7 +39,7 @@ func TestSkupperInfo(t *testing.T) {
 	namespace, err := installCurrent.Topo.Get(f2k8s.Public, 1)
 	assert.Assert(t, err)
 
-	getInfoCurrent := skupperexecute.SkupperInfo{
+	getInfoCurrent := f2skupper1.SkupperInfo{
 		Namespace: namespace,
 	}
 
@@ -59,7 +59,7 @@ func TestSkupperInfo(t *testing.T) {
 		Doc:    "Compare manifest.json to Skupper info acquired priorly",
 		MainSteps: []frame2.Step{
 			{
-				Modify: execute.Function{
+				Modify: f2general.Function{
 					Fn: func() error {
 						if getInfoCurrent.Result.HasRouter {
 							return nil
@@ -67,7 +67,7 @@ func TestSkupperInfo(t *testing.T) {
 						return fmt.Errorf("The namespace %q has no skupper-router, so we can't consider it for manifest check", namespace.GetNamespaceName())
 					},
 				},
-				Validator: &skupperexecute.SkupperManifest{
+				Validator: &f2skupper1.SkupperManifest{
 					Expected: getInfoCurrent.Result.Images,
 				},
 			},
