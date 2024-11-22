@@ -1,4 +1,4 @@
-package k8svalidate
+package f2k8s
 
 import (
 	"context"
@@ -6,14 +6,13 @@ import (
 	"strings"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"golang.org/x/exp/slices"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type Pods struct {
-	Namespace *f2k8s.Namespace
+	Namespace *Namespace
 	Labels    map[string]string
 	Ctx       context.Context
 

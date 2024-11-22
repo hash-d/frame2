@@ -7,7 +7,6 @@ import (
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/frames/f2general"
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
-	"github.com/hash-d/frame2/pkg/frames/k8svalidate"
 )
 
 type RouterCheck struct {
@@ -85,7 +84,7 @@ func (r *RouterCheck) Validate() error {
 		MainSteps: []frame2.Step{
 			{
 				Doc: "Checking contents of CM skupper-internal",
-				Validator: &k8svalidate.ConfigMap{
+				Validator: &f2k8s.ConfigMap{
 					Namespace: r.Namespace,
 					Name:      "skupper-internal",
 					Ctx:       r.Ctx,

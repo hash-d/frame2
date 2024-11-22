@@ -11,8 +11,6 @@ import (
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 )
 
-// TODO these should all move to a skupper-specific thing
-
 // This interface should be used only on components that
 // install skupper (such as SkupperInit).  It indicates to
 // the upgrade disruptors that a step and/or namespace is

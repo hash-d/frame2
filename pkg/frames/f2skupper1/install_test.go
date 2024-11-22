@@ -14,7 +14,6 @@ import (
 	"github.com/hash-d/frame2/pkg/frames/f2ocp"
 	"github.com/hash-d/frame2/pkg/frames/f2skupper1/topology"
 	"github.com/hash-d/frame2/pkg/frames/f2skupper1/topology/topologies"
-	"github.com/hash-d/frame2/pkg/frames/k8svalidate"
 	"github.com/hash-d/frame2/pkg/subrunner"
 	"gotest.tools/assert"
 	corev1 "k8s.io/api/core/v1"
@@ -92,7 +91,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 				Modify: &f2skupper1.SkupperDelete{
 					Namespace: ns,
 				},
-				Validator: &k8svalidate.Pods{
+				Validator: &f2k8s.Pods{
 					Namespace: ns,
 					Labels: map[string]string{
 						"app.kubernetes.io/part-of": "skupper",
@@ -128,7 +127,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&k8svalidate.Pods{
+					&f2k8s.Pods{
 						Namespace: ns,
 						Labels: map[string]string{
 							"app.kubernetes.io/part-of": "skupper",
@@ -136,7 +135,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 						ExpectExactly:         2,
 						NegativeContainerList: []string{"flow-collector"},
 					},
-					&k8svalidate.ConfigMap{
+					&f2k8s.ConfigMap{
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values: map[string]string{
@@ -166,7 +165,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&k8svalidate.Pods{
+					&f2k8s.Pods{
 						Namespace: ns,
 						Labels: map[string]string{
 							"app.kubernetes.io/part-of": "skupper",
@@ -186,20 +185,20 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&k8svalidate.Pods{
+					&f2k8s.Pods{
 						Namespace:     ns,
 						Labels:        map[string]string{"skupper.io/component": "service-controller"},
 						ContainerList: []string{"flow-collector"},
 						ExpectExactly: 1,
 					},
-					&k8svalidate.Pods{
+					&f2k8s.Pods{
 						Namespace: ns,
 						Labels: map[string]string{
 							"app.kubernetes.io/part-of": "skupper",
 						},
 						ExpectMin: 3,
 					},
-					&k8svalidate.ConfigMap{
+					&f2k8s.ConfigMap{
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values: map[string]string{
@@ -217,21 +216,21 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&k8svalidate.Pods{
+					&f2k8s.Pods{
 						Namespace:     ns,
 						Labels:        map[string]string{"skupper.io/component": "service-controller"},
 						ExpectPhase:   corev1.PodRunning,
 						ContainerList: []string{"flow-collector"},
 						ExpectExactly: 1,
 					},
-					&k8svalidate.Pods{
+					&f2k8s.Pods{
 						Namespace: ns,
 						Labels: map[string]string{
 							"app.kubernetes.io/part-of": "skupper",
 						},
 						ExpectMin: 3,
 					},
-					&k8svalidate.ConfigMap{
+					&f2k8s.ConfigMap{
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values: map[string]string{
@@ -250,7 +249,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&k8svalidate.SecretGet{
+					&f2k8s.SecretGet{
 						Namespace: ns,
 						Name:      "skupper-console-users",
 						Keys:      []string{"testuser"},
@@ -266,7 +265,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&k8svalidate.SecretGet{
+					&f2k8s.SecretGet{
 						Namespace: ns,
 						Name:      "skupper-console-users",
 						Expect:    map[string][]byte{"admin": []byte("testpassword")},
@@ -283,7 +282,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&k8svalidate.SecretGet{
+					&f2k8s.SecretGet{
 						Namespace: ns,
 						Name:      "skupper-console-users",
 						Expect:    map[string][]byte{"testuser": []byte("testpassword")},
@@ -299,7 +298,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&k8svalidate.SecretGet{
+					&f2k8s.SecretGet{
 						Namespace: ns,
 						Name:      "skupper-console-users",
 						Keys:      []string{"admin"},
@@ -315,7 +314,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&k8svalidate.SecretGet{
+					&f2k8s.SecretGet{
 						Namespace:    ns,
 						Name:         "skupper-console-users",
 						ExpectAbsent: true,
@@ -331,7 +330,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&k8svalidate.SecretGet{
+					&f2k8s.SecretGet{
 						Namespace:    ns,
 						Name:         "skupper-console-users",
 						ExpectAbsent: true,
@@ -350,7 +349,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&k8svalidate.NetworkPolicy{
+					&f2k8s.NetworkPolicy{
 						Namespace: ns,
 						Name:      "skupper",
 					},
@@ -370,14 +369,14 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&k8svalidate.ClusterRoleBindingGet{
+					&f2k8s.ClusterRoleBindingGet{
 						Namespace: ns,
 						Name: fmt.Sprintf(
 							"skupper-service-controller-extended-%s",
 							ns.GetNamespaceName(),
 						),
 					},
-					&k8svalidate.ConfigMap{
+					&f2k8s.ConfigMap{
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values:    map[string]string{"cluster-permissions": "true"},
@@ -391,7 +390,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&k8svalidate.ConfigMap{
+					&f2k8s.ConfigMap{
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values:    map[string]string{"name": "custom-site-name"},
@@ -409,7 +408,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&k8svalidate.ConfigMap{
+					&f2k8s.ConfigMap{
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values:    map[string]string{"router-logging": "trace"},
@@ -440,7 +439,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&k8svalidate.ConfigMap{
+					&f2k8s.ConfigMap{
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values:    map[string]string{"ingress": "none"},
@@ -467,7 +466,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&k8svalidate.ConfigMap{
+					&f2k8s.ConfigMap{
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values:    map[string]string{"ingress-host": "localhost"},
@@ -481,7 +480,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&k8svalidate.ConfigMap{
+					&f2k8s.ConfigMap{
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values:    map[string]string{"service-sync": "false"},
@@ -495,7 +494,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&k8svalidate.ConfigMap{
+					&f2k8s.ConfigMap{
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values:    map[string]string{"router-cpu": "134m"},

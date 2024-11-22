@@ -1,7 +1,5 @@
 // Frames (Executor and Validator) for Skupper 1.x
 //
-// This will be renamed to f2skupper1 in the near future.
-//
 // Code organization:
 //
 // - Each operation (TokenCreate, ServiceStatus, LinkDelete, etc..) has its own

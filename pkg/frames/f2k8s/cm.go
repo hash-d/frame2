@@ -1,4 +1,4 @@
-package k8svalidate
+package f2k8s
 
 import (
 	"context"
@@ -7,14 +7,13 @@ import (
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/frames/f2general"
-	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // TODO: Uniformize fields and struct name, between this and SecretGet
 type ConfigMap struct {
-	Namespace *f2k8s.Namespace
+	Namespace *Namespace
 	Name      string
 	Ctx       context.Context
 

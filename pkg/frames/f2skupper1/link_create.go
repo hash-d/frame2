@@ -5,7 +5,6 @@ import (
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/frames/f2general"
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
-	"github.com/hash-d/frame2/pkg/frames/k8svalidate"
 )
 
 type LinkCreate struct {
@@ -69,7 +68,7 @@ func (o *OutgoingLinkCheck) Validate() error {
 		MainSteps: []frame2.Step{
 			{
 				Validators: []frame2.Validator{
-					&k8svalidate.SecretGet{
+					&f2k8s.SecretGet{
 						Namespace: o.Namespace,
 						Name:      o.Name,
 						Annotations: f2general.MapCheck{
@@ -79,7 +78,7 @@ func (o *OutgoingLinkCheck) Validate() error {
 							Values: map[string]string{"skupper.io/type": "connection-token"},
 						},
 					},
-					&k8svalidate.ConfigMap{
+					&f2k8s.ConfigMap{
 						Namespace: o.Namespace,
 						Name:      "skupper-internal",
 						JSON: map[string]f2general.JSON{

@@ -1,10 +1,9 @@
-package k8svalidate
+package f2k8s
 
 import (
 	"context"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,7 +15,7 @@ type ClusterRoleBindingGet struct {
 	//
 	// The Namespace will then also be used to confirm that the
 	// acquired binding points to this namespace
-	Namespace *f2k8s.Namespace
+	Namespace *Namespace
 	Name      string
 	Ctx       context.Context
 

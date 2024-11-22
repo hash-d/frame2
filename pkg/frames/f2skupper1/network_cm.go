@@ -6,7 +6,6 @@ import (
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/frames/f2general"
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
-	"github.com/hash-d/frame2/pkg/frames/k8svalidate"
 )
 
 // INCOMPLETE TODO
@@ -25,7 +24,7 @@ func (n NetworkStatusConfigMap) Validate() error {
 		Runner: n.GetRunner(),
 		MainSteps: []frame2.Step{
 			{
-				Validator: &k8svalidate.ConfigMap{
+				Validator: &f2k8s.ConfigMap{
 					Namespace: n.Namespace,
 					Name:      "skupper-network-status",
 					JSON: map[string]f2general.JSON{

@@ -1,22 +1,59 @@
-package k8svalidate
+package f2k8s
 
 import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/hash-d/frame2/pkg/frames/f2general"
 	"log"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/hash-d/frame2/pkg/frames/f2general"
-	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	core "k8s.io/api/core/v1"
-	corev1 "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type SecretCreate struct {
+	Namespace *Namespace
+	Secret    *core.Secret
+
+	*frame2.Log
+	frame2.DefaultRunDealer
+}
+
+func (s SecretCreate) Execute() error {
+
+	_, err := s.Namespace.SecretInterface().Create(
+		context.Background(),
+		s.Secret,
+		meta.CreateOptions{},
+	)
+	return err
+}
+
+type SecretDelete struct {
+	Namespace *Namespace
+	Name      string
+
+	Secret *core.Secret // return
+
+	*frame2.Log
+	frame2.DefaultRunDealer
+}
+
+func (s SecretDelete) Execute() error {
+
+	var err error
+	err = s.Namespace.SecretInterface().Delete(
+		context.Background(),
+		s.Name,
+		meta.DeleteOptions{},
+	)
+	return err
+}
+
 // TODO: Uniformize fields and struct name, between this and ConfigMap
 type SecretGet struct {
-	Namespace *f2k8s.Namespace
+	Namespace *Namespace
 	Name      string
 
 	// TODO change all these for a f2general.MapCheck
@@ -45,7 +82,7 @@ type SecretGet struct {
 
 	// Function to run against the Secret, to validate.  Provides a way
 	// to execute more complex validations not available above, inline
-	SecretValidator func(corev1.Secret) error
+	SecretValidator func(core.Secret) error
 
 	Secret *core.Secret
 

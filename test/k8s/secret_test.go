@@ -1,4 +1,4 @@
-package k8sexecute_test
+package k8s_test
 
 import (
 	"testing"
@@ -7,8 +7,6 @@ import (
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
 	"github.com/hash-d/frame2/pkg/frames/f2skupper1/topology"
 	"github.com/hash-d/frame2/pkg/frames/f2skupper1/topology/topologies"
-	"github.com/hash-d/frame2/pkg/frames/k8sexecute"
-	"github.com/hash-d/frame2/pkg/frames/k8svalidate"
 	"gotest.tools/assert"
 	core "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -55,7 +53,7 @@ func TestCreateGetDeleteSecret(t *testing.T) {
 		MainSteps: []frame2.Step{
 			{
 				Name: "create secret and validate",
-				Modify: k8sexecute.SecretCreate{
+				Modify: f2k8s.SecretCreate{
 					Namespace: pub1,
 					Secret: &core.Secret{
 						ObjectMeta: v1.ObjectMeta{
@@ -69,7 +67,7 @@ func TestCreateGetDeleteSecret(t *testing.T) {
 						},
 					},
 				},
-				Validator: k8svalidate.SecretGet{
+				Validator: f2k8s.SecretGet{
 					Namespace: pub1,
 					Name:      "test-secret",
 					Expect: map[string][]byte{
@@ -79,7 +77,7 @@ func TestCreateGetDeleteSecret(t *testing.T) {
 			}, {
 				Name: "negative tests",
 				Validators: []frame2.Validator{
-					k8svalidate.SecretGet{
+					f2k8s.SecretGet{
 						Namespace: pub1,
 						Name:      "test-secret",
 						Expect: map[string][]byte{
@@ -87,21 +85,21 @@ func TestCreateGetDeleteSecret(t *testing.T) {
 						},
 						ExpectAll: true,
 					},
-					k8svalidate.SecretGet{
+					f2k8s.SecretGet{
 						Namespace: pub1,
 						Name:      "test-secret",
 						Expect: map[string][]byte{
 							"asdf": []byte("bar"),
 						},
 					},
-					k8svalidate.SecretGet{
+					f2k8s.SecretGet{
 						Namespace: pub1,
 						Name:      "test-secret",
 						Expect: map[string][]byte{
 							"foo": []byte("qwerty"),
 						},
 					},
-					k8svalidate.SecretGet{
+					f2k8s.SecretGet{
 						Namespace: pub1,
 						Name:      "test-secret",
 						Expect: map[string][]byte{
@@ -112,11 +110,11 @@ func TestCreateGetDeleteSecret(t *testing.T) {
 				ExpectError: true,
 			}, {
 				Name: "delete-secret",
-				Modify: k8sexecute.SecretDelete{
+				Modify: f2k8s.SecretDelete{
 					Namespace: pub1,
 					Name:      "test-secret",
 				},
-				Validator: k8svalidate.SecretGet{
+				Validator: f2k8s.SecretGet{
 					Namespace: pub1,
 					Name:      "test-secret",
 				},

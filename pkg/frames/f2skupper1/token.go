@@ -13,7 +13,6 @@ import (
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/frames/f2general"
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
-	"github.com/hash-d/frame2/pkg/frames/k8svalidate"
 	"github.com/jmespath/go-jmespath"
 	"sigs.k8s.io/yaml"
 )
@@ -285,7 +284,7 @@ func (tc TokenCheck) Validate() error {
 			}
 		}
 
-		validators = append(validators, k8svalidate.SecretGet{
+		validators = append(validators, f2k8s.SecretGet{
 			Namespace: tc.Namespace,
 			Name:      secretName,
 			Expect:    expect,
