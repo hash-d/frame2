@@ -10,7 +10,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// Any namespaces created via f2k8s.CreateNamespaceRaw will receive
+// Any namespaces created via f2k8s.NamespaceCreateRaw will receive
 // annotations that force  PSA on restricted mode
 //
 // TODO: In the future, make this more configurable (ie, different settings for
@@ -48,7 +48,7 @@ func (u *PodSecurityAdmission) Inspect(step *frame2.Step, phase *frame2.Phase) {
 	if version == "" {
 		version = "latest"
 	}
-	if mod, ok := step.Modify.(*f2k8s.CreateNamespaceRaw); ok {
+	if mod, ok := step.Modify.(*f2k8s.NamespaceCreateRaw); ok {
 		if mod.Labels == nil {
 			mod.Labels = make(map[string]string)
 		}
@@ -74,7 +74,7 @@ func (d PSADeployment) DisruptorEnvValue() string {
 }
 func (d *PSADeployment) Inspect(step *frame2.Step, phase *frame2.Phase) {
 	// log.Printf("PSA Inspecting %T", step.Modify)
-	if mod, ok := step.Modify.(*f2k8s.K8SDeployment); ok {
+	if mod, ok := step.Modify.(*f2k8s.DeploymentCreate); ok {
 
 		_true := true
 

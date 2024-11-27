@@ -161,14 +161,14 @@ func (tm *TopologyMap) Execute() error {
 	for _, item := range tm.Map {
 		log.Printf("item: %+v", item)
 
-		create := &f2k8s.CreateNamespaceTestBase{
+		create := &f2k8s.NamespaceCreateTestBase{
 			TestBase:     tm.TestBase,
 			Kind:         item.Type,
 			Id:           item.Name,
 			AutoTearDown: tm.AutoTearDown,
 		}
 
-		// This closure captures the item and &f2k8s.CreateNamespaceTestBase,
+		// This closure captures the item and &f2k8s.NamespaceCreateTestBase,
 		// and then it saves it on tm.GeneratedMap, so we can do it all in
 		// a single phase
 		save := func() func() error {

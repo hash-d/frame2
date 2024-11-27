@@ -27,7 +27,7 @@ func (n NginxDeploy) Execute() error {
 	p := frame2.Phase{
 		MainSteps: []frame2.Step{
 			{
-				Modify: &K8SDeploymentOpts{
+				Modify: &DeploymentCreateSimple{
 					Name:      name,
 					Namespace: n.Namespace,
 					Wait:      n.Wait,
@@ -38,7 +38,7 @@ func (n NginxDeploy) Execute() error {
 					},
 				},
 			}, {
-				Modify: &K8SServiceCreate{
+				Modify: &ServiceCreate{
 					Namespace: n.Namespace,
 					Name:      name,
 					Selector:  n.Labels,

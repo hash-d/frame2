@@ -5,7 +5,6 @@ package f2k8s
 import (
 	"context"
 	"fmt"
-	"github.com/hash-d/frame2/pkg/frames/f2general"
 	"time"
 
 	frame2 "github.com/hash-d/frame2/pkg"
@@ -16,8 +15,8 @@ import (
 
 // This simply makes a request to k8s.NewDeployment
 //
-// See K8SDeployment for a more complete interface
-type K8SDeploymentOpts struct {
+// See DeploymentCreate for a more complete interface
+type DeploymentCreateSimple struct {
 	Name           string
 	Namespace      *Namespace
 	DeploymentOpts DeploymentOpts
@@ -30,7 +29,7 @@ type K8SDeploymentOpts struct {
 	frame2.DefaultRunDealer
 }
 
-func (d *K8SDeploymentOpts) Execute() error {
+func (d *DeploymentCreateSimple) Execute() error {
 	ctx := frame2.ContextOrDefault(d.Ctx)
 	deployment, err := newDeployment(d.Name, d.Namespace.GetNamespaceName(), d.DeploymentOpts)
 	if err != nil {
@@ -56,9 +55,10 @@ func (d *K8SDeploymentOpts) Execute() error {
 			Runner: d.Runner,
 			MainSteps: []frame2.Step{
 				{
-					Validator: &K8SDeploymentGet{
-						Namespace: d.Namespace,
-						Name:      d.Name,
+					Validator: &DeploymentValidate{
+						Namespace:        d.Namespace,
+						Name:             d.Name,
+						MinReadyReplicas: 1,
 					},
 					ValidatorRetry: frame2.RetryOptions{
 						// The pod can get started and die a few seconds later.
@@ -79,11 +79,11 @@ func (d *K8SDeploymentOpts) Execute() error {
 
 // Executes a fully specified K8S deployment
 //
-// # See K8SDeploymentOpts for a simpler interface
+// # See DeploymentCreateSimple for a simpler interface
 //
 // For an example/template on creating a *v1.Deployment by hand, check
 // test/utils/base/cluster_context.go (k8s.NewDeployment)
-type K8SDeployment struct {
+type DeploymentCreate struct {
 	Namespace  *Namespace
 	Deployment *appsv1.Deployment
 
@@ -93,7 +93,7 @@ type K8SDeployment struct {
 	frame2.DefaultRunDealer
 }
 
-func (d *K8SDeployment) Execute() error {
+func (d *DeploymentCreate) Execute() error {
 	ctx := frame2.ContextOrDefault(d.Ctx)
 
 	var err error
@@ -105,7 +105,7 @@ func (d *K8SDeployment) Execute() error {
 	return nil
 }
 
-type K8SDeploymentGet struct {
+type DeploymentGet struct {
 	Namespace *Namespace
 	Name      string
 	Ctx       context.Context
@@ -116,17 +116,59 @@ type K8SDeploymentGet struct {
 	frame2.DefaultRunDealer
 }
 
-func (kdg *K8SDeploymentGet) Validate() error {
-	ctx := frame2.ContextOrDefault(kdg.Ctx)
+func (d *DeploymentGet) Validate() error {
+	ctx := frame2.ContextOrDefault(d.Ctx)
 
 	var err error
-	kdg.Result, err = kdg.Namespace.DeploymentInterface().Get(ctx, kdg.Name, metav1.GetOptions{})
+	d.Result, err = d.Namespace.DeploymentInterface().Get(ctx, d.Name, metav1.GetOptions{})
 	if err != nil {
-		return fmt.Errorf("failed to get deployment %q: %w", kdg.Name, err)
+		return fmt.Errorf("failed to get deployment %q: %w", d.Name, err)
 	}
 
-	if kdg.Result.Status.ReadyReplicas < 1 {
-		return fmt.Errorf("deployment %q has no ready replicas", kdg.Name)
+	return nil
+}
+
+type DeploymentValidate struct {
+	Namespace        *Namespace
+	Name             string
+	Ctx              context.Context
+	MinReadyReplicas int
+
+	Result *appsv1.Deployment
+
+	frame2.Log
+	frame2.DefaultRunDealer
+}
+
+func (d *DeploymentValidate) Validate() error {
+	ctx := frame2.ContextOrDefault(d.Ctx)
+
+	validator := &DeploymentGet{
+		Namespace: d.Namespace,
+		Name:      d.Name,
+		Ctx:       ctx,
+	}
+	phase := frame2.Phase{
+		Runner: d.GetRunner(),
+		MainSteps: []frame2.Step{
+			{
+				Validator: validator,
+			},
+		},
+	}
+	err := phase.Run()
+	d.Result = validator.Result
+	if err != nil {
+		return err
+	}
+
+	if int(d.Result.Status.ReadyReplicas) < d.MinReadyReplicas {
+		return fmt.Errorf(
+			"deployment %q has only %d ready replicas (expected at least %d)",
+			d.Name,
+			d.Result.Status.ReadyReplicas,
+			d.MinReadyReplicas,
+		)
 	}
 
 	return nil
@@ -140,21 +182,25 @@ func (kdg *K8SDeploymentGet) Validate() error {
 // field, the Ctx field cannot be set; if a different timeout is desired,
 // set it on the Action's Ctx itself, and it will be used for the
 // RetryOptions.
-type K8SDeploymentWait struct {
+//
+// This is basically a wrapper around DeploymentValidate, with some
+// pre-seleced RetryOptions, MinReadyReplicas.  You may get a more
+// flexible frame using DeploymentValidate directly
+type DeploymentWait struct {
 	Name      string
 	Namespace *Namespace
 	Ctx       context.Context
 
-	// On this field, do not set the context.  Use the K8SDeploymentWait.Ctx,
+	// On this field, do not set the context.  Use the DeploymentWait.Ctx,
 	// instead, it will be used for the underlying Retry
 	RetryOptions frame2.RetryOptions
 	frame2.DefaultRunDealer
 	*frame2.Log
 }
 
-func (w K8SDeploymentWait) Validate() error {
+func (w DeploymentWait) Validate() error {
 	if w.RetryOptions.Ctx != nil {
-		panic("RetryOptions.Ctx cannot be set for K8SDeploymentWait")
+		panic("RetryOptions.Ctx cannot be set for DeploymentWait")
 	}
 	retry := w.RetryOptions
 	if retry.IsEmpty() {
@@ -171,58 +217,19 @@ func (w K8SDeploymentWait) Validate() error {
 		Doc:    fmt.Sprintf("Waiting for deployment %q on ns %q", w.Name, w.Namespace.GetNamespaceName()),
 		MainSteps: []frame2.Step{
 			{
-				// TODO: stuff within functions need their runners replaced?
 				ValidatorRetry: retry,
-				Validator: &f2general.Function{
-					Fn: func() error {
-						validator := &K8SDeploymentGet{
-							Namespace: w.Namespace,
-							Name:      w.Name,
-						}
-						inner1 := frame2.Phase{
-							Runner: w.GetRunner(),
-							Doc:    fmt.Sprintf("Get the deployment %q on ns %q", w.Name, w.Namespace.GetNamespaceName()),
-							MainSteps: []frame2.Step{
-								{
-									Validator: validator,
-								},
-							},
-						}
-						err := inner1.Run()
-						if err != nil {
-							return err
-						}
-
-						inner2 := frame2.Phase{
-							Runner: w.GetRunner(),
-							Doc:    fmt.Sprintf("Check that the deployment %q is ready", w.Name),
-							MainSteps: []frame2.Step{
-								{
-									Validator: &f2general.Function{
-										Fn: func() error {
-											if validator.Result == nil {
-												return fmt.Errorf("deployment not ready: result is nil")
-											}
-											if validator.Result.Status.ReadyReplicas == 0 {
-												return fmt.Errorf("deployment not ready: ready replicas is 0")
-											}
-											return nil
-										},
-									},
-								},
-							},
-						}
-						return inner2.Run()
-					},
+				Validator: &DeploymentValidate{
+					Namespace:        w.Namespace,
+					Name:             w.Name,
+					MinReadyReplicas: 1,
 				},
 			},
 		},
 	}
-
 	return phase.Run()
 }
 
-type K8SDeploymentAnnotate struct {
+type DeploymentAnnotate struct {
 	Namespace   *Namespace
 	Name        string
 	Annotations map[string]string
@@ -230,7 +237,7 @@ type K8SDeploymentAnnotate struct {
 	Ctx context.Context
 }
 
-func (kda K8SDeploymentAnnotate) Execute() error {
+func (kda DeploymentAnnotate) Execute() error {
 	ctx := frame2.ContextOrDefault(kda.Ctx)
 	// Retrieving Deployment
 	deploy, err := kda.Namespace.DeploymentInterface().Get(ctx, kda.Name, metav1.GetOptions{})
@@ -250,7 +257,7 @@ func (kda K8SDeploymentAnnotate) Execute() error {
 
 }
 
-type K8SUndeploy struct {
+type Undeploy struct {
 	Name      string
 	Namespace *Namespace
 	Wait      time.Duration // Waits for the deployment to be gone.  Otherwise, returns as soon as the delete instruction has been issued.  If the wait lapses, return an error.
@@ -259,7 +266,7 @@ type K8SUndeploy struct {
 	frame2.DefaultRunDealer
 }
 
-func (k *K8SUndeploy) Execute() error {
+func (k *Undeploy) Execute() error {
 	ctx := frame2.ContextOrDefault(k.Ctx)
 	err := k.Namespace.DeploymentInterface().Delete(ctx, k.Name, metav1.DeleteOptions{})
 	if err != nil {
@@ -295,6 +302,8 @@ type SecretMount struct {
 	MountPath string
 }
 
+// This is not a frame; This struct is used by DeploymentCreateSimple
+// and f2ocp.DeploymentConfigOpts
 type DeploymentOpts struct {
 	Image         string
 	Labels        map[string]string

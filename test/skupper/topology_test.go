@@ -42,17 +42,22 @@ func TestTopologyMap(t *testing.T) {
 	}
 
 	tm := topology.TopologyMap{
-		Name:     "topo",
-		TestBase: testBase,
-		Map:      topoMap,
+		Name:         "topo",
+		TestBase:     testBase,
+		Map:          topoMap,
+		AutoTearDown: true,
 	}
 	var custom topology.Basic
 	custom = &topologies.Custom{
 		TopologyMap: &tm,
 	}
 
+	runner := &frame2.Run{
+		T: t,
+	}
 	tests := frame2.Phase{
-		Name: "TestTopology",
+		Name:   "TestTopology",
+		Runner: runner,
 		Setup: []frame2.Step{
 			{
 				Modify: &tm,
@@ -73,5 +78,5 @@ func TestTopologyMap(t *testing.T) {
 		},
 	}
 
-	tests.RunT(t)
+	tests.Run()
 }

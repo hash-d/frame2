@@ -17,8 +17,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// See OCPDeploymentConfig for a more complete interface
-type OCPDeploymentConfigOpts struct {
+// See DeploymentConfigCreate for a more complete interface
+type DeploymentConfigCreateSimple struct {
 	Name           string
 	Namespace      *f2k8s.Namespace
 	DeploymentOpts f2k8s.DeploymentOpts
@@ -41,7 +41,7 @@ type OCPDeploymentConfigOpts struct {
 //          SecretMounts  []SecretMount
 
 // TODO: remove this whole thing?
-func (d *OCPDeploymentConfigOpts) Execute() error {
+func (d *DeploymentConfigCreateSimple) Execute() error {
 	ctx := frame2.ContextOrDefault(d.Ctx)
 
 	var volumeMounts []v1.VolumeMount
@@ -109,7 +109,7 @@ func (d *OCPDeploymentConfigOpts) Execute() error {
 		Runner: d.Runner,
 		MainSteps: []frame2.Step{
 			{
-				Modify: &OCPDeploymentConfig{
+				Modify: &DeploymentConfigCreate{
 					Namespace:        d.Namespace,
 					DeploymentConfig: deploymentconfig,
 					Ctx:              ctx,
@@ -134,9 +134,10 @@ func (d *OCPDeploymentConfigOpts) Execute() error {
 			Runner: d.Runner,
 			MainSteps: []frame2.Step{
 				{
-					Validator: &OCPDeploymentConfigGet{
-						Namespace: d.Namespace,
-						Name:      d.Name,
+					Validator: &DeploymentConfigValidate{
+						Namespace:        d.Namespace,
+						Name:             d.Name,
+						MinReadyReplicas: 1,
 					},
 					ValidatorRetry: frame2.RetryOptions{
 						Ctx:        ctx,
@@ -153,8 +154,8 @@ func (d *OCPDeploymentConfigOpts) Execute() error {
 
 // Executes a fully specified OCP DeploymentConfig
 //
-// # See OCPDeploymentConfigOpts for a simpler interface
-type OCPDeploymentConfig struct {
+// # See DeploymentConfigCreateSimple for a simpler interface
+type DeploymentConfigCreate struct {
 	Namespace        *f2k8s.Namespace
 	DeploymentConfig *osappsv1.DeploymentConfig
 
@@ -162,7 +163,7 @@ type OCPDeploymentConfig struct {
 	Ctx    context.Context
 }
 
-func (d *OCPDeploymentConfig) Execute() error {
+func (d *DeploymentConfigCreate) Execute() error {
 	ctx := frame2.ContextOrDefault(d.Ctx)
 
 	var err error
@@ -183,10 +184,11 @@ func (d *OCPDeploymentConfig) Execute() error {
 	return nil
 }
 
-type OCPDeploymentConfigGet struct {
-	Namespace *f2k8s.Namespace
-	Name      string
-	Ctx       context.Context
+type DeploymentConfigValidate struct {
+	Namespace        *f2k8s.Namespace
+	Name             string
+	MinReadyReplicas int
+	Ctx              context.Context
 
 	Result *osappsv1.DeploymentConfig
 
@@ -194,7 +196,7 @@ type OCPDeploymentConfigGet struct {
 	frame2.DefaultRunDealer
 }
 
-func (d *OCPDeploymentConfigGet) Validate() error {
+func (d *DeploymentConfigValidate) Validate() error {
 	ctx := frame2.ContextOrDefault(d.Ctx)
 
 	client, err := clientset.NewForConfig(d.Namespace.GetKubeConfig().GetRestConfig())
@@ -208,9 +210,13 @@ func (d *OCPDeploymentConfigGet) Validate() error {
 		return fmt.Errorf("Failed to get deploymentconfig %q: %w", d.Name, err)
 	}
 
-	// TODO Change his by d.MinReplicas?
-	if d.Result.Status.ReadyReplicas < 1 {
-		return fmt.Errorf("DeploymentConfig %q has no ready replicas", d.Name)
+	if int(d.Result.Status.ReadyReplicas) < d.MinReadyReplicas {
+		return fmt.Errorf(
+			"DeploymentConfig %q has only %d ready replicas (expected %d)",
+			d.Name,
+			d.Result.Status.ReadyReplicas,
+			d.MinReadyReplicas,
+		)
 	}
 
 	return nil
@@ -224,21 +230,21 @@ func (d *OCPDeploymentConfigGet) Validate() error {
 // field, the Ctx field cannot be set; if a different timeout is desired,
 // set it on the Action's Ctx itself, and it will be used for the
 // RetryOptions.
-type OCPDeploymentConfigWait struct {
+type DeploymentConfigWait struct {
 	Name      string
 	Namespace *f2k8s.Namespace
 	Ctx       context.Context
 
-	// On this field, do not set the context.  Use the OCPDeploymentConfigWait.Ctx,
+	// On this field, do not set the context.  Use the DeploymentConfigWait.Ctx,
 	// instead, it will be used for the underlying Retry
 	RetryOptions frame2.RetryOptions
 	frame2.DefaultRunDealer
 	*frame2.Log
 }
 
-func (w OCPDeploymentConfigWait) Validate() error {
+func (w DeploymentConfigWait) Validate() error {
 	if w.RetryOptions.Ctx != nil {
-		panic("RetryOptions.Ctx cannot be set for OCPDeploymentConfigWait")
+		panic("RetryOptions.Ctx cannot be set for DeploymentConfigWait")
 	}
 	retry := w.RetryOptions
 	if retry.IsEmpty() {
@@ -259,9 +265,10 @@ func (w OCPDeploymentConfigWait) Validate() error {
 				ValidatorRetry: retry,
 				Validator: &f2general.Function{
 					Fn: func() error {
-						validator := &OCPDeploymentConfigGet{
-							Namespace: w.Namespace,
-							Name:      w.Name,
+						validator := &DeploymentConfigValidate{
+							Namespace:        w.Namespace,
+							Name:             w.Name,
+							MinReadyReplicas: 1,
 						}
 						inner1 := frame2.Phase{
 							Runner: w.GetRunner(),
@@ -307,7 +314,7 @@ func (w OCPDeploymentConfigWait) Validate() error {
 }
 
 /*
- * TODO: currently, this is a copy of K8SDeployment stuff
+ * TODO: currently, this is a copy of DeploymentCreate stuff
 
 type OCPDeploymentConfigAnnotate struct {
 	Namespace   *base.ClusterContext
@@ -338,7 +345,7 @@ func (kda OCPDeploymentConfigAnnotate) Execute() error {
 }
 */
 
-type OCPDeploymentConfigUndeploy struct {
+type DeploymentConfigUndeploy struct {
 	Name      string
 	Namespace *f2k8s.Namespace
 	Wait      time.Duration // Waits for the deployment to be gone.  Otherwise, returns as soon as the delete instruction has been issued.  If the wait lapses, return an error.
@@ -347,7 +354,7 @@ type OCPDeploymentConfigUndeploy struct {
 	frame2.DefaultRunDealer
 }
 
-func (k *OCPDeploymentConfigUndeploy) Execute() error {
+func (k *DeploymentConfigUndeploy) Execute() error {
 	ctx := frame2.ContextOrDefault(k.Ctx)
 
 	client, err := clientset.NewForConfig(k.Namespace.GetKubeConfig().GetRestConfig())
@@ -368,7 +375,7 @@ func (k *OCPDeploymentConfigUndeploy) Execute() error {
 		MainSteps: []frame2.Step{
 			{
 				Doc: "Confirm the deploymentconfig is gone",
-				Validator: &OCPDeploymentConfigGet{
+				Validator: &DeploymentConfigValidate{
 					Namespace: k.Namespace,
 					Name:      k.Name,
 					Ctx:       ctx,

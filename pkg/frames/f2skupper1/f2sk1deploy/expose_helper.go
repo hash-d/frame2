@@ -53,7 +53,7 @@ func (e ExposeHelper) Execute() error {
 			{
 
 				Doc: fmt.Sprintf("Creating a local service for %q", e.ServiceName),
-				Modify: &f2k8s.K8SServiceCreate{
+				Modify: &f2k8s.ServiceCreate{
 					Namespace: e.Target,
 					Name:      e.ServiceName,
 					Labels:    e.ServiceLabels,

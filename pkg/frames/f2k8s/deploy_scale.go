@@ -9,24 +9,24 @@ import (
 )
 
 type DeployScale struct {
-	Namespace      Namespace
-	DeploySelector // Do not populate the Namespace within the PodSelector; it will be auto-populated
-	Replicas       int32
-	Ctx            context.Context
+	Namespace     *Namespace
+	DeploymentGet DeploymentValidate // Do not populate the Namespace within the DeploymentGet; it will be auto-populated
+	Replicas      int32
+	Ctx           context.Context
 }
 
 func (d DeployScale) Execute() error {
 	ctx := frame2.ContextOrDefault(d.Ctx)
 	log.Printf("execute.DeployScale")
 
-	d.DeploySelector.Namespace = d.Namespace
+	d.DeploymentGet.Namespace = d.Namespace
 
-	err := d.DeploySelector.Execute()
+	err := d.DeploymentGet.Validate()
 	if err != nil {
 		return err
 	}
 
-	deploy := d.DeploySelector.Deploy
+	deploy := d.DeploymentGet.Result
 
 	deploy.Spec.Replicas = &d.Replicas
 	_, err = d.Namespace.DeploymentInterface().Update(ctx, deploy, v1.UpdateOptions{})

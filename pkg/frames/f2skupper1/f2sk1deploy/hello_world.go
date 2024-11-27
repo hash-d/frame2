@@ -91,7 +91,7 @@ func (h *HelloWorldBackend) Execute() error {
 		MainSteps: []frame2.Step{
 			{
 				Doc: "Installing hello-world-backend",
-				Modify: &f2k8s.K8SDeploymentOpts{
+				Modify: &f2k8s.DeploymentCreateSimple{
 					Name:      "backend",
 					Namespace: h.Target,
 					DeploymentOpts: f2k8s.DeploymentOpts{
@@ -103,7 +103,7 @@ func (h *HelloWorldBackend) Execute() error {
 				},
 			}, {
 				Doc: "Creating a local service for hello-world-backend",
-				Modify: &f2k8s.K8SServiceCreate{
+				Modify: &f2k8s.ServiceCreate{
 					Namespace: h.Target,
 					Name:      "backend",
 					Labels:    labels,
@@ -129,7 +129,7 @@ func (h *HelloWorldBackend) Execute() error {
 					Protocol:  proto,
 				},
 				SkipWhen: h.CreateServices || !h.SkupperExpose,
-				Validator: &f2k8s.K8SDeploymentWait{
+				Validator: &f2k8s.DeploymentWait{
 					Namespace: h.Target,
 					Name:      "backend",
 				},
@@ -166,7 +166,7 @@ func (h *HelloWorldFrontend) Execute() error {
 		MainSteps: []frame2.Step{
 			{
 				Doc: "Installing hello-world-frontend",
-				Modify: &f2k8s.K8SDeploymentOpts{
+				Modify: &f2k8s.DeploymentCreateSimple{
 					Name:      "frontend",
 					Namespace: h.Target,
 					DeploymentOpts: f2k8s.DeploymentOpts{
@@ -178,7 +178,7 @@ func (h *HelloWorldFrontend) Execute() error {
 				},
 			}, {
 				Doc: "Creating a local service for frontend",
-				Modify: &f2k8s.K8SServiceCreate{
+				Modify: &f2k8s.ServiceCreate{
 					Namespace: h.Target,
 					Name:      "frontend",
 					Labels:    labels,
@@ -203,7 +203,7 @@ func (h *HelloWorldFrontend) Execute() error {
 					Name:      "frontend",
 					Protocol:  proto,
 				},
-				Validator: &f2k8s.K8SDeploymentWait{
+				Validator: &f2k8s.DeploymentWait{
 					Namespace: h.Target,
 					Name:      "frontend",
 				},

@@ -46,8 +46,8 @@ func (p *PostgresPing) Validate() error {
 		Log:    p.Log,
 		MainSteps: []frame2.Step{
 			{
-				Validator: &K8SPodExecute{
-					Pod: &K8SPodGet{
+				Validator: &PodExecute{
+					Pod: &PodGet{
 						Namespace: p.Namespace,
 						Labels:    p.Labels,
 					},
@@ -113,8 +113,8 @@ func (p *PsycopgPing) Validate() error {
 		Log:    p.Log,
 		MainSteps: []frame2.Step{
 			{
-				Validator: &K8SPodExecute{
-					Pod: &K8SPodGet{
+				Validator: &PodExecute{
+					Pod: &PodGet{
 						Namespace: p.Namespace,
 						Labels:    p.Labels,
 					},

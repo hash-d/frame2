@@ -102,10 +102,10 @@ func (n Namespace) KubeClient() kubernetes.Interface {
 // This will simply create a namespace on the given cluster, with the
 // requested name.
 //
-// For most uses, you may want to use CreateNamespaceTestBase, instead.
+// For most uses, you may want to use NamespaceCreateTestBase, instead.
 //
 // Created namespaces will be labeled with frame2.id
-type CreateNamespaceRaw struct {
+type NamespaceCreateRaw struct {
 	Name    string
 	Cluster *KubeConfig
 
@@ -120,7 +120,7 @@ type CreateNamespaceRaw struct {
 	Return corev1.Namespace
 }
 
-func (c *CreateNamespaceRaw) Execute() error {
+func (c *NamespaceCreateRaw) Execute() error {
 	c.Log.Printf("Creating k8s namespace %q", c.Name)
 
 	err := ConnectInitial()
@@ -150,9 +150,9 @@ func (c *CreateNamespaceRaw) Execute() error {
 	return err
 }
 
-func (c *CreateNamespaceRaw) Teardown() frame2.Executor {
+func (c *NamespaceCreateRaw) Teardown() frame2.Executor {
 	if c.AutoTearDown {
-		return &DeleteNamespaceRaw{
+		return &NamespaceDeleteRaw{
 			Namespace: c.Name,
 			Cluster:   c.Cluster,
 		}
@@ -169,7 +169,7 @@ func (c *CreateNamespaceRaw) Teardown() frame2.Executor {
 // run.
 //
 // f2k8s.ConnectInitial must have been called prior to this
-type CreateNamespaceTestBase struct {
+type NamespaceCreateTestBase struct {
 	Id       string
 	TestBase *TestBase
 	Kind     ClusterType
@@ -188,7 +188,7 @@ type CreateNamespaceTestBase struct {
 	Return Namespace
 }
 
-func (c *CreateNamespaceTestBase) Execute() (err error) {
+func (c *NamespaceCreateTestBase) Execute() (err error) {
 
 	c.Log.Printf("Id: %q, Kind: %q", c.Id, c.Kind)
 
@@ -206,7 +206,7 @@ func (c *CreateNamespaceTestBase) Execute() (err error) {
 		labels["frame2.ns.id"] = c.Id
 	}
 
-	raw := CreateNamespaceRaw{
+	raw := NamespaceCreateRaw{
 		Labels:       labels,
 		Annotations:  c.Annotations,
 		AutoTearDown: c.AutoTearDown,
@@ -240,9 +240,9 @@ func (c *CreateNamespaceTestBase) Execute() (err error) {
 }
 
 /*
-func (c *CreateNamespaceTestBase) Teardown() frame2.Executor {
+func (c *NamespaceCreateTestBase) Teardown() frame2.Executor {
 	if c.AutoTearDown {
-		return &DeleteNamespaceTestBase{
+		return &NamespaceDeleteTestBase{
 			Namespace: &c.Return,
 		}
 	}
@@ -250,7 +250,7 @@ func (c *CreateNamespaceTestBase) Teardown() frame2.Executor {
 }
 */
 
-type DeleteNamespaceTestBase struct {
+type NamespaceDeleteTestBase struct {
 	Namespace *Namespace
 
 	// A wait duration of zero will use the default wait
@@ -262,7 +262,7 @@ type DeleteNamespaceTestBase struct {
 	frame2.Log
 }
 
-func (d *DeleteNamespaceTestBase) Execute() error {
+func (d *NamespaceDeleteTestBase) Execute() error {
 	if d.Namespace == nil {
 		return fmt.Errorf("cannot remove nil namespace")
 	}
@@ -270,7 +270,7 @@ func (d *DeleteNamespaceTestBase) Execute() error {
 		Runner: d.GetRunner(),
 		MainSteps: []frame2.Step{
 			{
-				Modify: &DeleteNamespaceRaw{
+				Modify: &NamespaceDeleteRaw{
 					Namespace: d.Namespace.name,
 					Cluster:   d.Namespace.cluster,
 					Wait:      d.Wait,
@@ -282,9 +282,9 @@ func (d *DeleteNamespaceTestBase) Execute() error {
 }
 
 // This is a direct call to K8S to remove a namespace.  For namespaces created
-// with CreateNamespaceTestBase, you want to use DeleteNamespaceTestBase,
+// with NamespaceCreateTestBase, you want to use NamespaceDeleteTestBase,
 // instead
-type DeleteNamespaceRaw struct {
+type NamespaceDeleteRaw struct {
 	Namespace string
 	Cluster   *KubeConfig
 
@@ -297,7 +297,7 @@ type DeleteNamespaceRaw struct {
 	frame2.Log
 }
 
-func (d *DeleteNamespaceRaw) Execute() error {
+func (d *NamespaceDeleteRaw) Execute() error {
 	d.Log.Printf("Removing namespace %q", d.Namespace)
 
 	// Create a namespace informer

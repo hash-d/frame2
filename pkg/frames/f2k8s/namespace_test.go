@@ -20,7 +20,7 @@ func TestCreateRaw(t *testing.T) {
 		Runner: r,
 		Setup: []frame2.Step{
 			{
-				Modify: &CreateNamespaceRaw{
+				Modify: &NamespaceCreateRaw{
 					Cluster:      cluster,
 					Name:         "test-ns",
 					AutoTearDown: true,
@@ -46,7 +46,7 @@ func TestCreateTestBase(t *testing.T) {
 		Runner: r,
 		Setup: []frame2.Step{
 			{
-				Modify: &CreateNamespaceTestBase{
+				Modify: &NamespaceCreateTestBase{
 					Id:           "first",
 					Kind:         "pub",
 					TestBase:     testBase,
@@ -54,7 +54,7 @@ func TestCreateTestBase(t *testing.T) {
 				},
 			},
 			{
-				Modify: &CreateNamespaceTestBase{
+				Modify: &NamespaceCreateTestBase{
 					Id:           "second",
 					Kind:         "pub",
 					TestBase:     testBase,

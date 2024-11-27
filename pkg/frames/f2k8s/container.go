@@ -8,7 +8,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-type Container struct {
+type ContainerValidate struct {
 	Namespace        *Namespace
 	PodSelector      string
 	ContainerName    string // If empty, check all containers on selected pods
@@ -28,11 +28,11 @@ type Container struct {
 	frame2.DefaultRunDealer
 }
 
-func (c Container) Validate() error {
+func (c ContainerValidate) Validate() error {
 	return c.Run()
 }
 
-func (c Container) Run() error {
+func (c ContainerValidate) Run() error {
 	log.Printf("Validating %+v", c)
 
 	selector := PodSelector{

@@ -116,7 +116,7 @@ func (ssd SkupperServiceDelete) Execute() error {
 	if ssd.Wait != 0 {
 		ctx, fn = context.WithTimeout(ctx, ssd.Wait)
 		defer fn()
-		validator = &f2k8s.K8SServiceGet{
+		validator = &f2k8s.ServiceGet{
 			Namespace: ssd.Namespace,
 			Name:      ssd.ArgName,
 		}

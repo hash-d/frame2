@@ -199,12 +199,12 @@ func (v ValidateSkupperAvailable) Validate() error {
 			{
 				Doc: "Check that the router and service controller containers are reporting as ready",
 				Validators: []frame2.Validator{
-					&f2k8s.Container{
+					&f2k8s.ContainerValidate{
 						Namespace:   v.Namespace,
 						PodSelector: f2sk1const.RouterSelector,
 						StatusCheck: true,
 					},
-					&f2k8s.Container{
+					&f2k8s.ContainerValidate{
 						Namespace:   v.Namespace,
 						PodSelector: f2sk1const.ServiceControllerSelector,
 						StatusCheck: true,

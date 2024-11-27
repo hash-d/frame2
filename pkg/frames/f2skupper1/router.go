@@ -26,7 +26,7 @@ type RouterCheck struct {
 
 func (r *RouterCheck) Validate() error {
 
-	// This will be resulting value of ConfigMap.JSON
+	// This will be resulting value of ConfigMapValidate.JSON
 	jsonchecks := map[string]f2general.JSON{}
 
 	testTable := []struct {
@@ -84,7 +84,7 @@ func (r *RouterCheck) Validate() error {
 		MainSteps: []frame2.Step{
 			{
 				Doc: "Checking contents of CM skupper-internal",
-				Validator: &f2k8s.ConfigMap{
+				Validator: &f2k8s.ConfigMapValidate{
 					Namespace: r.Namespace,
 					Name:      "skupper-internal",
 					Ctx:       r.Ctx,

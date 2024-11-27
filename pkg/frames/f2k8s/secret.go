@@ -51,7 +51,7 @@ func (s SecretDelete) Execute() error {
 	return err
 }
 
-// TODO: Uniformize fields and struct name, between this and ConfigMap
+// TODO: Uniformize fields and struct name, between this and ConfigMapValidate
 type SecretGet struct {
 	Namespace *Namespace
 	Name      string

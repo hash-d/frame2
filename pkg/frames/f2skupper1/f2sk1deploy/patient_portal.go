@@ -126,7 +126,7 @@ func (p PatientDatabase) Execute() error {
 		MainSteps: []frame2.Step{
 			{
 				Doc: "Installing patient-portal-database",
-				Modify: &f2k8s.K8SDeploymentOpts{
+				Modify: &f2k8s.DeploymentCreateSimple{
 					Name:      "database",
 					Namespace: p.Target,
 					DeploymentOpts: f2k8s.DeploymentOpts{
@@ -189,7 +189,7 @@ func (p PatientPayment) Execute() error {
 		MainSteps: []frame2.Step{
 			{
 				Doc: "Installing patient-portal-payment-processor",
-				Modify: &f2k8s.K8SDeploymentOpts{
+				Modify: &f2k8s.DeploymentCreateSimple{
 					Name:      "payment-processor",
 					Namespace: p.Target,
 					DeploymentOpts: f2k8s.DeploymentOpts{
@@ -252,7 +252,7 @@ func (p PatientFrontend) Execute() error {
 		MainSteps: []frame2.Step{
 			{
 				Doc: "Installing patient-portal-frontend",
-				Modify: &f2k8s.K8SDeploymentOpts{
+				Modify: &f2k8s.DeploymentCreateSimple{
 					Name:      "frontend",
 					Namespace: p.Target,
 					DeploymentOpts: f2k8s.DeploymentOpts{

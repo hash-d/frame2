@@ -34,7 +34,7 @@ func (d DeploymentConfigBlindly) DisruptorEnvValue() string {
 func (d DeploymentConfigBlindly) Inspect(step *frame2.Step, phase *frame2.Phase) {
 	switch mod := step.Modify.(type) {
 
-	case *f2k8s.K8SDeployment:
+	case *f2k8s.DeploymentCreate:
 		log.Printf("[D] DEPLOYMENTCONFIG_BLINDLY changed modifier %v Type to 'deploymentconfig'", mod.Deployment.Name)
 		log.Printf("[D] Before: %#v", mod.Deployment)
 
@@ -70,14 +70,14 @@ func (d DeploymentConfigBlindly) Inspect(step *frame2.Step, phase *frame2.Phase)
 		}
 
 		log.Printf("[D] After: %#v", deploymentconfig)
-		step.Modify = &f2ocp.OCPDeploymentConfig{
+		step.Modify = &f2ocp.DeploymentConfigCreate{
 			Namespace:        mod.Namespace,
 			DeploymentConfig: deploymentconfig,
 			Ctx:              mod.Ctx,
 		}
-	case *f2k8s.K8SDeploymentOpts:
-		log.Printf("[D] DEPLOYMENT_CONFIGS_BLINDLY overriding K8SDeploymentOpts %q", mod.Name)
-		newMod := f2ocp.OCPDeploymentConfigOpts{
+	case *f2k8s.DeploymentCreateSimple:
+		log.Printf("[D] DEPLOYMENT_CONFIGS_BLINDLY overriding DeploymentCreateSimple %q", mod.Name)
+		newMod := f2ocp.DeploymentConfigCreateSimple{
 			Name:             mod.Name,
 			Namespace:        mod.Namespace,
 			DeploymentOpts:   mod.DeploymentOpts,
@@ -91,8 +91,8 @@ func (d DeploymentConfigBlindly) Inspect(step *frame2.Step, phase *frame2.Phase)
 			log.Printf("[D] DEPLOYMENTCONFIG_BLINDLY overriding SkupperExpose for %q as 'deploymentconfig'", mod.Name)
 			mod.Type = "deploymentconfig"
 		}
-	case *f2k8s.K8SUndeploy:
-		newMod := f2ocp.OCPDeploymentConfigUndeploy(*mod)
+	case *f2k8s.Undeploy:
+		newMod := f2ocp.DeploymentConfigUndeploy(*mod)
 		step.Modify = &newMod
 	}
 
@@ -101,13 +101,14 @@ func (d DeploymentConfigBlindly) Inspect(step *frame2.Step, phase *frame2.Phase)
 			return nil, false
 		}
 		switch val := v.(type) {
-		case f2k8s.K8SDeploymentWait:
-			transformed := f2ocp.OCPDeploymentConfigWait(val)
+		case f2k8s.DeploymentWait:
+			transformed := f2ocp.DeploymentConfigWait(val)
 			return transformed, true
-		case *f2k8s.K8SDeploymentGet:
-			transformed := f2ocp.OCPDeploymentConfigGet{
+		case *f2k8s.DeploymentValidate:
+			transformed := f2ocp.DeploymentConfigValidate{
 				Namespace:        val.Namespace,
 				Name:             val.Name,
+				MinReadyReplicas: val.MinReadyReplicas,
 				Ctx:              val.Ctx,
 				DefaultRunDealer: val.DefaultRunDealer,
 			}

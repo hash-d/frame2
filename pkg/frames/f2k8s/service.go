@@ -12,7 +12,7 @@ import (
 )
 
 // Creates a Kubernetes service, with simplified configurations
-type K8SServiceCreate struct {
+type ServiceCreate struct {
 	Namespace                *Namespace
 	Name                     string
 	Annotations              map[string]string
@@ -33,7 +33,7 @@ type K8SServiceCreate struct {
 
 //func CreateService(cluster *client.VanClient, name string, annotations, labels, selector map[string]string, ports []apiv1.ServicePort) (*apiv1.Service, error) {
 
-func (ks K8SServiceCreate) Execute() error {
+func (ks ServiceCreate) Execute() error {
 	ctx := frame2.ContextOrDefault(ks.Ctx)
 
 	ports := []apiv1.ServicePort{}
@@ -78,27 +78,27 @@ func (ks K8SServiceCreate) Execute() error {
 	return nil
 }
 
-func (ks K8SServiceCreate) Teardown() frame2.Executor {
+func (ks ServiceCreate) Teardown() frame2.Executor {
 
 	if !ks.AutoTeardown {
 		return nil
 
 	}
 
-	return K8SServiceDelete{
+	return ServiceDelete{
 		Namespace: ks.Namespace,
 		Name:      ks.Name,
 	}
 }
 
-type K8SServiceDelete struct {
+type ServiceDelete struct {
 	Namespace *Namespace
 	Name      string
 
 	Ctx context.Context
 }
 
-func (ksd K8SServiceDelete) Execute() error {
+func (ksd ServiceDelete) Execute() error {
 	ctx := frame2.ContextOrDefault(ksd.Ctx)
 
 	ksd.Namespace.ServiceInterface().Delete(ctx, ksd.Name, metav1.DeleteOptions{})
@@ -106,7 +106,7 @@ func (ksd K8SServiceDelete) Execute() error {
 	return nil
 }
 
-type K8SServiceAnnotate struct {
+type ServiceAnnotate struct {
 	Namespace   *Namespace
 	Name        string
 	Annotations map[string]string
@@ -114,7 +114,7 @@ type K8SServiceAnnotate struct {
 	Ctx context.Context
 }
 
-func (ksa K8SServiceAnnotate) Execute() error {
+func (ksa ServiceAnnotate) Execute() error {
 	ctx := frame2.ContextOrDefault(ksa.Ctx)
 	// Retrieving service
 	svc, err := ksa.Namespace.ServiceInterface().Get(ctx, ksa.Name, metav1.GetOptions{})
@@ -134,7 +134,7 @@ func (ksa K8SServiceAnnotate) Execute() error {
 
 }
 
-type K8SServiceRemoveAnnotation struct {
+type ServiceRemoveAnnotation struct {
 	Namespace   *Namespace
 	Name        string
 	Annotations []string
@@ -142,7 +142,7 @@ type K8SServiceRemoveAnnotation struct {
 	Ctx context.Context
 }
 
-func (ksr K8SServiceRemoveAnnotation) Execute() error {
+func (ksr ServiceRemoveAnnotation) Execute() error {
 	ctx := frame2.ContextOrDefault(ksr.Ctx)
 	// Retrieving service
 	svc, err := ksr.Namespace.ServiceInterface().Get(ctx, ksr.Name, metav1.GetOptions{})
@@ -165,7 +165,7 @@ func (ksr K8SServiceRemoveAnnotation) Execute() error {
 }
 
 // Retrieve a K8S Service by name and namespace
-type K8SServiceGet struct {
+type ServiceGet struct {
 	Namespace *Namespace
 	Name      string
 	Ctx       context.Context
@@ -176,7 +176,7 @@ type K8SServiceGet struct {
 	Service *apiv1.Service
 }
 
-func (kg *K8SServiceGet) Validate() error {
+func (kg *ServiceGet) Validate() error {
 	ctx := frame2.ContextOrDefault(kg.Ctx)
 	var err error
 	kg.Service, err = kg.Namespace.ServiceInterface().Get(ctx, kg.Name, metav1.GetOptions{})

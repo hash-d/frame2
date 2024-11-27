@@ -66,12 +66,12 @@ func (s SkupperUpgrade) Execute() error {
 		defer cancel()
 
 		validators = []frame2.Validator{
-			&f2k8s.Container{
+			&f2k8s.ContainerValidate{
 				Namespace:   s.Namespace,
 				PodSelector: f2sk1const.RouterSelector,
 				StatusCheck: true,
 			},
-			&f2k8s.Container{
+			&f2k8s.ContainerValidate{
 				Namespace:   s.Namespace,
 				PodSelector: f2sk1const.ServiceControllerSelector,
 				StatusCheck: true,

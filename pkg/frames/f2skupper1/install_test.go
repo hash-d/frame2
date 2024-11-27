@@ -135,7 +135,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 						ExpectExactly:         2,
 						NegativeContainerList: []string{"flow-collector"},
 					},
-					&f2k8s.ConfigMap{
+					&f2k8s.ConfigMapValidate{
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values: map[string]string{
@@ -198,7 +198,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 						},
 						ExpectMin: 3,
 					},
-					&f2k8s.ConfigMap{
+					&f2k8s.ConfigMapValidate{
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values: map[string]string{
@@ -230,7 +230,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 						},
 						ExpectMin: 3,
 					},
-					&f2k8s.ConfigMap{
+					&f2k8s.ConfigMapValidate{
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values: map[string]string{
@@ -335,7 +335,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 						Name:         "skupper-console-users",
 						ExpectAbsent: true,
 					},
-					&f2k8s.Container{
+					&f2k8s.ContainerValidate{
 						Namespace:     ns,
 						PodSelector:   f2sk1const.ServiceControllerSelector,
 						ContainerName: "oauth-proxy",
@@ -349,7 +349,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&f2k8s.NetworkPolicy{
+					&f2k8s.NetworkPolicyValidate{
 						Namespace: ns,
 						Name:      "skupper",
 					},
@@ -376,7 +376,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 							ns.GetNamespaceName(),
 						),
 					},
-					&f2k8s.ConfigMap{
+					&f2k8s.ConfigMapValidate{
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values:    map[string]string{"cluster-permissions": "true"},
@@ -390,7 +390,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&f2k8s.ConfigMap{
+					&f2k8s.ConfigMapValidate{
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values:    map[string]string{"name": "custom-site-name"},
@@ -408,7 +408,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&f2k8s.ConfigMap{
+					&f2k8s.ConfigMapValidate{
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values:    map[string]string{"router-logging": "trace"},
@@ -439,7 +439,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&f2k8s.ConfigMap{
+					&f2k8s.ConfigMapValidate{
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values:    map[string]string{"ingress": "none"},
@@ -466,7 +466,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&f2k8s.ConfigMap{
+					&f2k8s.ConfigMapValidate{
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values:    map[string]string{"ingress-host": "localhost"},
@@ -480,7 +480,7 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&f2k8s.ConfigMap{
+					&f2k8s.ConfigMapValidate{
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values:    map[string]string{"service-sync": "false"},
@@ -494,12 +494,12 @@ func TestSkupperInstallEffects(t *testing.T) {
 				},
 				ValidatorsRetry: basicWait,
 				Validators: []frame2.Validator{
-					&f2k8s.ConfigMap{
+					&f2k8s.ConfigMapValidate{
 						Namespace: ns,
 						Name:      "skupper-site",
 						Values:    map[string]string{"router-cpu": "134m"},
 					},
-					&f2k8s.Container{
+					&f2k8s.ContainerValidate{
 						Namespace:     ns,
 						PodSelector:   f2sk1const.RouterSelector,
 						ContainerName: "router",

@@ -78,7 +78,7 @@ func (o *OutgoingLinkCheck) Validate() error {
 							Values: map[string]string{"skupper.io/type": "connection-token"},
 						},
 					},
-					&f2k8s.ConfigMap{
+					&f2k8s.ConfigMapValidate{
 						Namespace: o.Namespace,
 						Name:      "skupper-internal",
 						JSON: map[string]f2general.JSON{

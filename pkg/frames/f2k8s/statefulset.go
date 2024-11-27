@@ -10,7 +10,7 @@ import (
 )
 
 // Executes a fully specified K8S Statefulset
-type K8SStatefulSet struct {
+type StatefulSetCreate struct {
 	Namespace    *Namespace
 	StatefulSet  *apps.StatefulSet
 	AutoTeardown bool
@@ -19,7 +19,7 @@ type K8SStatefulSet struct {
 	Result *apps.StatefulSet
 }
 
-func (k *K8SStatefulSet) Execute() error {
+func (k *StatefulSetCreate) Execute() error {
 	ctx := frame2.ContextOrDefault(k.Ctx)
 
 	var err error
@@ -31,26 +31,26 @@ func (k *K8SStatefulSet) Execute() error {
 	return nil
 }
 
-func (k *K8SStatefulSet) Teardown() frame2.Executor {
+func (k *StatefulSetCreate) Teardown() frame2.Executor {
 	if !k.AutoTeardown || k.StatefulSet == nil {
 		return nil
 	}
 
-	return &K8SStatefulSetRemove{
+	return &StatefulSetRemove{
 		Namespace: k.Namespace,
 		Name:      k.StatefulSet.Name,
 	}
 
 }
 
-type K8SStatefulSetRemove struct {
+type StatefulSetRemove struct {
 	Namespace *Namespace
 	Name      string
 
 	Ctx context.Context
 }
 
-func (k *K8SStatefulSetRemove) Execute() error {
+func (k *StatefulSetRemove) Execute() error {
 	ctx := frame2.ContextOrDefault(k.Ctx)
 
 	err := k.Namespace.StatefulSetInterface().Delete(ctx, k.Name, metav1.DeleteOptions{})

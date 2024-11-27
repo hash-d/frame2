@@ -12,7 +12,7 @@ import (
 )
 
 // TODO: Uniformize fields and struct name, between this and SecretGet
-type ConfigMap struct {
+type ConfigMapValidate struct {
 	Namespace *Namespace
 	Name      string
 	Ctx       context.Context
@@ -36,7 +36,7 @@ type ConfigMap struct {
 	frame2.DefaultRunDealer
 }
 
-func (c *ConfigMap) Validate() error {
+func (c *ConfigMapValidate) Validate() error {
 	ctx := frame2.ContextOrDefault(c.Ctx)
 	asserter := frame2.Asserter{}
 	cm, err := c.Namespace.ConfigMapInterface().Get(
@@ -78,7 +78,7 @@ func (c *ConfigMap) Validate() error {
 		}
 		phase := frame2.Phase{
 			Runner: c.GetRunner(),
-			Doc:    "Checking JSON contents for ConfigMap",
+			Doc:    "Checking JSON contents for ConfigMapValidate",
 			MainSteps: []frame2.Step{
 				{
 					Validators: JSONvalidators,

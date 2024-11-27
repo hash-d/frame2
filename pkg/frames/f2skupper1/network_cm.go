@@ -24,7 +24,7 @@ func (n NetworkStatusConfigMap) Validate() error {
 		Runner: n.GetRunner(),
 		MainSteps: []frame2.Step{
 			{
-				Validator: &f2k8s.ConfigMap{
+				Validator: &f2k8s.ConfigMapValidate{
 					Namespace: n.Namespace,
 					Name:      "skupper-network-status",
 					JSON: map[string]f2general.JSON{

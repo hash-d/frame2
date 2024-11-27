@@ -8,7 +8,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type NetworkPolicy struct {
+type NetworkPolicyValidate struct {
 	Namespace *Namespace
 	Name      string
 	Ctx       context.Context
@@ -25,7 +25,7 @@ type NetworkPolicy struct {
 	frame2.DefaultRunDealer
 }
 
-func (n *NetworkPolicy) Validate() error {
+func (n *NetworkPolicyValidate) Validate() error {
 	ctx := frame2.ContextOrDefault(n.Ctx)
 	//	asserter := frame2.Asserter{}
 	_, err := n.Namespace.NetworkPolicyInterface().Get(

@@ -19,9 +19,9 @@ func TestSkupperInfo(t *testing.T) {
 	}
 
 	installCurrent := f2sk1environment.JustSkupperSimple{
-		Name:    "skupper-info",
-		Console: true,
-		//AutoTearDown: true,
+		Name:         "skupper-info",
+		Console:      true,
+		AutoTearDown: true,
 	}
 	//installOld := environment.JustSkupperDefault{ }
 

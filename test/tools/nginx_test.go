@@ -15,7 +15,7 @@ func TestNginxDeploy(t *testing.T) {
 	}
 	assert.Assert(t, f2k8s.ConnectInitial())
 	testBase := f2k8s.NewTestBase("nginx")
-	ns := &f2k8s.CreateNamespaceTestBase{
+	ns := &f2k8s.NamespaceCreateTestBase{
 		TestBase:     testBase,
 		AutoTearDown: true,
 		Kind:         f2k8s.Public,
@@ -42,9 +42,10 @@ func TestNginxDeploy(t *testing.T) {
 					ExposeService: true,
 				},
 				Validators: []frame2.Validator{
-					&f2k8s.K8SDeploymentGet{
-						Namespace: prv1,
-						Name:      "nginx",
+					&f2k8s.DeploymentValidate{
+						Namespace:        prv1,
+						Name:             "nginx",
+						MinReadyReplicas: 1,
 					},
 					&f2k8s.Curl{
 						Namespace:   prv1,
