@@ -3,9 +3,9 @@ package subrunner
 import (
 	"context"
 	"fmt"
+	"github.com/hash-d/frame2/pkg/frames/f2general"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/hash-d/frame2/pkg/execute"
 	"github.com/imdario/mergo"
 )
 
@@ -177,7 +177,7 @@ func (e Effects[T, PT]) GetPhase(runner *frame2.Run) frame2.Phase {
 	if cancel != nil {
 		phase.MainSteps = append(phase.MainSteps, frame2.Step{
 			Doc: "cancel merged context",
-			Modify: &execute.Function{
+			Modify: &f2general.Function{
 				Fn: func() error {
 					cancel()
 					return nil

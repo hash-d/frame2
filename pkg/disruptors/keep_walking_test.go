@@ -1,12 +1,11 @@
 package disruptors_test
 
 import (
+	"github.com/hash-d/frame2/pkg/frames/f2general"
 	"testing"
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/disruptors"
-	"github.com/hash-d/frame2/pkg/execute"
-	"github.com/hash-d/frame2/pkg/validate"
 	"gotest.tools/assert"
 )
 
@@ -26,45 +25,45 @@ func TestKeepWalking(t *testing.T) {
 		MainSteps: []frame2.Step{
 			{
 				Name: "Single Validator",
-				Validator: &validate.Executor{
-					Executor: execute.Fail{
+				Validator: &f2general.Executor{
+					Executor: f2general.Fail{
 						Reason: "This is failing, but Keep Walking should save it",
 					},
 				},
 			}, {
 				Name: "ExpectError should be unaffected",
-				Validator: &validate.Executor{
-					Executor: execute.Success{},
+				Validator: &f2general.Executor{
+					Executor: f2general.Success{},
 				},
 				ExpectError: true,
 			}, {
 				Name: "On subtest",
 				Substeps: []*frame2.Step{
 					{
-						Validator: &validate.Executor{
-							Executor: execute.Fail{
+						Validator: &f2general.Executor{
+							Executor: f2general.Fail{
 								Reason: "Saved fail on unnamed substep",
 							},
 						},
 					}, {
 						Doc: "Following step should execute",
-						Validator: &validate.Executor{
-							Executor: execute.Success{},
+						Validator: &f2general.Executor{
+							Executor: f2general.Success{},
 						},
 					},
 				},
 			}, {
 				Doc: "Not on a named test",
-				Validator: &validate.Executor{
-					Executor: execute.Fail{
+				Validator: &f2general.Executor{
+					Executor: f2general.Fail{
 						Reason: "Saved fail on unnamed substep (and Final)",
 					},
 				},
 				ValidatorFinal: true,
 			}, {
 				Name: "Last step: success",
-				Validator: &validate.Executor{
-					Executor: execute.Success{},
+				Validator: &f2general.Executor{
+					Executor: f2general.Success{},
 				},
 			},
 		},

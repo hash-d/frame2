@@ -2,14 +2,13 @@ package frame2_test
 
 import (
 	"fmt"
+	"github.com/hash-d/frame2/pkg/frames/f2general"
 	"io"
 	"log"
 	"testing"
 	"time"
 
 	frame2 "github.com/hash-d/frame2/pkg"
-	"github.com/hash-d/frame2/pkg/execute"
-	"github.com/hash-d/frame2/pkg/validate"
 	"gotest.tools/assert"
 )
 
@@ -23,7 +22,7 @@ func TestPlayground(t *testing.T) {
 		Setup: []frame2.Step{
 			{
 				Doc:    "Please succeed",
-				Modify: execute.Success{},
+				Modify: f2general.Success{},
 			},
 		},
 		Teardown: []frame2.Step{},
@@ -31,7 +30,7 @@ func TestPlayground(t *testing.T) {
 			{
 				Name: "dummy",
 				Doc:  "Dummy testing",
-				Validator: &validate.Dummy{
+				Validator: &f2general.Dummy{
 					Results: []error{io.EOF, nil, nil, io.EOF, nil, io.EOF, nil},
 				},
 				ValidatorRetry: frame2.RetryOptions{
@@ -44,7 +43,7 @@ func TestPlayground(t *testing.T) {
 				Name: "sub",
 				Doc:  "Testing substeps",
 				Substep: &frame2.Step{
-					Validator: &validate.Dummy{
+					Validator: &f2general.Dummy{
 						Results: []error{io.EOF, nil, io.EOF, nil, nil},
 					},
 				},
@@ -78,7 +77,7 @@ func TestSimplest(t *testing.T) {
 		Name: "Simplest",
 		MainSteps: []frame2.Step{
 			{
-				Modify: execute.Success{},
+				Modify: f2general.Success{},
 			},
 		},
 	}
@@ -95,7 +94,7 @@ func TestTwoPhases(t *testing.T) {
 		MainSteps: []frame2.Step{
 			{
 				Doc:    "Phase1",
-				Modify: execute.Success{},
+				Modify: f2general.Success{},
 			},
 		},
 	}
@@ -107,7 +106,7 @@ func TestTwoPhases(t *testing.T) {
 		MainSteps: []frame2.Step{
 			{
 				Doc:    "Phase2",
-				Modify: execute.Success{},
+				Modify: f2general.Success{},
 			},
 		},
 	}
@@ -121,7 +120,7 @@ func TestTwoPhases(t *testing.T) {
 			MainSteps: []frame2.Step{
 				{
 					Doc:    fmt.Sprintf("Phase3.%d", i),
-					Modify: execute.Success{},
+					Modify: f2general.Success{},
 				},
 			},
 		}
@@ -134,7 +133,7 @@ func TestTwoPhases(t *testing.T) {
 		MainSteps: []frame2.Step{
 			{
 				Doc:    "InnerPhase",
-				Modify: execute.Success{},
+				Modify: f2general.Success{},
 			},
 		},
 	}
@@ -160,7 +159,7 @@ func TestTwoPhases(t *testing.T) {
 			{
 				Doc:  "Closure 1: set",
 				Name: "Compo",
-				Modify: execute.Function{
+				Modify: f2general.Function{
 					Fn: func() error {
 						if checked {
 							return fmt.Errorf("Checked started with true!")
@@ -172,7 +171,7 @@ func TestTwoPhases(t *testing.T) {
 			}, {
 				Doc:  "Closure 2: get",
 				Name: "Compo",
-				Modify: execute.Function{
+				Modify: f2general.Function{
 					Fn: func() error {
 						if !checked {
 							return fmt.Errorf("Checked was not changed!")
@@ -220,13 +219,13 @@ func (c Composed) Execute() error {
 		MainSteps: []frame2.Step{
 			{
 				Doc: "Print start",
-				Modify: execute.Print{
+				Modify: f2general.Print{
 					Message: "Got values %q and %q",
 					Data:    []interface{}{c.Argument, *c.Reference},
 				},
 			}, {
 				Doc: "Modify",
-				Modify: execute.Function{
+				Modify: f2general.Function{
 					Fn: func() error {
 						newValue := "Changed!"
 						c.Reference = &newValue
@@ -244,7 +243,7 @@ func (c Composed) Execute() error {
 		MainSteps: []frame2.Step{
 			{
 				Doc: "Print final",
-				Modify: execute.Print{
+				Modify: f2general.Print{
 					Message: "Got values %q and %q",
 					Data:    []interface{}{c.Argument, *c.Reference},
 				},
@@ -264,7 +263,7 @@ func (a AutoDestruct) Execute() error {
 }
 
 func (a AutoDestruct) TearDown() frame2.Executor {
-	return execute.Print{
+	return f2general.Print{
 		Message: "Destroyed!",
 	}
 }
@@ -298,7 +297,7 @@ func (s SimpleComposed) Execute() error {
 		MainSteps: []frame2.Step{
 			{
 				Doc:    "The step within the composed Executor",
-				Modify: execute.Success{},
+				Modify: f2general.Success{},
 			},
 		},
 	}
@@ -322,18 +321,18 @@ func TestInner(t *testing.T) {
 				Substeps: []*frame2.Step{
 					{
 						Doc:    "Unnamed substep 1",
-						Modify: execute.Success{},
+						Modify: f2general.Success{},
 					}, {
 						Name:   "Substep-Inner-1",
 						Doc:    "The inner substep",
-						Modify: execute.Success{},
+						Modify: f2general.Success{},
 					}, {
 						Doc:    "Unnamed substep 2",
-						Modify: execute.Success{},
+						Modify: f2general.Success{},
 					}, {
 						Name:   "Substep-Inner-2",
 						Doc:    "The inner substep 2",
-						Modify: execute.Success{},
+						Modify: f2general.Success{},
 					},
 				},
 			},
@@ -353,7 +352,7 @@ func TestInner(t *testing.T) {
 					MainSteps: []frame2.Step{
 						{
 							Doc:    "The inner phase's step",
-							Modify: execute.Success{},
+							Modify: f2general.Success{},
 						},
 					},
 				},
@@ -366,7 +365,7 @@ func TestInner(t *testing.T) {
 					MainSteps: []frame2.Step{
 						{
 							Doc:    "The inner phase's step",
-							Modify: execute.Success{},
+							Modify: f2general.Success{},
 						},
 					},
 				},
@@ -377,7 +376,7 @@ func TestInner(t *testing.T) {
 					MainSteps: []frame2.Step{
 						{
 							Doc:    "The inner phase's step",
-							Modify: execute.Success{},
+							Modify: f2general.Success{},
 						},
 					},
 				},
@@ -390,7 +389,7 @@ func TestInner(t *testing.T) {
 					MainSteps: []frame2.Step{
 						{
 							Doc:    "The inner phase's step",
-							Modify: execute.Success{},
+							Modify: f2general.Success{},
 						},
 					},
 				},
@@ -427,13 +426,13 @@ func TestValidations(t *testing.T) {
 		MainSteps: []frame2.Step{
 			{
 				Name: "Mixed results",
-				Validator: validate.Phase{
+				Validator: f2general.Phase{
 					Phase: frame2.Phase{
 						MainSteps: []frame2.Step{
 							{
 								Validators: []frame2.Validator{
-									&validate.Fail{},
-									&validate.Success{},
+									&f2general.Fail{},
+									&f2general.Success{},
 								},
 							},
 						},
@@ -444,13 +443,13 @@ func TestValidations(t *testing.T) {
 				ExpectError: true,
 			}, {
 				Name: "Mixed results when expecting a failure",
-				Validator: validate.Phase{
+				Validator: f2general.Phase{
 					Phase: frame2.Phase{
 						MainSteps: []frame2.Step{
 							{
 								Validators: []frame2.Validator{
-									&validate.Fail{},
-									&validate.Success{},
+									&f2general.Fail{},
+									&f2general.Success{},
 								},
 								ExpectError: true,
 							},
