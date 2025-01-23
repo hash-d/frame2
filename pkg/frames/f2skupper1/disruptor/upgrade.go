@@ -2,11 +2,12 @@ package disruptor
 
 import (
 	"fmt"
-	"github.com/hash-d/frame2/pkg/frames/f2skupper1"
 	"log"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/hash-d/frame2/pkg/frames/f2skupper1"
 
 	frame2 "github.com/hash-d/frame2/pkg"
 	"github.com/hash-d/frame2/pkg/frames/f2k8s"
@@ -29,6 +30,12 @@ const (
 	// Do all public first, then all private.  Within the groups,
 	// they'll be left in their original order.
 	UPGRADE_STRATEGY_PRV_FIRST TestUpgradeStrategy = "PRV_FIRST"
+
+	// For the SKUPPER_TEST_OLD.*IMAGE variables, if set to this value,
+	// the referred variable will be set to an empty value.  This may
+	// be required on environments where trying to set a variable to
+	// the empty value actually unsets it (such as Jenkins' withEnv)
+	VAR_EMPTY_VALUE = "frame2.empty"
 )
 
 // Returns the Upgrade strategy configured in the environment
@@ -243,6 +250,9 @@ func setCliPathOldEnv(action f2skupper1.SkupperCliPathSetter) {
 		// Do not change to os.GetEnv: we want the ability to unset a variable
 		// for the old version
 		if image, ok := os.LookupEnv(oldEnvKey); ok {
+			if image == VAR_EMPTY_VALUE {
+				image = ""
+			}
 			env = append(env, fmt.Sprintf("%s=%s", envKey, image))
 		}
 
